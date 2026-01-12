@@ -1,0 +1,109 @@
+{
+  "template": "app",
+  "imports": {
+    "Volo.Abp.LeptonXLiteTheme": {
+      "version": "5.0.1",
+      "isInstalled": true,
+      "creationTime": "01/12/2026 11:17:41 +00:00"
+    },
+    "Volo.Abp.Account": {
+      "version": "10.0.1",
+      "isInstalled": true,
+      "creationTime": "01/12/2026 11:17:41 +00:00"
+    },
+    "Volo.Abp.OpenIddict": {
+      "version": "10.0.1",
+      "isInstalled": true,
+      "creationTime": "01/12/2026 11:17:41 +00:00"
+    },
+    "Volo.Abp.Identity": {
+      "version": "10.0.1",
+      "isInstalled": true,
+      "creationTime": "01/12/2026 11:17:41 +00:00"
+    },
+    "Volo.Abp.TenantManagement": {
+      "version": "10.0.1",
+      "isInstalled": true,
+      "creationTime": "01/12/2026 11:17:41 +00:00"
+    },
+    "Volo.Abp.SettingManagement": {
+      "version": "10.0.1",
+      "isInstalled": true,
+      "creationTime": "01/12/2026 11:17:41 +00:00"
+    },
+    "Volo.Abp.PermissionManagement": {
+      "version": "10.0.1",
+      "isInstalled": true,
+      "creationTime": "01/12/2026 11:17:41 +00:00"
+    },
+    "Volo.Abp.FeatureManagement": {
+      "version": "10.0.1",
+      "isInstalled": true,
+      "creationTime": "01/12/2026 11:17:41 +00:00"
+    }
+  },
+  "folders": {
+    "items": {
+      "src": {},
+      "test": {}
+    }
+  },
+  "packages": {
+    "Informatique.Alumni.Application": {
+      "path": "src/Informatique.Alumni.Application/Informatique.Alumni.Application.abppkg",
+      "folder": "src"
+    },
+    "Informatique.Alumni.Application.Tests": {
+      "path": "test/Informatique.Alumni.Application.Tests/Informatique.Alumni.Application.Tests.abppkg",
+      "folder": "test"
+    },
+    "Informatique.Alumni.Domain.Shared": {
+      "path": "src/Informatique.Alumni.Domain.Shared/Informatique.Alumni.Domain.Shared.abppkg",
+      "folder": "src"
+    },
+    "Informatique.Alumni.Application.Contracts": {
+      "path": "src/Informatique.Alumni.Application.Contracts/Informatique.Alumni.Application.Contracts.abppkg",
+      "folder": "src"
+    },
+    "Informatique.Alumni.HttpApi": {
+      "path": "src/Informatique.Alumni.HttpApi/Informatique.Alumni.HttpApi.abppkg",
+      "folder": "src"
+    },
+    "Informatique.Alumni.HttpApi.Client": {
+      "path": "src/Informatique.Alumni.HttpApi.Client/Informatique.Alumni.HttpApi.Client.abppkg",
+      "folder": "src"
+    },
+    "Informatique.Alumni.EntityFrameworkCore.Tests": {
+      "path": "test/Informatique.Alumni.EntityFrameworkCore.Tests/Informatique.Alumni.EntityFrameworkCore.Tests.abppkg",
+      "folder": "test"
+    },
+    "Informatique.Alumni.EntityFrameworkCore": {
+      "path": "src/Informatique.Alumni.EntityFrameworkCore/Informatique.Alumni.EntityFrameworkCore.abppkg",
+      "folder": "src"
+    },
+    "Informatique.Alumni.TestBase": {
+      "path": "test/Informatique.Alumni.TestBase/Informatique.Alumni.TestBase.abppkg",
+      "folder": "test"
+    },
+    "Informatique.Alumni.Domain.Tests": {
+      "path": "test/Informatique.Alumni.Domain.Tests/Informatique.Alumni.Domain.Tests.abppkg",
+      "folder": "test"
+    },
+    "Informatique.Alumni.HttpApi.Client.ConsoleTestApp": {
+      "path": "test/Informatique.Alumni.HttpApi.Client.ConsoleTestApp/Informatique.Alumni.HttpApi.Client.ConsoleTestApp.abppkg",
+      "folder": "test"
+    },
+    "Informatique.Alumni.DbMigrator": {
+      "path": "src/Informatique.Alumni.DbMigrator/Informatique.Alumni.DbMigrator.abppkg",
+      "folder": "src"
+    },
+    "Informatique.Alumni.HttpApi.Host": {
+      "path": "src/Informatique.Alumni.HttpApi.Host/Informatique.Alumni.HttpApi.Host.abppkg",
+      "folder": "src"
+    },
+    "Informatique.Alumni.Domain": {
+      "path": "src/Informatique.Alumni.Domain/Informatique.Alumni.Domain.abppkg",
+      "folder": "src"
+    }
+  }
+}
