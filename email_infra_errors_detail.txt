@@ -1,0 +1,8 @@
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Infrastructure\Email\EmailLogCleanupWorker.cs(4,27): error CS0234: The type or namespace name 'Domain' does not exist in the namespace 'Informatique.Alumni' (are you missing an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Infrastructure\Email\EmailSendingJob.cs(3,27): error CS0234: The type or namespace name 'Domain' does not exist in the namespace 'Informatique.Alumni' (are you missing an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+
+Build FAILED.
+    86 Warning(s)
+    2 Error(s)
+
+Time Elapsed 00:00:02.84

@@ -1,0 +1,7 @@
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Profiles\MockStudentSystemIntegrationService.cs(12,52): error CS0535: 'MockStudentSystemIntegrationService' does not implement interface member 'IStudentSystemIntegrationService.GetAcademicCalendarAsync()' [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+
+Build FAILED.
+    57 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:03.19

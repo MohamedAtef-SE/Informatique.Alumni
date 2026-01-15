@@ -1,0 +1,11 @@
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Career\CareerManager.cs(22,63): error CS0246: The type or namespace name 'CareerActivity' could not be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Career\CareerManager.cs(11,34): error CS0246: The type or namespace name 'CareerActivity' could not be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Career\CareerManager.cs(15,21): error CS0246: The type or namespace name 'CareerActivity' could not be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Career\CareerServiceTypeManager.cs(12,34): error CS0246: The type or namespace name 'CareerActivity' could not be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Career\CareerServiceTypeManager.cs(16,21): error CS0246: The type or namespace name 'CareerActivity' could not be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj]
+
+Build FAILED.
+    7 Warning(s)
+    5 Error(s)
+
+Time Elapsed 00:00:04.92

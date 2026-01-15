@@ -1,0 +1,8 @@
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Career\CareerAppService.cs(276,76): error CS1503: Argument 1: cannot convert from 'System.Guid?' to 'System.Guid' [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Career\CareerAppService.cs(277,72): error CS1503: Argument 1: cannot convert from 'System.Guid?' to 'System.Guid' [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+
+Build FAILED.
+    81 Warning(s)
+    2 Error(s)
+
+Time Elapsed 00:00:03.26

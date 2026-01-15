@@ -1,0 +1,7 @@
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\Career\ICareerAppService.cs(23,10): error CS0246: The type or namespace name 'List<>' could not be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\Informatique.Alumni.Application.Contracts.csproj]
+
+Build FAILED.
+    21 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:03.20

@@ -1,0 +1,8 @@
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Career\CareerAppService.cs(9,17): error CS0234: The type or namespace name 'EntityFrameworkCore' does not exist in the namespace 'Microsoft' (are you missing an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Career\WorkshopEmailJob.cs(15,21): error CS0246: The type or namespace name 'Task' could not be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+
+Build FAILED.
+    58 Warning(s)
+    2 Error(s)
+
+Time Elapsed 00:00:02.32

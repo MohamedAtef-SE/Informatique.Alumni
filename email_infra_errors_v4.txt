@@ -1,0 +1,7 @@
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Infrastructure\Email\EmailSendingJob.cs(56,17): error CS0103: The name 'GuidGenerator' does not exist in the current context [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+
+Build FAILED.
+    98 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:02.76

@@ -1,0 +1,12 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Informatique.Alumni.Domain.Shared -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain.Shared\bin\Debug\net10.0\Informatique.Alumni.Domain.Shared.dll
+  Informatique.Alumni.Domain -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\bin\Debug\net10.0\Informatique.Alumni.Domain.dll
+  Informatique.Alumni.Application.Contracts -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\bin\Debug\net10.0\Informatique.Alumni.Application.Contracts.dll
+  Informatique.Alumni.Application -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\bin\Debug\net10.0\Informatique.Alumni.Application.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:02.77

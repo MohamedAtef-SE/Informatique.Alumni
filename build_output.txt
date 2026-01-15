@@ -1,0 +1,14 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Informatique.Alumni.Domain.Shared -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain.Shared\bin\Debug\net10.0\Informatique.Alumni.Domain.Shared.dll
+  Informatique.Alumni.Domain -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\bin\Debug\net10.0\Informatique.Alumni.Domain.dll
+  Informatique.Alumni.TestBase -> D:\Projects\Informatique.Alumni\test\Informatique.Alumni.TestBase\bin\Debug\net10.0\Informatique.Alumni.TestBase.dll
+D:\Projects\Informatique.Alumni\test\Informatique.Alumni.Domain.Tests\Certificates\CertificateManagerTests.cs(25,50): error CS0246: The type or namespace name 'ILazyServiceProvider' could not be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\test\Informatique.Alumni.Domain.Tests\Informatique.Alumni.Domain.Tests.csproj]
+
+Build FAILED.
+
+D:\Projects\Informatique.Alumni\test\Informatique.Alumni.Domain.Tests\Certificates\CertificateManagerTests.cs(25,50): error CS0246: The type or namespace name 'ILazyServiceProvider' could not be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\test\Informatique.Alumni.Domain.Tests\Informatique.Alumni.Domain.Tests.csproj]
+    0 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:01.70

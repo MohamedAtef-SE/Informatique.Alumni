@@ -1,0 +1,383 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Informatique.Alumni.Branches;
+using Informatique.Alumni.Permissions;
+using Informatique.Alumni.Profiles;
+using Microsoft.AspNetCore.Authorization;
+using Volo.Abp;
+using Volo.Abp.Application.Dtos;
+using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Users;
+
+namespace Informatique.Alumni.Certificates;
+
+[Authorize(AlumniPermissions.Certificates.Default)]
+public class CertificateRequestAppService : AlumniAppService, ICertificateRequestAppService
+{
+    private readonly IRepository<CertificateRequest, Guid> _repository;
+    private readonly IRepository<CertificateDefinition, Guid> _definitionRepository;
+    private readonly IRepository<Branch, Guid> _branchRepository;
+    private readonly IRepository<Education, Guid> _educationRepository;
+    private readonly CertificateManager _certificateManager;
+    private readonly AlumniApplicationMappers _alumniMappers;
+
+    public CertificateRequestAppService(
+        IRepository<CertificateRequest, Guid> repository,
+        IRepository<CertificateDefinition, Guid> definitionRepository,
+        IRepository<Branch, Guid> branchRepository,
+        IRepository<Education, Guid> educationRepository,
+        CertificateManager certificateManager,
+        AlumniApplicationMappers alumniMappers)
+    {
+        _repository = repository;
+        _definitionRepository = definitionRepository;
+        _branchRepository = branchRepository;
+        _educationRepository = educationRepository;
+        _certificateManager = certificateManager;
+        _alumniMappers = alumniMappers;
+    }
+
+    public async Task<CertificateRequestDto> GetAsync(Guid id)
+    {
+        var entity = await _repository.GetAsync(id);
+        var dto = _alumniMappers.MapToDto(entity);
+        
+        // Populate item names
+        await PopulateItemNamesAsync(dto);
+        
+        // Populate branch name if applicable
+        if (entity.TargetBranchId.HasValue)
+        {
+            var branch = await _branchRepository.GetAsync(entity.TargetBranchId.Value);
+            dto.TargetBranchName = branch.Name;
+        }
+        
+        return dto;
+    }
+
+    public async Task<PagedResultDto<CertificateRequestDto>> GetListAsync(PagedAndSortedResultRequestDto input)
+    {
+        var totalCount = await _repository.GetCountAsync();
+        var entities = await _repository.GetPagedListAsync(input.SkipCount, input.MaxResultCount, input.Sorting);
+        
+        var dtos = _alumniMappers.MapToDtos(entities);
+        
+        // Populate names for all items
+        foreach (var dto in dtos)
+        {
+            await PopulateItemNamesAsync(dto);
+            
+            if (dto.TargetBranchId.HasValue)
+            {
+                var branch = await _branchRepository.FindAsync(dto.TargetBranchId.Value);
+                dto.TargetBranchName = branch?.Name;
+            }
+        }
+
+        return new PagedResultDto<CertificateRequestDto>(totalCount, dtos);
+    }
+
+    /// <summary>
+    /// Employee Follow-Up: Advanced search with branch-based security filtering.
+    /// Business Rule: BranchAdmin can only see their branch, SuperAdmin can see all.
+    /// </summary>
+    [Authorize(AlumniPermissions.Certificates.Default)]
+    public async Task<PagedResultDto<CertificateRequestDto>> GetListAsync(CertificateRequestFilterDto input)
+    {
+        // ========== BUSINESS RULE: Branch Security ==========
+        // Get current user's branch (assuming it's stored as CollegeId claim)
+        // If user has no CollegeId (null), they're a SuperAdmin and can see all branches
+        var currentUserBranchId = CurrentUser.GetCollegeId(); // Returns null for SuperAdmin
+
+        Guid? effectiveBranchId = input.BranchId;
+        
+        if (currentUserBranchId.HasValue)
+        {
+            // User is a Branch Admin - force them to only see their branch (ignore UI input)
+            effectiveBranchId = currentUserBranchId;
+        }
+        // If currentUserBranchId is null (SuperAdmin), allow filtering by any branch (use input.BranchId as-is)
+
+        // ========== Build Query with Filtering ==========
+        var queryable = await _repository.GetQueryableAsync();
+
+        // Branch filter (security-enforced)
+        if (effectiveBranchId.HasValue)
+        {
+            queryable = queryable.Where(x => x.TargetBranchId == effectiveBranchId.Value);
+        }
+
+        // Graduation Year filter
+        if (input.GraduationYear.HasValue)
+        {
+            // Note: This requires joining with Education/AlumniProfile
+            // For now, we'll skip complex joins. You can enhance this with Include/Join as needed.
+            // queryable = queryable.Where(x => x.AlumniProfile.GraduationYear == input.GraduationYear);
+        }
+
+        // Delivery Method filter (Office vs Home)
+        if (input.DeliveryMethod.HasValue)
+        {
+            queryable = queryable.Where(x => x.DeliveryMethod == input.DeliveryMethod.Value);
+        }
+
+        // Status filter
+        if (input.Status.HasValue)
+        {
+            queryable = queryable.Where(x => x.Status == input.Status.Value);
+        }
+
+        // Alumni ID filter
+        if (input.AlumniId.HasValue)
+        {
+            queryable = queryable.Where(x => x.AlumniId == input.AlumniId.Value);
+        }
+
+        // Date Range filter
+        if (input.FromDate.HasValue)
+        {
+            queryable = queryable.Where(x => x.CreationTime >= input.FromDate.Value);
+        }
+
+        if (input.ToDate.HasValue)
+        {
+            queryable = queryable.Where(x => x.CreationTime <= input.ToDate.Value);
+        }
+
+        // Get total count before paging
+        var totalCount = await AsyncExecuter.CountAsync(queryable);
+
+        // Apply sorting and paging
+        var sorting = !string.IsNullOrWhiteSpace(input.Sorting) ? input.Sorting : "CreationTime DESC";
+        queryable = ApplySorting(queryable, sorting);
+        queryable = queryable.Skip(input.SkipCount).Take(input.MaxResultCount);
+
+        // Execute query
+        var entities = await AsyncExecuter.ToListAsync(queryable);
+        var dtos = _alumniMappers.MapToDtos(entities);
+
+        // Populate names for all items
+        foreach (var dto in dtos)
+        {
+            await PopulateItemNamesAsync(dto);
+            
+            if (dto.TargetBranchId.HasValue)
+            {
+                var branch = await _branchRepository.FindAsync(dto.TargetBranchId.Value);
+                dto.TargetBranchName = branch?.Name;
+            }
+        }
+
+        return new PagedResultDto<CertificateRequestDto>(totalCount, dtos);
+    }
+
+    private static IQueryable<CertificateRequest> ApplySorting(IQueryable<CertificateRequest> query, string sorting)
+    {
+        // Simple sorting implementation - enhance as needed
+        if (sorting.Contains("CreationTime", StringComparison.OrdinalIgnoreCase))
+        {
+            return sorting.Contains("DESC", StringComparison.OrdinalIgnoreCase)
+                ? query.OrderByDescending(x => x.CreationTime)
+                : query.OrderBy(x => x.CreationTime);
+        }
+
+        if (sorting.Contains("Status", StringComparison.OrdinalIgnoreCase))
+        {
+            return sorting.Contains("DESC", StringComparison.OrdinalIgnoreCase)
+                ? query.OrderByDescending(x => x.Status)
+                : query.OrderBy(x => x.Status);
+        }
+
+        // Default sorting
+        return query.OrderByDescending(x => x.CreationTime);
+    }
+
+    [Authorize(AlumniPermissions.Certificates.Request)]
+    public async Task<CertificateRequestDto> CreateAsync(CreateCertificateRequestDto input)
+    {
+        // Validate input
+        if (input.Items == null || !input.Items.Any())
+        {
+            throw new UserFriendlyException("At least one certificate item is required.");
+        }
+
+        // Map DTOs to domain inputs
+        var itemInputs = input.Items.Select(x => new CreateItemInput
+        {
+            CertificateDefinitionId = x.CertificateDefinitionId,
+            QualificationId = x.QualificationId,
+            Language = x.Language
+        }).ToList();
+
+        // Use domain service to create request with ALL business rules enforced
+        var request = await _certificateManager.CreateRequestAsync(
+            GuidGenerator.Create(),
+            CurrentUser.GetId(),
+            itemInputs,
+            input.DeliveryMethod,
+            input.TargetBranchId,
+            input.DeliveryAddress,
+            input.UserNotes
+        );
+
+        await _repository.InsertAsync(request);
+        
+        return await GetAsync(request.Id);
+    }
+
+    [Authorize(AlumniPermissions.Certificates.Process)]
+    public async Task<CertificateRequestDto> ProcessAsync(Guid id, ProcessCertificateRequestDto input)
+    {
+        var entity = await _repository.GetAsync(id);
+
+        if (input.Status == CertificateRequestStatus.Rejected)
+        {
+            entity.Reject(input.AdminNotes ?? "No reason provided.");
+        }
+        else if (input.Status == CertificateRequestStatus.Processing)
+        {
+            entity.MoveToProcessing();
+        }
+        else if (input.Status == CertificateRequestStatus.ReadyForPickup)
+        {
+            entity.MarkAsReadyForPickup();
+            
+            // Generate verification hashes for all items
+            foreach (var item in entity.Items)
+            {
+                _certificateManager.MarkItemAsReady(item);
+            }
+        }
+        else if (input.Status == CertificateRequestStatus.OutForDelivery)
+        {
+            entity.MarkAsOutForDelivery();
+            
+            // Generate verification hashes for all items
+            foreach (var item in entity.Items)
+            {
+                _certificateManager.MarkItemAsReady(item);
+            }
+        }
+        else if (input.Status == CertificateRequestStatus.Delivered)
+        {
+            entity.Deliver();
+        }
+
+        if (!string.IsNullOrWhiteSpace(input.AdminNotes))
+        {
+            entity.AddAdminNotes(input.AdminNotes);
+        }
+
+        await _repository.UpdateAsync(entity);
+        return await GetAsync(entity.Id);
+    }
+
+    [Authorize(AlumniPermissions.Certificates.Request)]
+    public async Task<CertificateRequestDto> RecordGatewayPaymentAsync(Guid id, RecordPaymentDto input)
+    {
+        var entity = await _repository.GetAsync(id);
+        
+        // Security: Ensure user owns this request
+        if (entity.AlumniId != CurrentUser.GetId())
+        {
+            throw new BusinessException(AlumniDomainErrorCodes.CertificateRequest.Unauthorized)
+                .WithData("RequestId", id)
+                .WithData("UserId", CurrentUser.GetId());
+        }
+
+        entity.RecordGatewayPayment(input.Amount);
+        
+        await _repository.UpdateAsync(entity);
+        return await GetAsync(entity.Id);
+    }
+
+    /// <summary>
+    /// Employee Follow-Up: Update certificate request status with audit trail.
+    /// Business Rule: Uses ChangeStatus domain method to enforce "Two Paths" logic.
+    /// </summary>
+    [Authorize(AlumniPermissions.Certificates.Process)]
+    public async Task<CertificateRequestDto> UpdateStatusAsync(Guid id, UpdateCertificateStatusDto input)
+    {
+        var entity = await _repository.GetAsync(id);
+        
+        // Use domain method to change status (enforces Two Paths rule and creates history)
+        entity.ChangeStatus(
+            input.NewStatus,
+            CurrentUser.GetId(),
+            GuidGenerator.Create,
+            input.Note
+        );
+        
+        // Generate verification hashes for items when marking ready
+        if (input.NewStatus == CertificateRequestStatus.ReadyForPickup ||
+            input.NewStatus == CertificateRequestStatus.OutForDelivery)
+        {
+            foreach (var item in entity.Items)
+            {
+                if (string.IsNullOrEmpty(item.VerificationHash))
+                {
+                    _certificateManager.MarkItemAsReady(item);
+                }
+            }
+        }
+
+        await _repository.UpdateAsync(entity);
+        return await GetAsync(entity.Id);
+    }
+
+    [AllowAnonymous]
+    public async Task<CertificateRequestDto> GetByHashAsync(string hash)
+    {
+        // Find the request by searching through items
+        var requests = await _repository.GetListAsync();
+        
+        CertificateRequest? foundRequest = null;
+        foreach (var request in requests)
+        {
+            if (request.Items.Any(x => x.VerificationHash == hash))
+            {
+                foundRequest = request;
+                break;
+            }
+        }
+        
+        if (foundRequest == null)
+        {
+            throw new UserFriendlyException("Invalid or expired certificate hash.");
+        }
+
+        return await GetAsync(foundRequest.Id);
+    }
+
+    private async Task PopulateItemNamesAsync(CertificateRequestDto dto)
+    {
+        var definitionIds = dto.Items.Select(x => x.CertificateDefinitionId).Distinct().ToList();
+        var definitions = await _definitionRepository.GetListAsync(x => definitionIds.Contains(x.Id));
+        var defDict = definitions.ToDictionary(x => x.Id, x => x.NameEn);
+        
+        var qualificationIds = dto.Items.Where(x => x.QualificationId.HasValue)
+            .Select(x => x.QualificationId!.Value).Distinct().ToList();
+        
+        Dictionary<Guid, string> qualDict = new();
+        if (qualificationIds.Any())
+        {
+            var qualifications = await _educationRepository.GetListAsync(x => qualificationIds.Contains(x.Id));
+            qualDict = qualifications.ToDictionary(x => x.Id, x => $"{x.Degree} - {x.InstitutionName}");
+        }
+        
+        foreach (var item in dto.Items)
+        {
+            if (defDict.TryGetValue(item.CertificateDefinitionId, out var defName))
+            {
+                item.CertificateDefinitionName = defName;
+            }
+            
+            if (item.QualificationId.HasValue && qualDict.TryGetValue(item.QualificationId.Value, out var qualName))
+            {
+                item.QualificationName = qualName;
+            }
+        }
+    }
+}

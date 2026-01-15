@@ -1,0 +1,12 @@
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\EntityFrameworkCore\AlumniDbContext.cs(59,18): error CS0104: 'PaymentTransaction' is an ambiguous reference between 'Informatique.Alumni.Membership.PaymentTransaction' and 'Informatique.Alumni.Payment.PaymentTransaction' [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\EntityFrameworkCore\AlumniDbContext.cs(136,18): error CS0104: 'PaymentTransaction' is an ambiguous reference between 'Informatique.Alumni.Membership.PaymentTransaction' and 'Informatique.Alumni.Payment.PaymentTransaction' [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\EntityFrameworkCore\AlumniDbContext.cs(136,38): error CS0102: The type 'AlumniDbContext' already contains a definition for 'PaymentTransactions' [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\AlumniApplicationMappers.cs(155,51): error CS0104: 'PaymentTransaction' is an ambiguous reference between 'Informatique.Alumni.Membership.PaymentTransaction' and 'Informatique.Alumni.Payment.PaymentTransaction' [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\AlumniApplicationMappers.cs(155,42): error CS8795: Partial method 'AlumniApplicationMappers.MapToDto(PaymentTransaction)' must have an implementation part because it has accessibility modifiers. [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\obj\Debug\net10.0\Riok.Mapperly\Riok.Mapperly.MapperGenerator\AlumniApplicationMappers.g.cs(1098,82): error CS0759: No defining declaration found for implementing declaration of partial method 'AlumniApplicationMappers.MapToDto(PaymentTransaction)' [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+
+Build FAILED.
+    95 Warning(s)
+    6 Error(s)
+
+Time Elapsed 00:00:02.42

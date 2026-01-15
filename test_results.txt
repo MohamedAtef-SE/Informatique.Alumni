@@ -1,0 +1,30 @@
+VSTest version 18.0.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+  Failed Informatique.Alumni.Domain.Tests.Membership.MembershipManagerTests.CreateMembershipRequestAsync_Should_Return_Existing_When_Duplicate_Key [1 ms]
+  Error Message:
+   System.NullReferenceException : Object reference not set to an instance of an object.
+  Stack Trace:
+     at Informatique.Alumni.Membership.MembershipManager.ValidateSubscriptionFeeAsync(Guid subscriptionFeeId) in D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Membership\MembershipManager.cs:line 32
+   at Informatique.Alumni.Membership.MembershipManager.CreateMembershipRequestAsync(Guid requestId, Guid alumniId, Guid subscriptionFeeId, String idempotencyKey) in D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Membership\MembershipManager.cs:line 70
+   at Informatique.Alumni.Domain.Tests.Membership.MembershipManagerTests.CreateMembershipRequestAsync_Should_Return_Existing_When_Duplicate_Key() in D:\Projects\Informatique.Alumni\test\Informatique.Alumni.Domain.Tests\Membership\MembershipManagerTests.cs:line 227
+--- End of stack trace from previous location ---
+  Failed Informatique.Alumni.Domain.Tests.Membership.MembershipManagerTests.CheckIdempotencyAsync_Should_Return_Existing_When_Duplicate [21 ms]
+  Error Message:
+   Shouldly.ShouldAssertException : result
+    should not be null but was
+  Stack Trace:
+     at Informatique.Alumni.Domain.Tests.Membership.MembershipManagerTests.CheckIdempotencyAsync_Should_Return_Existing_When_Duplicate() in D:\Projects\Informatique.Alumni\test\Informatique.Alumni.Domain.Tests\Membership\MembershipManagerTests.cs:line 149
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+
+Failed!  - Failed:     2, Passed:    29, Skipped:     0, Total:    31, Duration: 469 ms - Informatique.Alumni.Domain.Tests.dll (net10.0)

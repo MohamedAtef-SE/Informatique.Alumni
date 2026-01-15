@@ -1,0 +1,12 @@
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Career\CvAppService.cs(36,24): error CS0103: The name 'CurrentUserId' does not exist in the current context [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Career\CvAppService.cs(55,24): error CS0103: The name 'CurrentUserId' does not exist in the current context [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Career\CvAuditAppService.cs(38,87): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.List<Informatique.Alumni.Career.CurriculumVitae>' to 'System.Collections.Generic.List<Informatique.Alumni.Branches.Branch>' [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Career\CvAppService.cs(74,51): error CS0103: The name 'CurrentUserId' does not exist in the current context [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Career\CVPdfGenerator.cs(17,9): error CS1674: 'BrowserFetcher': type used in a using statement must implement 'System.IDisposable'. [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Career\CVPdfGenerator.cs(33,22): error CS0103: The name 'PaperFormat' does not exist in the current context [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+
+Build FAILED.
+    98 Warning(s)
+    6 Error(s)
+
+Time Elapsed 00:00:02.42

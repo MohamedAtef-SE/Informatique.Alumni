@@ -1,0 +1,8 @@
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Trips\TripRoomType.cs(56,18): error CS0103: The name 'Check' does not exist in the current context [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Trips\TripRoomType.cs(57,18): error CS0103: The name 'Check' does not exist in the current context [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj]
+
+Build FAILED.
+    22 Warning(s)
+    2 Error(s)
+
+Time Elapsed 00:00:02.76

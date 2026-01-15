@@ -1,0 +1,12 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Informatique.Alumni.Domain.Shared -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain.Shared\bin\Debug\net10.0\Informatique.Alumni.Domain.Shared.dll
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\Career\SendCareerServiceEmailInputDto.cs(4,28): error CS0234: The type or namespace name 'Http' does not exist in the namespace 'Microsoft.AspNetCore' (are you missing an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\Informatique.Alumni.Application.Contracts.csproj]
+
+Build FAILED.
+
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\Career\SendCareerServiceEmailInputDto.cs(4,28): error CS0234: The type or namespace name 'Http' does not exist in the namespace 'Microsoft.AspNetCore' (are you missing an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\Informatique.Alumni.Application.Contracts.csproj]
+    0 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:03.73

@@ -25,7 +25,7 @@ public class AlumniDbContextFactory : IDesignTimeDbContextFactory<AlumniDbContex
     private static IConfigurationRoot BuildConfiguration()
     {
         var builder = new ConfigurationBuilder()
-            .SetBasePath(Path.Combine(Directory.GetCurrentDirectory(), "../Informatique.Alumni.DbMigrator/"))
+            .SetBasePath(Path.Combine(System.IO.Directory.GetCurrentDirectory(), "../Informatique.Alumni.DbMigrator/"))
             .AddJsonFile("appsettings.json", optional: false)
             .AddEnvironmentVariables();
 
