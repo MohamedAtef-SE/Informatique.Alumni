@@ -1,0 +1,7 @@
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Profiles\IStudentSystemIntegrationService.cs(30,35): error CS0234: The type or namespace name 'AcademicCalendar' does not exist in the namespace 'Informatique.Alumni' (are you missing an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj]
+
+Build FAILED.
+    0 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:02.08

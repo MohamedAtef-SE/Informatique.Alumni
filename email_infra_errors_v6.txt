@@ -1,0 +1,7 @@
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Infrastructure\Email\EmailSendingJob.cs(66,15): error CS1026: ) expected [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+
+Build FAILED.
+    2 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:02.46

@@ -1,3 +1,4 @@
+using System;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
@@ -14,6 +15,30 @@ using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.Abp.TenantManagement;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
+using Informatique.Alumni.Branches;
+using Volo.Abp.Users;
+using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Informatique.Alumni;
+using Informatique.Alumni.Certificates;
+using Informatique.Alumni.Membership;
+using Informatique.Alumni.Profiles;
+using Informatique.Alumni.Directory;
+using Informatique.Alumni.Gallery;
+using Informatique.Alumni.Health;
+using Informatique.Alumni.Magazine;
+using Informatique.Alumni.Guidance;
+using Informatique.Alumni.Benefits;
+using Informatique.Alumni.Career;
+using Informatique.Alumni.Syndicates;
+using Informatique.Alumni.Events;
+using Informatique.Alumni.Dashboard;
+using Informatique.Alumni.Trips;
+using Informatique.Alumni.Infrastructure.SMS; // Added for SMS Logs
+using Informatique.Alumni.Infrastructure.Email; // Added for Email Logs
+using Informatique.Alumni.Payment;
+using Informatique.Alumni.Delivery;
+using Informatique.Alumni.Communications;
 
 namespace Informatique.Alumni.EntityFrameworkCore;
 
@@ -26,6 +51,99 @@ public class AlumniDbContext :
     IIdentityDbContext
 {
     /* Add DbSet properties for your Aggregate Roots / Entities here. */
+    public DbSet<Branch> Branches { get; set; }
+    public DbSet<CertificateDefinition> CertificateDefinitions { get; set; }
+    public DbSet<CertificateRequest> CertificateRequests { get; set; }
+    public DbSet<CertificateRequestItem> CertificateRequestItems { get; set; }
+    public DbSet<CertificateRequestHistory> CertificateRequestHistory { get; set; }
+
+    // Membership
+    public DbSet<SubscriptionFee> SubscriptionFees { get; set; }
+    public DbSet<AssociationRequest> AssociationRequests { get; set; }
+    public DbSet<Informatique.Alumni.Membership.PaymentTransaction> PaymentTransactions { get; set; }
+
+    // Profiles
+    public DbSet<AlumniProfile> AlumniProfiles { get; set; }
+    public DbSet<Experience> Experiences { get; set; }
+    public DbSet<Education> Educations { get; set; }
+
+    // Directory
+    public DbSet<AlumniDirectoryCache> DirectoryCache { get; set; }
+
+    // Gallery
+    public DbSet<GalleryAlbum> GalleryAlbums { get; set; }
+    public DbSet<GalleryImage> GalleryImages { get; set; }
+
+    // Health
+    public DbSet<MedicalPartner> MedicalPartners { get; set; }
+    public DbSet<MedicalOffer> MedicalOffers { get; set; }
+
+    // Magazine & Blog
+    public DbSet<MagazineIssue> MagazineIssues { get; set; }
+    public DbSet<BlogPost> BlogPosts { get; set; }
+    public DbSet<PostComment> PostComments { get; set; }
+
+    // Guidance
+    public DbSet<GuidanceSessionRule> GuidanceSessionRules { get; set; }
+    public DbSet<AdvisingRequest> AdvisingRequests { get; set; }
+    
+    // Benefits
+    public DbSet<AcademicGrant> AcademicGrants { get; set; }
+    public DbSet<CommercialDiscount> CommercialDiscounts { get; set; }
+    
+    // Career
+    public DbSet<CareerActivity> CareerActivities { get; set; }
+    public DbSet<AlumniCareerSubscription> AlumniCareerSubscriptions { get; set; }
+    
+    // Syndicates
+    public DbSet<Syndicate> Syndicates { get; set; }
+    public DbSet<SyndicateSubscription> SyndicateSubscriptions { get; set; }
+    public DbSet<SyndicateDocument> SyndicateDocuments { get; set; }
+    
+    // Events
+    public DbSet<Company> Companies { get; set; }
+    public DbSet<AssociationEvent> AssociationEvents { get; set; }
+    public DbSet<EventAgendaItem> EventAgendaItems { get; set; }
+    public DbSet<AlumniEventRegistration> AlumniEventRegistrations { get; set; }
+    
+    // Career & Job Board
+    public DbSet<CurriculumVitae> CurriculumVitaes { get; set; }
+    public DbSet<Job> Jobs { get; set; }
+    public DbSet<JobApplication> JobApplications { get; set; }
+    
+    // CV Children
+    public DbSet<CvEducation> CvEducations { get; set; }
+    public DbSet<CvExperience> CvExperiences { get; set; }
+    public DbSet<CvSkill> CvSkills { get; set; }
+    public DbSet<CvLanguage> CvLanguages { get; set; }
+    public DbSet<CvCertification> CvCertifications { get; set; }
+    public DbSet<CvProject> CvProjects { get; set; }
+    public DbSet<CvAward> CvAwards { get; set; }
+    public DbSet<CvVolunteerWork> CvVolunteerWorks { get; set; }
+    public DbSet<CvReference> CvReferences { get; set; }
+    public DbSet<CvPublication> CvPublications { get; set; }
+    public DbSet<CvInterest> CvInterests { get; set; }
+    public DbSet<CvSocialLink> CvSocialLinks { get; set; }
+    public DbSet<CvCourse> CvCourses { get; set; }
+    public DbSet<CvPracticalTraining> CvPracticalTrainings { get; set; }
+    
+    // Dashboard & Trips
+    public DbSet<DailyStats> DailyDashboardStats { get; set; }
+    public DbSet<AlumniTrip> AlumniTrips { get; set; }
+    public DbSet<TripRequest> TripRequests { get; set; }
+
+    // Infrastructure
+    public DbSet<SmsDeliveryLog> SmsLogs { get; set; }
+    public DbSet<EmailDeliveryLog> EmailLogs { get; set; }
+
+    // Payment
+    public DbSet<Informatique.Alumni.Payment.PaymentTransaction> AppPaymentTransactions { get; set; }
+    public DbSet<PaymentConfig> PaymentConfigs { get; set; }
+
+    // Delivery
+    public DbSet<DeliveryProvider> DeliveryProviders { get; set; }
+    public DbSet<ShipmentRequest> ShipmentRequests { get; set; }
+    public DbSet<CommunicationLog> CommunicationLogs { get; set; }
 
 
     #region Entities from the modules
@@ -57,6 +175,8 @@ public class AlumniDbContext :
 
     #endregion
 
+    public virtual Guid? CurrentCollegeId => LazyServiceProvider?.LazyGetService<ICurrentUser>()?.GetCollegeId();
+
     public AlumniDbContext(DbContextOptions<AlumniDbContext> options)
         : base(options)
     {
@@ -81,11 +201,494 @@ public class AlumniDbContext :
         
         /* Configure your own tables/entities inside here */
 
-        //builder.Entity<YourEntity>(b =>
-        //{
-        //    b.ToTable(AlumniConsts.DbTablePrefix + "YourEntities", AlumniConsts.DbSchema);
-        //    b.ConfigureByConvention(); //auto configure for the base class props
-        //    //...
-        //});
+        builder.Entity<Branch>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "Branches", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(128);
+            b.Property(x => x.Code).IsRequired().HasMaxLength(32);
+        });
+
+        builder.Entity<CertificateDefinition>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "CertificateDefinitions", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(CertificateConsts.MaxNameLength);
+            b.Property(x => x.Description).HasMaxLength(CertificateConsts.MaxDescriptionLength);
+            b.Property(x => x.Fee).HasColumnType("decimal(18,2)");
+        });
+
+        builder.Entity<CertificateRequest>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "CertificateRequests", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.AdminNotes).HasMaxLength(CertificateConsts.MaxNotesLength);
+            b.Property(x => x.UserNotes).HasMaxLength(CertificateConsts.MaxNotesLength);
+            b.Property(x => x.DeliveryAddress).HasMaxLength(512);
+            b.Property(x => x.UsedWalletAmount).HasColumnType("decimal(18,2)");
+            b.Property(x => x.PaidGatewayAmount).HasColumnType("decimal(18,2)");
+            b.Property(x => x.TotalItemFees).HasColumnType("decimal(18,2)");
+            b.Property(x => x.DeliveryFee).HasColumnType("decimal(18,2)");
+            
+            // Configure collection with backing field for encapsulation
+            b.Navigation(x => x.Items).HasField("_items").UsePropertyAccessMode(PropertyAccessMode.Field);
+            
+            // Optional FK to Branch for routing/pickup
+            b.HasOne<Branch>().WithMany().HasForeignKey(x => x.TargetBranchId).IsRequired(false);
+        });
+
+        builder.Entity<CertificateRequestItem>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "CertificateRequestItems", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Fee).HasColumnType("decimal(18,2)");
+            b.Property(x => x.VerificationHash).HasMaxLength(CertificateConsts.MaxHashLength);
+            b.Property(x => x.QrCodeContent).HasMaxLength(512);
+            
+            // Parent relationship
+            b.HasOne<CertificateRequest>().WithMany("_items").HasForeignKey(x => x.CertificateRequestId).IsRequired();
+            
+            // FK to CertificateDefinition
+            b.HasOne<CertificateDefinition>().WithMany().HasForeignKey(x => x.CertificateDefinitionId).IsRequired();
+            
+            // Optional FK to Education (Qualification)
+            b.HasOne<Education>().WithMany().HasForeignKey(x => x.QualificationId).IsRequired(false);
+        });
+
+        builder.Entity<CertificateRequestHistory>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "CertificateRequestHistory", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Note).HasMaxLength(500);
+            
+            // Parent relationship
+            b.HasOne<CertificateRequest>().WithMany("_history").HasForeignKey(x => x.CertificateRequestId).IsRequired();
+            
+            // Indexes for common queries
+            b.HasIndex(x => x.CertificateRequestId);
+            b.HasIndex(x => x.ChangedAt);
+        });
+
+        builder.Entity<SubscriptionFee>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "SubscriptionFees", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(128);
+            b.Property(x => x.Amount).HasColumnType("decimal(18,2)");
+        });
+
+        builder.Entity<AssociationRequest>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "AssociationRequests", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.IdempotencyKey).IsRequired().HasMaxLength(128);
+            b.HasIndex(x => x.IdempotencyKey).IsUnique();
+            b.HasOne<SubscriptionFee>().WithMany().HasForeignKey(x => x.SubscriptionFeeId).IsRequired();
+        });
+
+        builder.Entity<Informatique.Alumni.Membership.PaymentTransaction>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "PaymentTransactions", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.ExternalTransactionId).IsRequired().HasMaxLength(MembershipConsts.MaxTransactionIdLength);
+            b.Property(x => x.Amount).HasColumnType("decimal(18,2)");
+            b.HasOne<AssociationRequest>().WithMany().HasForeignKey(x => x.RequestId).IsRequired();
+            b.HasIndex(x => x.RequestId); // For ledger Lookups
+        });
+
+        builder.Entity<AlumniProfile>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "AlumniProfiles", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.JobTitle).HasMaxLength(ProfileConsts.MaxJobTitleLength);
+            b.Property(x => x.Bio).HasMaxLength(ProfileConsts.MaxBioLength);
+            b.Property(x => x.MobileNumber).HasMaxLength(32).IsRequired();
+            b.Property(x => x.NationalId).HasMaxLength(32).IsRequired();
+            b.Property(x => x.WalletBalance).HasColumnType("decimal(18,2)").HasDefaultValue(0m);
+
+            // Configure collections with backing fields for encapsulation
+            b.Navigation(x => x.Experiences).HasField("_experiences").UsePropertyAccessMode(PropertyAccessMode.Field);
+            b.Navigation(x => x.Educations).HasField("_educations").UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            // 1:1 Relationship with IdentityUser
+            b.HasOne<IdentityUser>().WithOne().HasForeignKey<AlumniProfile>(x => x.UserId).IsRequired();
+            b.HasIndex(x => x.UserId).IsUnique();
+        });
+
+        builder.Entity<Experience>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "Experience", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.CompanyName).IsRequired().HasMaxLength(ProfileConsts.MaxPlaceLength);
+            b.Property(x => x.JobTitle).IsRequired().HasMaxLength(ProfileConsts.MaxJobTitleLength);
+            b.HasOne<AlumniProfile>().WithMany("_experiences").HasForeignKey(x => x.AlumniProfileId).IsRequired();
+        });
+
+        builder.Entity<Education>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "Education", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.InstitutionName).IsRequired().HasMaxLength(ProfileConsts.MaxPlaceLength);
+            b.Property(x => x.Degree).IsRequired().HasMaxLength(128);
+            b.HasOne<AlumniProfile>().WithMany("_educations").HasForeignKey(x => x.AlumniProfileId).IsRequired();
+        });
+
+        builder.Entity<AlumniDirectoryCache>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "AlumniDirectoryCache", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.FullName).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Email).IsRequired().HasMaxLength(256);
+            
+            b.HasIndex(x => x.Major);
+            b.HasIndex(x => x.College);
+            b.HasIndex(x => x.GraduationYear);
+            b.HasIndex(x => x.UserId).IsUnique();
+        });
+
+        builder.Entity<GalleryAlbum>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "GalleryAlbums", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(GalleryConsts.MaxAlbumNameLength);
+            b.Property(x => x.Description).HasMaxLength(GalleryConsts.MaxDescriptionLength);
+            b.HasMany(p => p.Images).WithOne().HasForeignKey(x => x.GalleryAlbumId).IsRequired();
+        });
+
+        builder.Entity<GalleryImage>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "GalleryImages", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.OriginalBlobName).IsRequired().HasMaxLength(256);
+            b.Property(x => x.ThumbnailBlobName).IsRequired().HasMaxLength(256);
+            b.Property(x => x.FileName).IsRequired().HasMaxLength(256);
+            b.HasIndex(x => x.GalleryAlbumId);
+        });
+
+        builder.Entity<MedicalPartner>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "MedicalPartners", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Address).IsRequired().HasMaxLength(512);
+            b.Property(x => x.ContactNumber).IsRequired().HasMaxLength(32);
+            b.HasMany(p => p.Offers).WithOne().HasForeignKey(x => x.MedicalPartnerId).IsRequired();
+            b.HasIndex(x => x.Type);
+        });
+
+        builder.Entity<MedicalOffer>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "MedicalOffers", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Title).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Description).IsRequired().HasMaxLength(2000);
+            b.Property(x => x.DiscountCode).HasMaxLength(64);
+            b.HasIndex(x => x.MedicalPartnerId);
+        });
+
+        builder.Entity<MagazineIssue>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "MagazineIssues", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Title).IsRequired().HasMaxLength(256);
+            b.Property(x => x.PdfBlobName).IsRequired().HasMaxLength(256);
+            b.Property(x => x.ThumbnailBlobName).IsRequired().HasMaxLength(256);
+        });
+
+        builder.Entity<BlogPost>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "BlogPosts", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Title).IsRequired().HasMaxLength(512);
+            b.Property(x => x.Content).IsRequired();
+            b.Property(x => x.Category).HasMaxLength(128);
+            b.HasMany(p => p.Comments).WithOne().HasForeignKey(x => x.BlogPostId).IsRequired();
+            b.HasIndex(x => x.Category);
+            b.HasIndex(x => x.AuthorId);
+        });
+
+        builder.Entity<PostComment>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "PostComments", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Content).IsRequired().HasMaxLength(2000);
+            b.HasIndex(x => x.BlogPostId);
+            b.HasIndex(x => x.AlumniId);
+        });
+
+        builder.Entity<GuidanceSessionRule>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "GuidanceSessionRules", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.HasIndex(x => x.AdvisorId);
+        });
+
+        builder.Entity<AdvisingRequest>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "AdvisingRequests", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Subject).IsRequired().HasMaxLength(256);
+            b.HasIndex(x => x.AdvisorId);
+            b.HasIndex(x => x.AlumniId);
+            b.HasIndex(x => new { x.AdvisorId, x.StartTime, x.EndTime });
+        });
+
+        builder.Entity<CareerActivity>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "CareerActivities", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Title).IsRequired().HasMaxLength(CareerConsts.MaxTitleLength);
+            b.Property(x => x.Description).HasMaxLength(CareerConsts.MaxDescriptionLength);
+            b.Property(x => x.Location).HasMaxLength(CareerConsts.MaxLocationLength);
+            b.Property(x => x.ConcurrencyStamp).IsRowVersion().ValueGeneratedOnAddOrUpdate();
+        });
+
+        builder.Entity<AlumniCareerSubscription>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "AlumniCareerSubscriptions", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.HasIndex(x => new { x.ActivityId, x.AlumniId }).IsUnique();
+        });
+
+        builder.Entity<Syndicate>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "Syndicates", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(SyndicateConsts.MaxNameLength);
+            b.Property(x => x.Description).HasMaxLength(SyndicateConsts.MaxDescriptionLength);
+        });
+
+        builder.Entity<SyndicateSubscription>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "SyndicateSubscriptions", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.HasMany(p => p.Documents).WithOne().HasForeignKey(x => x.SyndicateSubscriptionId).IsRequired();
+            b.HasIndex(x => new { x.AlumniId, x.SyndicateId });
+        });
+
+        builder.Entity<SyndicateDocument>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "SyndicateDocuments", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.RequirementName).IsRequired().HasMaxLength(128);
+            b.Property(x => x.FileBlobName).IsRequired().HasMaxLength(256);
+        });
+
+        builder.Entity<Company>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "Companies", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(EventConsts.MaxCompanyNameLength);
+            b.Property(x => x.Website).HasMaxLength(EventConsts.MaxWebsiteLength);
+        });
+
+        builder.Entity<AssociationEvent>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "Events", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Title).IsRequired().HasMaxLength(EventConsts.MaxTitleLength);
+            b.Property(x => x.Location).HasMaxLength(EventConsts.MaxLocationLength);
+            
+            // Configure collection with backing field for encapsulation
+            b.Navigation(x => x.Agenda).HasField("_agenda").UsePropertyAccessMode(PropertyAccessMode.Field);
+            b.HasMany<EventAgendaItem>("_agenda").WithOne().HasForeignKey(x => x.EventId).IsRequired();
+        });
+
+        builder.Entity<EventAgendaItem>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "EventAgendaItems", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Title).IsRequired().HasMaxLength(EventConsts.MaxAgendaTitleLength);
+        });
+
+        builder.Entity<AlumniEventRegistration>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "AlumniEventRegistrations", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TicketCode).IsRequired().HasMaxLength(64);
+            b.HasIndex(x => x.TicketCode).IsUnique();
+            b.HasIndex(x => new { x.AlumniId, x.EventId }).IsUnique();
+        });
+
+        // CV & Jobs
+        builder.Entity<CurriculumVitae>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "CurriculumVitaes", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.HasIndex(x => x.AlumniId).IsUnique();
+            
+            // 14 Cascade Deletes
+            b.HasMany(x => x.Educations).WithOne().HasForeignKey(x => x.CurriculumVitaeId).OnDelete(DeleteBehavior.Cascade);
+            b.HasMany(x => x.Experiences).WithOne().HasForeignKey(x => x.CurriculumVitaeId).OnDelete(DeleteBehavior.Cascade);
+            b.HasMany(x => x.Skills).WithOne().HasForeignKey(x => x.CurriculumVitaeId).OnDelete(DeleteBehavior.Cascade);
+            b.HasMany(x => x.Languages).WithOne().HasForeignKey(x => x.CurriculumVitaeId).OnDelete(DeleteBehavior.Cascade);
+            b.HasMany(x => x.Certifications).WithOne().HasForeignKey(x => x.CurriculumVitaeId).OnDelete(DeleteBehavior.Cascade);
+            b.HasMany(x => x.Projects).WithOne().HasForeignKey(x => x.CurriculumVitaeId).OnDelete(DeleteBehavior.Cascade);
+            b.HasMany(x => x.Awards).WithOne().HasForeignKey(x => x.CurriculumVitaeId).OnDelete(DeleteBehavior.Cascade);
+            b.HasMany(x => x.VolunteerWorks).WithOne().HasForeignKey(x => x.CurriculumVitaeId).OnDelete(DeleteBehavior.Cascade);
+            b.HasMany(x => x.References).WithOne().HasForeignKey(x => x.CurriculumVitaeId).OnDelete(DeleteBehavior.Cascade);
+            b.HasMany(x => x.Publications).WithOne().HasForeignKey(x => x.CurriculumVitaeId).OnDelete(DeleteBehavior.Cascade);
+            b.HasMany(x => x.Interests).WithOne().HasForeignKey(x => x.CurriculumVitaeId).OnDelete(DeleteBehavior.Cascade);
+            b.HasMany(x => x.SocialLinks).WithOne().HasForeignKey(x => x.CurriculumVitaeId).OnDelete(DeleteBehavior.Cascade);
+            b.HasMany(x => x.Courses).WithOne().HasForeignKey(x => x.CurriculumVitaeId).OnDelete(DeleteBehavior.Cascade);
+            b.HasMany(x => x.PracticalTrainings).WithOne().HasForeignKey(x => x.CurriculumVitaeId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<Job>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "Jobs", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Title).IsRequired().HasMaxLength(256);
+        });
+
+        builder.Entity<JobApplication>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "JobApplications", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.HasIndex(x => new { x.JobId, x.AlumniId }).IsUnique();
+        });
+
+        // CV Child Tables
+        ConfigureCvChild<CvEducation>(builder, "CvEducations");
+        ConfigureCvChild<CvExperience>(builder, "CvExperiences");
+        ConfigureCvChild<CvSkill>(builder, "CvSkills");
+        ConfigureCvChild<CvLanguage>(builder, "CvLanguages");
+        ConfigureCvChild<CvCertification>(builder, "CvCertifications");
+        ConfigureCvChild<CvProject>(builder, "CvProjects");
+        ConfigureCvChild<CvAward>(builder, "CvAwards");
+        ConfigureCvChild<CvVolunteerWork>(builder, "CvVolunteerWorks");
+        ConfigureCvChild<CvReference>(builder, "CvReferences");
+        ConfigureCvChild<CvPublication>(builder, "CvPublications");
+        ConfigureCvChild<CvInterest>(builder, "CvInterests");
+        ConfigureCvChild<CvSocialLink>(builder, "CvSocialLinks");
+        ConfigureCvChild<CvPracticalTraining>(builder, "CvPracticalTrainings");
+
+        builder.Entity<AcademicGrant>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "AcademicGrants", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Title).IsRequired().HasMaxLength(BenefitConsts.MaxTitleLength);
+            b.Property(x => x.Description).IsRequired().HasMaxLength(BenefitConsts.MaxDescriptionLength);
+            b.Property(x => x.Amount).HasColumnType("decimal(18,2)");
+        });
+
+        builder.Entity<CommercialDiscount>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "CommercialDiscounts", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.ProviderName).IsRequired().HasMaxLength(BenefitConsts.MaxProviderLength);
+            b.Property(x => x.Title).IsRequired().HasMaxLength(BenefitConsts.MaxTitleLength);
+            b.Property(x => x.Description).IsRequired().HasMaxLength(BenefitConsts.MaxDescriptionLength);
+            b.Property(x => x.DiscountPercentage).HasColumnType("decimal(5,2)");
+            b.Property(x => x.PromoCode).HasMaxLength(BenefitConsts.MaxPromoCodeLength);
+        });
+
+        builder.Entity<AcademicGrant>().HasQueryFilter(x => x.ValidUntil > DateTime.Now);
+        builder.Entity<CommercialDiscount>().HasQueryFilter(x => x.ValidUntil > DateTime.Now);
+
+        builder.Entity<Branch>().HasQueryFilter(b => !CurrentCollegeId.HasValue || b.Id == CurrentCollegeId);
+        builder.Entity<IdentityUser>().HasQueryFilter(u => !CurrentCollegeId.HasValue || EF.Property<Guid?>(u, "CollegeId") == CurrentCollegeId);
+
+        // Dashboard & Trips
+        builder.Entity<DailyStats>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "DailyStats", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.HasIndex(x => x.Date).IsUnique();
+        });
+
+        builder.Entity<AlumniTrip>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "AlumniTrips", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Title).IsRequired().HasMaxLength(256);
+            b.Property(x => x.PricePerPerson).HasColumnType("decimal(18,2)");
+        });
+
+        builder.Entity<TripRequest>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "TripRequests", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.TotalAmount).HasColumnType("decimal(18,2)");
+            b.Property(x => x.TotalAmount).HasColumnType("decimal(18,2)");
+            b.HasIndex(x => new { x.TripId, x.AlumniId });
+        });
+
+        // Infrastructure - SMS
+        builder.Entity<SmsDeliveryLog>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "SmsLogs", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.HasIndex(x => x.Timestamp);
+            b.ConfigureByConvention();
+            b.HasIndex(x => x.Timestamp);
+            b.HasIndex(x => x.Recipient);
+        });
+
+        // Infrastructure - Email
+        builder.Entity<EmailDeliveryLog>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "EmailLogs", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.HasIndex(x => x.Timestamp);
+            b.HasIndex(x => x.Recipient);
+        });
+
+        // Payment Module
+        builder.Entity<Informatique.Alumni.Payment.PaymentTransaction>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "AppPaymentTransactions", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Amount).HasColumnType("decimal(18,2)");
+            // Immutable ledger: Updates generally discouraged, logic enforcement in Domain
+            b.HasIndex(x => x.OrderId);
+            b.HasIndex(x => x.GatewayTransactionId);
+        });
+
+        builder.Entity<PaymentConfig>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "PaymentConfigs", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+        });
+
+        // Delivery Module
+        builder.Entity<DeliveryProvider>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "DeliveryProviders", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+        });
+
+        builder.Entity<ShipmentRequest>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "ShipmentRequests", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Fee).HasColumnType("decimal(18,2)");
+            b.HasIndex(x => x.TrackingNumber);
+        });
+
+        // Communication
+        builder.Entity<CommunicationLog>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "CommunicationLogs", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Subject).HasMaxLength(256); // Email Subject Limit
+            b.HasIndex(x => x.SenderId);
+            b.HasIndex(x => x.RecipientId);
+            b.HasIndex(x => x.CreationTime);
+        });
+    }
+
+    private void ConfigureCvChild<T>(ModelBuilder builder, string tableName) where T : class
+    {
+        builder.Entity<T>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + tableName, AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+        });
+    }
+
+    protected override bool ShouldFilterEntity<TEntity>(Microsoft.EntityFrameworkCore.Metadata.IMutableEntityType entityType)
+    {
+        return base.ShouldFilterEntity<TEntity>(entityType);
     }
 }

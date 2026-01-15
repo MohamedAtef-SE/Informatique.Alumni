@@ -1,0 +1,7 @@
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\EntityFrameworkCore\AlumniDbContext.cs(241,24): error CS0104: 'PaymentTransaction' is an ambiguous reference between 'Informatique.Alumni.Membership.PaymentTransaction' and 'Informatique.Alumni.Payment.PaymentTransaction' [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj]
+
+Build FAILED.
+    5 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:03.28

@@ -1,0 +1,9 @@
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\EntityFrameworkCore\AlumniDbContext.cs(127,30): error CS0102: The type 'AlumniDbContext' already contains a definition for 'AlumniTrips' [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Infrastructure\SMS\SmsDeliveryHandler.cs(3,27): error CS0234: The type or namespace name 'Domain' does not exist in the namespace 'Informatique.Alumni' (are you missing an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Infrastructure\SMS\TwilioSmsSender.cs(4,27): error CS0234: The type or namespace name 'Domain' does not exist in the namespace 'Informatique.Alumni' (are you missing an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+
+Build FAILED.
+    86 Warning(s)
+    3 Error(s)
+
+Time Elapsed 00:00:03.97

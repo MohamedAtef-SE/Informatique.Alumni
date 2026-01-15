@@ -157,7 +157,7 @@ public class AlumniDbMigrationService : ITransientDependency
     {
         var dbMigrationsProjectFolder = GetEntityFrameworkCoreProjectFolderPath();
 
-        return dbMigrationsProjectFolder != null && Directory.Exists(Path.Combine(dbMigrationsProjectFolder, "Migrations"));
+        return dbMigrationsProjectFolder != null && System.IO.Directory.Exists(Path.Combine(dbMigrationsProjectFolder, "Migrations"));
     }
 
     private void AddInitialMigration()
@@ -203,19 +203,19 @@ public class AlumniDbMigrationService : ITransientDependency
 
         var srcDirectoryPath = Path.Combine(slnDirectoryPath, "src");
 
-        return Directory.GetDirectories(srcDirectoryPath)
+        return System.IO.Directory.GetDirectories(srcDirectoryPath)
             .FirstOrDefault(d => d.EndsWith(".EntityFrameworkCore"));
     }
 
     private string? GetSolutionDirectoryPath()
     {
-        var currentDirectory = new DirectoryInfo(Directory.GetCurrentDirectory());
+        var currentDirectory = new DirectoryInfo(System.IO.Directory.GetCurrentDirectory());
 
-        while (currentDirectory != null && Directory.GetParent(currentDirectory.FullName) != null)
+        while (currentDirectory != null && System.IO.Directory.GetParent(currentDirectory.FullName) != null)
         {
-            currentDirectory = Directory.GetParent(currentDirectory.FullName);
+            currentDirectory = System.IO.Directory.GetParent(currentDirectory.FullName);
 
-            if (currentDirectory != null && Directory.GetFiles(currentDirectory.FullName).FirstOrDefault(f => f.EndsWith(".sln") || f.EndsWith(".slnx")) != null)
+            if (currentDirectory != null && System.IO.Directory.GetFiles(currentDirectory.FullName).FirstOrDefault(f => f.EndsWith(".sln") || f.EndsWith(".slnx")) != null)
             {
                 return currentDirectory.FullName;
             }

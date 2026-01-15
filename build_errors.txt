@@ -1,0 +1,7 @@
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Career\CareerAppService.cs(60,28): error CS7036: There is no argument given that corresponds to the required parameter 'fee' of 'CareerActivity.CareerActivity(Guid, string, string, DateTime, string, int, decimal)' [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+
+Build FAILED.
+    90 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:03.68

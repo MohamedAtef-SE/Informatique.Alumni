@@ -1,0 +1,12 @@
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Benefits\BenefitsAppService.cs(38,56): error CS1503: Argument 1: cannot convert from 'string' to 'System.Linq.Expressions.Expression<System.Func<Informatique.Alumni.Benefits.AcademicGrant, bool>>' [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Benefits\BenefitsAppService.cs(38,71): error CS1503: Argument 2: cannot convert from 'int' to 'bool' [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Benefits\BenefitsAppService.cs(38,93): error CS1503: Argument 3: cannot convert from 'int' to 'System.Threading.CancellationToken' [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Benefits\BenefitsAppService.cs(76,59): error CS1503: Argument 1: cannot convert from 'string' to 'System.Linq.Expressions.Expression<System.Func<Informatique.Alumni.Benefits.CommercialDiscount, bool>>' [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Benefits\BenefitsAppService.cs(76,74): error CS1503: Argument 2: cannot convert from 'int' to 'bool' [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Benefits\BenefitsAppService.cs(76,96): error CS1503: Argument 3: cannot convert from 'int' to 'System.Threading.CancellationToken' [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+
+Build FAILED.
+    61 Warning(s)
+    6 Error(s)
+
+Time Elapsed 00:00:02.18

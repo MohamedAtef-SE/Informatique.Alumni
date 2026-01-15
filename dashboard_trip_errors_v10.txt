@@ -1,0 +1,8 @@
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Dashboard\StatsBackgroundJob.cs(52,37): error CS0103: The name 'TransactionStatus' does not exist in the current context [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Trips\TripAppService.cs(83,83): error CS1061: 'ICurrentUser' does not contain a definition for 'GetId' and no accessible extension method 'GetId' accepting a first argument of type 'ICurrentUser' could be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+
+Build FAILED.
+    98 Warning(s)
+    2 Error(s)
+
+Time Elapsed 00:00:02.68

@@ -1,0 +1,8 @@
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain.Shared\BlobContainers\AlumniBlobContainer.cs(5,2): error CS0246: The type or namespace name 'BlobContainerAttribute' could not be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain.Shared\Informatique.Alumni.Domain.Shared.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain.Shared\BlobContainers\AlumniBlobContainer.cs(5,2): error CS0246: The type or namespace name 'BlobContainer' could not be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain.Shared\Informatique.Alumni.Domain.Shared.csproj]
+
+Build FAILED.
+    0 Warning(s)
+    2 Error(s)
+
+Time Elapsed 00:00:01.85

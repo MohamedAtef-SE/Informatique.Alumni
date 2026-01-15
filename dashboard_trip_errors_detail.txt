@@ -1,0 +1,13 @@
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\EntityFrameworkCore\AlumniDbContext.cs(122,18): error CS0246: The type or namespace name 'DailyStats' could not be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\EntityFrameworkCore\AlumniDbContext.cs(123,18): error CS0246: The type or namespace name 'AlumniTrip' could not be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\EntityFrameworkCore\AlumniDbContext.cs(124,18): error CS0246: The type or namespace name 'TripRequest' could not be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\Dashboard\IDashboardAppService.cs(6,27): error CS0234: The type or namespace name 'Trips' does not exist in the namespace 'Informatique.Alumni' (are you missing an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\Informatique.Alumni.Application.Contracts.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\Dashboard\DashboardDtos.cs(16,11): error CS8954: Source file can only contain one file-scoped namespace declaration. [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\Informatique.Alumni.Application.Contracts.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\Dashboard\IDashboardAppService.cs(15,11): error CS8954: Source file can only contain one file-scoped namespace declaration. [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\Informatique.Alumni.Application.Contracts.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\Dashboard\DashboardDtos.cs(36,12): error CS0246: The type or namespace name 'TripRequestStatus' could not be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\Informatique.Alumni.Application.Contracts.csproj]
+
+Build FAILED.
+    2 Warning(s)
+    7 Error(s)
+
+Time Elapsed 00:00:01.77

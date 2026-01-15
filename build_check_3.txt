@@ -1,0 +1,8 @@
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Career\CareerReportingAppService.cs(121,42): error CS1061: 'CareerServiceType' does not contain a definition for 'Name' and no accessible extension method 'Name' accepting a first argument of type 'CareerServiceType' could be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Career\CareerReportingAppService.cs(155,58): error CS1061: 'CareerServiceType' does not contain a definition for 'Name' and no accessible extension method 'Name' accepting a first argument of type 'CareerServiceType' could be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+
+Build FAILED.
+    90 Warning(s)
+    2 Error(s)
+
+Time Elapsed 00:00:03.14

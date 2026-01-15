@@ -1,0 +1,8 @@
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Career\CareerAppService.cs(130,41): error CS0246: The type or namespace name 'AuthorizationException' could not be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Career\CareerAppService.cs(143,41): error CS0246: The type or namespace name 'AuthorizationException' could not be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+
+Build FAILED.
+    80 Warning(s)
+    2 Error(s)
+
+Time Elapsed 00:00:03.63

@@ -1,0 +1,11 @@
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Career\CareerAppService.cs(51,58): error CS0411: The type arguments for method 'Enumerable.OrderBy<TSource, TKey>(IEnumerable<TSource>, Func<TSource, TKey>)' cannot be inferred from the usage. Try specifying the type arguments explicitly. [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Career\CareerAppService.cs(79,25): error CS1061: 'ICurrentUser' does not contain a definition for 'FindBranchId' and no accessible extension method 'FindBranchId' accepting a first argument of type 'ICurrentUser' could be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Career\CareerAppService.cs(127,41): error CS0246: The type or namespace name 'AbpAuthorizationException' could not be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Career\CareerAppService.cs(140,41): error CS0246: The type or namespace name 'AbpAuthorizationException' could not be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Career\CareerServiceEmailSenderJob.cs(50,79): error CS1061: 'AlumniCareerSubscription' does not contain a definition for 'ActivityId' and no accessible extension method 'ActivityId' accepting a first argument of type 'AlumniCareerSubscription' could be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+
+Build FAILED.
+    100 Warning(s)
+    5 Error(s)
+
+Time Elapsed 00:00:04.62
