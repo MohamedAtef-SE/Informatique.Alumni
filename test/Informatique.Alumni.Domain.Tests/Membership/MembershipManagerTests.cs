@@ -1,11 +1,14 @@
 using System;
 using System.Threading.Tasks;
 using Informatique.Alumni.Membership;
+using Informatique.Alumni.Profiles;
 using NSubstitute;
 using Shouldly;
 using Volo.Abp;
 using Volo.Abp.Domain.Repositories;
 using Xunit;
+
+using MemDeliveryMethod = Informatique.Alumni.Membership.DeliveryMethod;
 
 namespace Informatique.Alumni.Domain.Tests.Membership;
 
@@ -14,6 +17,8 @@ public class MembershipManagerTests
     private readonly IRepository<SubscriptionFee, Guid> _mockFeeRepository;
     private readonly IRepository<AssociationRequest, Guid> _mockRequestRepository;
     private readonly IRepository<PaymentTransaction, Guid> _mockPaymentRepository;
+    private readonly IRepository<AlumniProfile, Guid> _mockProfileRepository;
+    private readonly IRepository<MembershipFeeConfig, Guid> _mockConfigRepository;
     private readonly MembershipManager _membershipManager;
 
     public MembershipManagerTests()
@@ -21,11 +26,15 @@ public class MembershipManagerTests
         _mockFeeRepository = Substitute.For<IRepository<SubscriptionFee, Guid>>();
         _mockRequestRepository = Substitute.For<IRepository<AssociationRequest, Guid>>();
         _mockPaymentRepository = Substitute.For<IRepository<PaymentTransaction, Guid>>();
+        _mockProfileRepository = Substitute.For<IRepository<AlumniProfile, Guid>>();
+        _mockConfigRepository = Substitute.For<IRepository<MembershipFeeConfig, Guid>>();
         
         _membershipManager = new MembershipManager(
             _mockFeeRepository,
             _mockRequestRepository,
-            _mockPaymentRepository
+            _mockPaymentRepository,
+            _mockProfileRepository,
+            _mockConfigRepository
         );
     }
 
@@ -136,7 +145,13 @@ public class MembershipManagerTests
             Guid.NewGuid(),
             Guid.NewGuid(),
             Guid.NewGuid(),
-            idempotencyKey
+            idempotencyKey,
+            Guid.NewGuid(),
+            DateTime.UtcNow,
+            DateTime.UtcNow.AddYears(1),
+            MemDeliveryMethod.OfficePickup,
+            0,
+            null
         );
         
         _mockRequestRepository.GetListAsync(
@@ -175,6 +190,7 @@ public class MembershipManagerTests
         var alumniId = Guid.NewGuid();
         var feeId = Guid.NewGuid();
         var idempotencyKey = "unique-request-key";
+        var branchId = Guid.NewGuid();
         
         var validFee = new SubscriptionFee(
             feeId,
@@ -196,7 +212,12 @@ public class MembershipManagerTests
             requestId,
             alumniId,
             feeId,
-            idempotencyKey
+            idempotencyKey,
+            branchId,
+            2024,
+            MemDeliveryMethod.OfficePickup,
+            0,
+            null
         );
 
         // Assert
@@ -215,13 +236,20 @@ public class MembershipManagerTests
         var existingRequestId = Guid.NewGuid();
         var alumniId = Guid.NewGuid();
         var feeId = Guid.NewGuid();
+        var branchId = Guid.NewGuid();
         var idempotencyKey = "duplicate-key-12345";
         
         var existingRequest = new AssociationRequest(
             existingRequestId,
             alumniId,
             feeId,
-            idempotencyKey
+            idempotencyKey,
+            branchId,
+            DateTime.UtcNow,
+            DateTime.UtcNow.AddYears(1),
+            MemDeliveryMethod.OfficePickup,
+            0,
+            null
         );
         
         _mockRequestRepository.GetListAsync(
@@ -236,7 +264,12 @@ public class MembershipManagerTests
             Guid.NewGuid(), // Different ID - should be ignored
             alumniId,
             feeId,
-            idempotencyKey
+            idempotencyKey,
+            branchId,
+            2024,
+            MemDeliveryMethod.OfficePickup,
+            0,
+            null
         );
 
         // Assert
@@ -252,6 +285,7 @@ public class MembershipManagerTests
         var requestId = Guid.NewGuid();
         var alumniId = Guid.NewGuid();
         var feeId = Guid.NewGuid();
+        var branchId = Guid.NewGuid();
         var idempotencyKey = "test-key";
         
         var invalidFee = new SubscriptionFee(
@@ -272,7 +306,7 @@ public class MembershipManagerTests
         // Act & Assert
         await Should.ThrowAsync<BusinessException>(
             async () => await _membershipManager.CreateMembershipRequestAsync(
-                requestId, alumniId, feeId, idempotencyKey
+                requestId, alumniId, feeId, idempotencyKey, branchId, 2023, MemDeliveryMethod.OfficePickup, 0, null
             )
         );
     }
@@ -324,7 +358,13 @@ public class MembershipManagerTests
             Guid.NewGuid(),
             Guid.NewGuid(),
             Guid.NewGuid(),
-            "test-key"
+            "test-key",
+            Guid.NewGuid(),
+            DateTime.UtcNow,
+            DateTime.UtcNow.AddYears(1),
+            MemDeliveryMethod.OfficePickup,
+            0,
+            null
         );
         request.MarkAsPaid();
         
@@ -346,7 +386,13 @@ public class MembershipManagerTests
             Guid.NewGuid(),
             Guid.NewGuid(),
             Guid.NewGuid(),
-            "test-key"
+            "test-key",
+            Guid.NewGuid(),
+            DateTime.UtcNow,
+            DateTime.UtcNow.AddYears(1),
+            MemDeliveryMethod.OfficePickup,
+            0,
+            null
         );
         request.MarkAsPaid();
         
@@ -372,7 +418,13 @@ public class MembershipManagerTests
             Guid.NewGuid(),
             alumniId,
             Guid.NewGuid(),
-            "test-key"
+            "test-key",
+            Guid.NewGuid(),
+            DateTime.UtcNow,
+            DateTime.UtcNow.AddYears(1),
+            MemDeliveryMethod.OfficePickup,
+            0,
+            null
         );
 
         // Act
@@ -392,7 +444,13 @@ public class MembershipManagerTests
             Guid.NewGuid(),
             ownerId,
             Guid.NewGuid(),
-            "test-key"
+            "test-key",
+            Guid.NewGuid(),
+            DateTime.UtcNow,
+            DateTime.UtcNow.AddYears(1),
+            MemDeliveryMethod.OfficePickup,
+            0,
+            null
         );
 
         // Act & Assert
@@ -414,7 +472,13 @@ public class MembershipManagerTests
             Guid.NewGuid(),
             alumniId,
             Guid.NewGuid(),
-            "test-key"
+            "test-key",
+            Guid.NewGuid(),
+            DateTime.UtcNow,
+            DateTime.UtcNow.AddYears(1),
+            MemDeliveryMethod.OfficePickup,
+            0,
+            null
         );
         request.MarkAsPaid(); // Already paid
 
@@ -438,6 +502,7 @@ public class MembershipManagerTests
         var alumniId = Guid.NewGuid();
         var feeId = Guid.NewGuid();
         var idempotencyKey = "workflow-test-key";
+        var branchId = Guid.NewGuid();
         
         var validFee = new SubscriptionFee(
             feeId,
@@ -462,7 +527,12 @@ public class MembershipManagerTests
             requestId,
             alumniId,
             feeId,
-            idempotencyKey
+            idempotencyKey,
+            branchId,
+            2024,
+            MemDeliveryMethod.OfficePickup,
+            0,
+            null
         );
         request.Status.ShouldBe(MembershipRequestStatus.Pending);
 

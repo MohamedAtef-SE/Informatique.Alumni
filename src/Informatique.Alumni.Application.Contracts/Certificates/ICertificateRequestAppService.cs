@@ -8,7 +8,7 @@ namespace Informatique.Alumni.Certificates;
 public interface ICertificateRequestAppService : IApplicationService
 {
     Task<CertificateRequestDto> GetAsync(Guid id);
-    Task<PagedResultDto<CertificateRequestDto>> GetListAsync(PagedAndSortedResultRequestDto input);
+
     Task<PagedResultDto<CertificateRequestDto>> GetListAsync(CertificateRequestFilterDto input);
     Task<CertificateRequestDto> CreateAsync(CreateCertificateRequestDto input);
     Task<CertificateRequestDto> ProcessAsync(Guid id, ProcessCertificateRequestDto input);

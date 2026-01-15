@@ -9,11 +9,21 @@ using Volo.Abp.Application.Dtos;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Users;
 
+using Informatique.Alumni.BlobContainers;
+using Informatique.Alumni.Profiles;
+using Informatique.Alumni.Certificates;
+using Volo.Abp.BlobStoring;
+
 namespace Informatique.Alumni.Membership;
 
 [Authorize(AlumniPermissions.Membership.Default)]
 public class MembershipAppService : AlumniAppService, IMembershipAppService
 {
+    private readonly IRepository<SubscriptionFee, Guid> _feeRepository;
+    private readonly IRepository<AssociationRequest, Guid> _requestRepository;
+    private readonly IRepository<PaymentTransaction, Guid> _paymentRepository;
+    private readonly MembershipManager _membershipManager;
+    private readonly AlumniApplicationMappers _alumniMappers;
     private readonly IRepository<AlumniProfile, Guid> _profileRepository;
     private readonly IBlobContainer<AlumniBlobContainer> _blobContainer;
 
@@ -35,11 +45,35 @@ public class MembershipAppService : AlumniAppService, IMembershipAppService
         _blobContainer = blobContainer;
     }
 
-    // ... CreateSubscriptionFeeAsync ...
-    // ... GetActiveSubscriptionFeesAsync ...
+    [Authorize(AlumniPermissions.Membership.ManageFees)]
+    public async Task<SubscriptionFeeDto> CreateSubscriptionFeeAsync(CreateSubscriptionFeeDto input)
+    {
+        var fee = new SubscriptionFee(
+            GuidGenerator.Create(),
+            input.Name,
+            input.Amount,
+            input.Year,
+            input.SeasonStartDate,
+            input.SeasonEndDate
+        );
+        
+        await _feeRepository.InsertAsync(fee);
+        
+        return ObjectMapper.Map<SubscriptionFee, SubscriptionFeeDto>(fee);
+    }
+
+    public async Task<ListResultDto<SubscriptionFeeDto>> GetActiveSubscriptionFeesAsync()
+    {
+        var fees = await _feeRepository.GetListAsync();
+        var activeFees = fees.Where(x => x.IsCurrentlyValid()).ToList();
+        
+        return new ListResultDto<SubscriptionFeeDto>(
+            ObjectMapper.Map<List<SubscriptionFee>, List<SubscriptionFeeDto>>(activeFees)
+        );
+    }
 
     [Authorize(AlumniPermissions.Membership.Request)]
-    public async Task<AssociationRequestDto> CreateRequestAsync(CreateAssociationRequestDto input)
+    public async Task<AssociationRequestDto> RequestMembershipAsync(CreateAssociationRequestDto input)
     {
         var currentUserId = CurrentUser.GetId();
         var profile = await _profileRepository.GetAsync(p => p.UserId == currentUserId);
@@ -310,3 +344,4 @@ public class MembershipAppService : AlumniAppService, IMembershipAppService
             GradYear = education?.GraduationYear ?? 0
         };
     }
+}

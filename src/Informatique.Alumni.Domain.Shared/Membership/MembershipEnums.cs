@@ -5,7 +5,6 @@ public enum MembershipRequestStatus
     Pending = 1,
     Paid = 2,
     Approved = 3,
-    Approved = 3,
     Rejected = 4,
     InProgress = 5,
     ReadyForPickup = 6,
@@ -17,7 +16,8 @@ public enum PaymentStatus
 {
     Pending = 1,
     Completed = 2,
-    Failed = 3,
+    Failed = 3
+}
 
 public enum DeliveryMethod
 {

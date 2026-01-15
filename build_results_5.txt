@@ -1,0 +1,22 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Informatique.Alumni.Domain.Shared -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain.Shared\bin\Debug\net10.0\Informatique.Alumni.Domain.Shared.dll
+  Informatique.Alumni.TestBase -> D:\Projects\Informatique.Alumni\test\Informatique.Alumni.TestBase\bin\Debug\net10.0\Informatique.Alumni.TestBase.dll
+  Informatique.Alumni.Domain -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\bin\Debug\net10.0\Informatique.Alumni.Domain.dll
+  Informatique.Alumni.EntityFrameworkCore -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\bin\Debug\net10.0\Informatique.Alumni.EntityFrameworkCore.dll
+  Informatique.Alumni.Application.Contracts -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\bin\Debug\net10.0\Informatique.Alumni.Application.Contracts.dll
+  Informatique.Alumni.HttpApi -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\bin\Debug\net10.0\Informatique.Alumni.HttpApi.dll
+  Informatique.Alumni.Application -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\bin\Debug\net10.0\Informatique.Alumni.Application.dll
+  Informatique.Alumni.HttpApi.Client -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Client\bin\Debug\net10.0\Informatique.Alumni.HttpApi.Client.dll
+  Informatique.Alumni.DbMigrator -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.DbMigrator\bin\Debug\net10.0\Informatique.Alumni.DbMigrator.dll
+  Informatique.Alumni.HttpApi.Client.ConsoleTestApp -> D:\Projects\Informatique.Alumni\test\Informatique.Alumni.HttpApi.Client.ConsoleTestApp\bin\Debug\net10.0\Informatique.Alumni.HttpApi.Client.ConsoleTestApp.dll
+  Informatique.Alumni.Domain.Tests -> D:\Projects\Informatique.Alumni\test\Informatique.Alumni.Domain.Tests\bin\Debug\net10.0\Informatique.Alumni.Domain.Tests.dll
+  Informatique.Alumni.Application.Tests -> D:\Projects\Informatique.Alumni\test\Informatique.Alumni.Application.Tests\bin\Debug\net10.0\Informatique.Alumni.Application.Tests.dll
+  Informatique.Alumni.HttpApi.Host -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\bin\Debug\net10.0\Informatique.Alumni.HttpApi.Host.dll
+  Informatique.Alumni.EntityFrameworkCore.Tests -> D:\Projects\Informatique.Alumni\test\Informatique.Alumni.EntityFrameworkCore.Tests\bin\Debug\net10.0\Informatique.Alumni.EntityFrameworkCore.Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:04.98

@@ -38,10 +38,11 @@ public class MembershipManager : DomainService
 
         if (!fee.IsCurrentlyValid())
         {
-            throw new BusinessException(AlumniDomainErrorCodes.Membership.SubscriptionClosed)
-                .WithData("SubscriptionFeeId", subscriptionFeeId)
-                .WithData("FeeName", fee.Name)
-                .WithData("SeasonEndDate", fee.SeasonEndDate);
+            var ex = new BusinessException(AlumniDomainErrorCodes.Membership.SubscriptionClosed);
+            ex.WithData("SubscriptionFeeId", subscriptionFeeId);
+            ex.WithData("FeeName", fee.Name);
+            ex.WithData("SeasonEndDate", fee.SeasonEndDate);
+            throw ex;
         }
 
         return fee;
@@ -111,7 +112,7 @@ public class MembershipManager : DomainService
         await ValidateSubscriptionFeeAsync(subscriptionFeeId);
 
         // Calculate Validity Dates
-        var validity = CalculateValidityDates(graduationYear, _clock.Now);
+        var validity = CalculateValidityDates(graduationYear, Clock.Now);
 
         // Create new request
         var request = new AssociationRequest(
@@ -253,7 +254,7 @@ public class MembershipManager : DomainService
         }
 
         // 3. Calculate Gap
-        var gap = _clock.Now - lastRequest.ValidityEndDate;
+        var gap = Clock.Now - lastRequest.ValidityEndDate;
         var totalDays = gap.TotalDays;
         
         // Logic
