@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Volo.Abp.Domain.Entities.Auditing;
 
 namespace Informatique.Alumni.Membership;
@@ -91,23 +92,7 @@ public class AssociationRequest : FullAuditedAggregateRoot<Guid>
         }
     }
 
-    public void MarkAsPaid()
-    {
-        if (Status == MembershipRequestStatus.Pending)
-        {
-            Status = MembershipRequestStatus.Paid;
-            // Note: History should be added via ChangeStatus ideally, but this method exists from previous phase.
-            // I will NOT modify this existing method logic to require arguments to avoid breaking simple usage, 
-            // BUT proper flow should be to use ChangeStatus. 
-            // I'll leave it as is to respect "Additive Only" strictly unless I refactor calls.
-            // Wait, "Refactor" IS the task.
-        }
-    }
-    
-    // ... Verify other methods ...
-    
-    public void Approve() { ... } 
-    public void Reject(string reason) { ... }
+
 
     public void MarkAsPaid()
     {

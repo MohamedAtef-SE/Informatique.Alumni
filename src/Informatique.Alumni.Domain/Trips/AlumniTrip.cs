@@ -236,6 +236,37 @@ public class AlumniTrip : FullAuditedAggregateRoot<Guid>
         IsActive = true;
     }
 
+    public void Update(
+        string title,
+        string destination,
+        DateTime startDate,
+        DateTime endDate,
+        int maxCapacity,
+        decimal pricePerPerson,
+        string description)
+    {
+        // Update core fields based on legacy inputs
+        SetNames(title, title);
+        
+        // Validation for dates (simplified for update)
+        if (endDate <= startDate) throw new BusinessException("Trip:InvalidDateRange");
+        
+        DateFrom = startDate;
+        DateTo = endDate;
+        
+        Location = destination;
+        SetCapacity(maxCapacity > 0, maxCapacity);
+        
+        // Update legacy fields
+        Title = title;
+        Destination = destination;
+        StartDate = startDate;
+        EndDate = endDate;
+        MaxCapacity = maxCapacity;
+        PricePerPerson = pricePerPerson;
+        Description = description;
+    }
+
     public void Deactivate()
     {
         IsActive = false;

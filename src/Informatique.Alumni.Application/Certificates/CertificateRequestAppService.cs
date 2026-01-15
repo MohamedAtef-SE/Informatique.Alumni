@@ -57,27 +57,7 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
         return dto;
     }
 
-    public async Task<PagedResultDto<CertificateRequestDto>> GetListAsync(PagedAndSortedResultRequestDto input)
-    {
-        var totalCount = await _repository.GetCountAsync();
-        var entities = await _repository.GetPagedListAsync(input.SkipCount, input.MaxResultCount, input.Sorting);
-        
-        var dtos = _alumniMappers.MapToDtos(entities);
-        
-        // Populate names for all items
-        foreach (var dto in dtos)
-        {
-            await PopulateItemNamesAsync(dto);
-            
-            if (dto.TargetBranchId.HasValue)
-            {
-                var branch = await _branchRepository.FindAsync(dto.TargetBranchId.Value);
-                dto.TargetBranchName = branch?.Name;
-            }
-        }
 
-        return new PagedResultDto<CertificateRequestDto>(totalCount, dtos);
-    }
 
     /// <summary>
     /// Employee Follow-Up: Advanced search with branch-based security filtering.

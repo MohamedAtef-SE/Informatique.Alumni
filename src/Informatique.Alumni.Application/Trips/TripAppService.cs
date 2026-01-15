@@ -46,27 +46,31 @@ public class TripAppService : AlumniAppService, ITripAppService
     {
         var trip = new AlumniTrip(
             GuidGenerator.Create(),
+            Guid.Empty, // Default BranchId
+            input.Title,
+            input.Title,
+            TripType.Internal, // Default Type
+            input.StartDate,
+            input.EndDate,
+            TimeSpan.Zero,
+            input.StartDate.AddDays(-1),
+            input.StartDate.AddDays(-1),
+            input.Destination,
+            0m, // AdminFees
+            input.MaxCapacity > 0,
+            input.MaxCapacity
+        );
+        
+        // Use Update method to set description and other fields
+        trip.Update(
             input.Title,
             input.Destination,
             input.StartDate,
             input.EndDate,
             input.MaxCapacity,
-            input.PricePerPerson
+            input.PricePerPerson,
+            input.Description ?? string.Empty
         );
-        
-        // Use Update method to set description if provided
-        if (!string.IsNullOrWhiteSpace(input.Description))
-        {
-            trip.Update(
-                input.Title,
-                input.Destination,
-                input.StartDate,
-                input.EndDate,
-                input.MaxCapacity,
-                input.PricePerPerson,
-                input.Description
-            );
-        }
         
         await _tripRepository.InsertAsync(trip);
         return _alumniMappers.MapToDto(trip);
@@ -76,7 +80,7 @@ public class TripAppService : AlumniAppService, ITripAppService
     public async Task RequestTripAsync(Guid tripId, int guestCount)
     {
         var trip = await _tripRepository.GetAsync(tripId);
-        if (!trip.IsActive || trip.StartDate <= DateTime.Now)
+        if (!trip.IsActive || (trip.StartDate.HasValue && trip.StartDate.Value <= DateTime.Now))
         {
             throw new UserFriendlyException("This trip is no longer active or has already started.");
         }
@@ -87,12 +91,13 @@ public class TripAppService : AlumniAppService, ITripAppService
         var existingRequests = await _requestRepository.GetListAsync(x => x.TripId == tripId && x.Status != TripRequestStatus.Cancelled && x.Status != TripRequestStatus.Rejected);
         var currentParticipantsCount = existingRequests.Sum(x => x.TotalParticipants);
 
-        if (currentParticipantsCount + totalRequestedParticipants > trip.MaxCapacity)
+        if (trip.MaxCapacity.HasValue && currentParticipantsCount + totalRequestedParticipants > trip.MaxCapacity.Value)
         {
-            throw new UserFriendlyException($"Not enough capacity. Only {trip.MaxCapacity - currentParticipantsCount} spots left.");
+            throw new UserFriendlyException($"Not enough capacity. Only {trip.MaxCapacity.Value - currentParticipantsCount} spots left.");
         }
 
-        var totalAmount = totalRequestedParticipants * trip.PricePerPerson;
+        var price = trip.PricePerPerson ?? 0;
+        var totalAmount = totalRequestedParticipants * price;
         var Request = new TripRequest(GuidGenerator.Create(), tripId, CurrentUser.Id ?? throw new UnauthorizedAccessException(), guestCount, totalAmount);
         
         await _requestRepository.InsertAsync(Request);

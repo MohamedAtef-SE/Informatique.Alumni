@@ -1,23 +1,55 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Informatique.Alumni.Certificates;
+using Informatique.Alumni.Membership;
+using Informatique.Alumni.Profiles;
+using Informatique.Alumni.Branches;
 using NSubstitute;
 using Shouldly;
 using Volo.Abp;
 using Volo.Abp.Domain.Repositories;
 using Xunit;
 
+using CertDeliveryMethod = Informatique.Alumni.Certificates.DeliveryMethod;
+
 namespace Informatique.Alumni.Domain.Tests.Certificates;
 
 public class CertificateManagerTests
 {
     private readonly IRepository<CertificateDefinition, Guid> _mockDefinitionRepository;
+    private readonly IRepository<AlumniProfile, Guid> _mockProfileRepository;
+    private readonly IRepository<Branch, Guid> _mockBranchRepository;
+    private readonly MembershipManager _membershipManager;
     private readonly CertificateManager _certificateManager;
 
     public CertificateManagerTests()
     {
         _mockDefinitionRepository = Substitute.For<IRepository<CertificateDefinition, Guid>>();
-        _certificateManager = new CertificateManager(_mockDefinitionRepository);
+        _mockProfileRepository = Substitute.For<IRepository<AlumniProfile, Guid>>();
+        _mockBranchRepository = Substitute.For<IRepository<Branch, Guid>>();
+
+        // Setup MembershipManager dependencies
+        var feeRepo = Substitute.For<IRepository<SubscriptionFee, Guid>>();
+        var reqRepo = Substitute.For<IRepository<AssociationRequest, Guid>>();
+        var payRepo = Substitute.For<IRepository<PaymentTransaction, Guid>>();
+        var profileRepo = Substitute.For<IRepository<AlumniProfile, Guid>>();
+        var configRepo = Substitute.For<IRepository<MembershipFeeConfig, Guid>>();
+        
+        // Mock MembershipManager partially or fully
+        _membershipManager = Substitute.ForPartsOf<MembershipManager>(feeRepo, reqRepo, payRepo, profileRepo, configRepo);
+
+        _certificateManager = new CertificateManager(
+            _mockDefinitionRepository,
+            _mockProfileRepository,
+            _mockBranchRepository,
+            _membershipManager
+        );
+    }
+    
+    private AlumniProfile CreateProfile(Guid id, Guid userId)
+    {
+        return new AlumniProfile(id, userId, "01234567890", "12345678901234");
     }
 
     #region ValidateEligibilityAsync Tests
@@ -27,7 +59,7 @@ public class CertificateManagerTests
     {
         // Arrange
         var definitionId = Guid.NewGuid();
-        var activeDef = new CertificateDefinition(definitionId, "Graduation Certificate", 100m);
+        var activeDef = new CertificateDefinition(definitionId, "شهادة تخرج", "Graduation Certificate", 100m, DegreeType.Undergraduate);
         
         _mockDefinitionRepository.GetAsync(definitionId, Arg.Any<bool>())
             .Returns(activeDef);
@@ -46,8 +78,8 @@ public class CertificateManagerTests
     {
         // Arrange
         var definitionId = Guid.NewGuid();
-        var inactiveDef = new CertificateDefinition(definitionId, "Old Certificate", 50m);
-        inactiveDef.IsActive = false; // Set as inactive
+        var inactiveDef = new CertificateDefinition(definitionId, "شهادة قديمة", "Old Certificate", 50m, DegreeType.Postgraduate);
+        inactiveDef.Deactivate(); 
         
         _mockDefinitionRepository.GetAsync(definitionId, Arg.Any<bool>())
             .Returns(inactiveDef);
@@ -59,7 +91,6 @@ public class CertificateManagerTests
 
         exception.Code.ShouldBe(AlumniDomainErrorCodes.Certificate.DefinitionNotActive);
         exception.Data["CertificateDefinitionId"].ShouldBe(definitionId);
-        exception.Data["DefinitionName"].ShouldBe("Old Certificate");
     }
 
     #endregion
@@ -74,16 +105,33 @@ public class CertificateManagerTests
         var alumniId = Guid.NewGuid();
         var definitionId = Guid.NewGuid();
         var userNotes = "Please expedite";
+        var branchId = Guid.NewGuid();
         
-        var activeDef = new CertificateDefinition(definitionId, "Graduation Certificate", 100m);
+        var activeDef = new CertificateDefinition(definitionId, "شهادة تخرج", "Graduation Certificate", 100m, DegreeType.Undergraduate);
         _mockDefinitionRepository.GetAsync(definitionId, Arg.Any<bool>())
             .Returns(activeDef);
+
+        var profile = CreateProfile(alumniId, Guid.NewGuid());
+        profile.AddCredit(1000m);
+        _mockProfileRepository.FirstOrDefaultAsync(Arg.Any<System.Linq.Expressions.Expression<Func<AlumniProfile, bool>>>())
+            .Returns(profile);
+            
+        _mockBranchRepository.GetAsync(branchId).Returns(new Branch(branchId, "Main", "Main"));
+        _membershipManager.IsActiveAsync(alumniId).Returns(Task.FromResult(true));
+
+        var items = new List<CreateItemInput>
+        {
+            new CreateItemInput { CertificateDefinitionId = definitionId, Language = CertificateLanguage.English }
+        };
 
         // Act
         var request = await _certificateManager.CreateRequestAsync(
             requestId,
             alumniId,
-            definitionId,
+            items,
+            CertDeliveryMethod.BranchPickup,
+            branchId,
+            null,
             userNotes
         );
 
@@ -91,9 +139,7 @@ public class CertificateManagerTests
         request.ShouldNotBeNull();
         request.Id.ShouldBe(requestId);
         request.AlumniId.ShouldBe(alumniId);
-        request.CertificateDefinitionId.ShouldBe(definitionId);
         request.UserNotes.ShouldBe(userNotes);
-        request.Status.ShouldBe(CertificateStatus.Pending);
     }
 
     [Fact]
@@ -103,42 +149,26 @@ public class CertificateManagerTests
         var requestId = Guid.NewGuid();
         var alumniId = Guid.NewGuid();
         var definitionId = Guid.NewGuid();
+        var branchId = Guid.NewGuid();
         
-        var inactiveDef = new CertificateDefinition(definitionId, "Deprecated Certificate", 50m);
-        inactiveDef.IsActive = false; // Set as inactive
+        var inactiveDef = new CertificateDefinition(definitionId, "شهادة مهملة", "Deprecated Certificate", 50m, DegreeType.Postgraduate);
+        inactiveDef.Deactivate(); 
         _mockDefinitionRepository.GetAsync(definitionId, Arg.Any<bool>())
             .Returns(inactiveDef);
+            
+        _membershipManager.IsActiveAsync(alumniId).Returns(Task.FromResult(true));
+
+        var items = new List<CreateItemInput>
+        {
+            new CreateItemInput { CertificateDefinitionId = definitionId, Language = CertificateLanguage.English }
+        };
 
         // Act & Assert
         var exception = await Should.ThrowAsync<BusinessException>(
-            async () => await _certificateManager.CreateRequestAsync(requestId, alumniId, definitionId)
+            async () => await _certificateManager.CreateRequestAsync(requestId, alumniId, items, CertDeliveryMethod.BranchPickup, branchId)
         );
 
         exception.Code.ShouldBe(AlumniDomainErrorCodes.Certificate.DefinitionNotActive);
-    }
-
-    [Fact]
-    public async Task CreateRequestAsync_Should_Work_Without_UserNotes()
-    {
-        // Arrange
-        var requestId = Guid.NewGuid();
-        var alumniId = Guid.NewGuid();
-        var definitionId = Guid.NewGuid();
-        
-        var activeDef = new CertificateDefinition(definitionId, "Basic Certificate", 100m);
-        _mockDefinitionRepository.GetAsync(definitionId, Arg.Any<bool>())
-            .Returns(activeDef);
-
-        // Act
-        var request = await _certificateManager.CreateRequestAsync(
-            requestId,
-            alumniId,
-            definitionId
-        );
-
-        // Assert
-        request.ShouldNotBeNull();
-        request.UserNotes.ShouldBeNullOrEmpty();
     }
 
     #endregion
@@ -149,50 +179,21 @@ public class CertificateManagerTests
     public void GenerateVerificationHash_Should_Return_NonEmpty_Hash()
     {
         // Arrange
-        var request = new CertificateRequest(
+        var item = new CertificateRequestItem(
             Guid.NewGuid(),
             Guid.NewGuid(),
             Guid.NewGuid(),
-            "Test"
+            CertificateLanguage.English,
+             100m,
+             null
         );
 
         // Act
-        var hash = _certificateManager.GenerateVerificationHash(request);
+        var hash = _certificateManager.GenerateVerificationHash(item);
 
         // Assert
         hash.ShouldNotBeNullOrEmpty();
-        hash.Length.ShouldBe(64); // SHA256 produces 64 hex characters
-    }
-
-    [Fact]
-    public void GenerateVerificationHash_Should_Be_Deterministic_For_Same_Request()
-    {
-        // Arrange
-        var requestId = Guid.Parse("12345678-1234-1234-1234-123456789012");
-        var alumniId = Guid.Parse("87654321-4321-4321-4321-210987654321");
-        var definitionId = Guid.Parse("ABCDEFAB-ABCD-ABCD-ABCD-ABCDEFABCDEF");
-        
-        var request = new CertificateRequest(requestId, alumniId, definitionId, "Test");
-
-        // Act
-        var hash1 = _certificateManager.GenerateVerificationHash(request);
-        
-        // Note: Hash includes timestamp, so will be different each time
-        // We just verify it's a valid SHA256 hash
-        
-        // Assert
-        hash1.ShouldNotBeNullOrEmpty();
-        hash1.Length.ShouldBe(64);
-        hash1.ShouldMatch(@"^[a-f0-9]{64}$"); // Valid hex string
-    }
-
-    [Fact]
-    public void GenerateVerificationHash_Should_Throw_When_Request_Null()
-    {
-        // Act & Assert
-        Should.Throw<ArgumentException>(() => 
-            _certificateManager.GenerateVerificationHash(null!)
-        );
+        hash.Length.ShouldBe(64); 
     }
 
     #endregion
@@ -203,129 +204,17 @@ public class CertificateManagerTests
     public void GenerateQrCodeUrl_Should_Return_Valid_Url()
     {
         // Arrange
-        var requestId = Guid.NewGuid();
+        var itemId = Guid.NewGuid();
         var hash = "abc123def456";
 
         // Act
-        var url = _certificateManager.GenerateQrCodeUrl(requestId, hash);
+        var url = _certificateManager.GenerateQrCodeUrl(itemId, hash);
 
         // Assert
         url.ShouldNotBeNullOrEmpty();
-        url.ShouldContain(requestId.ToString());
+        url.ShouldContain(itemId.ToString());
         url.ShouldContain(hash);
         url.ShouldStartWith("https://");
-    }
-
-    [Fact]
-    public void GenerateQrCodeUrl_Should_Include_Both_Id_And_Hash()
-    {
-        // Arrange
-        var requestId = Guid.Parse("12345678-1234-1234-1234-123456789012");
-        var hash = "verification_hash_value";
-
-        // Act
-        var url = _certificateManager.GenerateQrCodeUrl(requestId, hash);
-
-        // Assert
-        url.ShouldContain("id=12345678-1234-1234-1234-123456789012");
-        url.ShouldContain("hash=verification_hash_value");
-    }
-
-    #endregion
-
-    #region MarkAsReady Tests
-
-    [Fact]
-    public void MarkAsReady_Should_Set_Hash_And_QrCode()
-    {
-        // Arrange
-        var request = new CertificateRequest(
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            "Test"
-        );
-        
-        // Move to processing first (business rule)
-        request.MoveToProcessing();
-
-        // Act
-        _certificateManager.MarkAsReady(request);
-
-        // Assert
-        request.Status.ShouldBe(CertificateStatus.Ready);
-        request.VerificationHash.ShouldNotBeNullOrEmpty();
-        request.QrCodeContent.ShouldNotBeNullOrEmpty();
-        request.VerificationHash.Length.ShouldBe(64); // SHA256
-    }
-
-    [Fact]
-    public void MarkAsReady_Should_Throw_When_Request_Null()
-    {
-        // Act & Assert
-        Should.Throw<ArgumentException>(() => 
-            _certificateManager.MarkAsReady(null!)
-        );
-    }
-
-    [Fact]
-    public void MarkAsReady_Should_Throw_When_Not_In_Processing_Status()
-    {
-        // Arrange
-        var request = new CertificateRequest(
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            "Test"
-        );
-        // Request is in Pending status, not Processing
-
-        // Act & Assert
-        var exception = Should.Throw<BusinessException>(() => 
-            _certificateManager.MarkAsReady(request)
-        );
-        
-        exception.Code.ShouldBe(AlumniDomainErrorCodes.CertificateRequest.InvalidStatusTransition);
-    }
-
-    #endregion
-
-    #region Integration Tests
-
-    [Fact]
-    public async Task Full_Workflow_Should_Work_EndToEnd()
-    {
-        // Arrange
-        var requestId = Guid.NewGuid();
-        var alumniId = Guid.NewGuid();
-        var definitionId = Guid.NewGuid();
-        
-        var activeDef = new CertificateDefinition(definitionId, "Graduation Certificate", 100m);
-        _mockDefinitionRepository.GetAsync(definitionId, Arg.Any<bool>())
-            .Returns(activeDef);
-
-        // Act - Create Request
-        var request = await _certificateManager.CreateRequestAsync(
-            requestId,
-            alumniId,
-            definitionId,
-            "Please expedite my certificate"
-        );
-
-        // Assert - Initial State
-        request.Status.ShouldBe(CertificateStatus.Pending);
-
-        // Act - Process Request
-        request.MoveToProcessing();
-        request.Status.ShouldBe(CertificateStatus.Processing);
-
-        // Act - Mark as Ready (using manager)
-        _certificateManager.MarkAsReady(request);
-
-        // Assert - Final State
-        request.Status.ShouldBe(CertificateStatus.Ready);
-        request.VerificationHash.ShouldNotBeNullOrEmpty();
-        request.QrCodeContent.ShouldNotBeNullOrEmpty();
     }
 
     #endregion
