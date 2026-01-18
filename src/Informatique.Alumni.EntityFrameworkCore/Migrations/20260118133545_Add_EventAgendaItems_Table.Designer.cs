@@ -4,6 +4,7 @@ using Informatique.Alumni.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Volo.Abp.EntityFrameworkCore;
 
@@ -12,9 +13,11 @@ using Volo.Abp.EntityFrameworkCore;
 namespace Informatique.Alumni.Migrations
 {
     [DbContext(typeof(AlumniDbContext))]
-    partial class AlumniDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260118133545_Add_EventAgendaItems_Table")]
+    partial class Add_EventAgendaItems_Table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

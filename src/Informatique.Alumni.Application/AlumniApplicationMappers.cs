@@ -132,9 +132,11 @@ public partial class AlumniApplicationMappers
 
     public partial AssociationEventDto MapToDto(AssociationEvent entity);
     public partial List<AssociationEventDto> MapToDtos(IEnumerable<AssociationEvent> entities);
-    // Removed MapToEntity - use entity.Update() method instead
+    
+    public partial EventTimeslotDto MapToDto(EventTimeslot entity);
+    public partial EventParticipatingCompanyDto MapToDto(EventParticipatingCompany entity);
 
-    public partial EventAgendaItemDto MapToDto(EventAgendaItem entity);
+
     
     public partial AlumniEventRegistrationDto MapToDto(AlumniEventRegistration entity);
     public partial List<AlumniEventRegistrationDto> MapToDtos(IEnumerable<AlumniEventRegistration> entities);
@@ -142,6 +144,12 @@ public partial class AlumniApplicationMappers
     public partial CompanyDto MapToDto(Company entity);
     public partial List<CompanyDto> MapToDtos(IEnumerable<Company> entities);
     public partial void MapToEntity(CompanyDto dto, Company entity);
+    
+    public partial ParticipationTypeDto MapToDto(ParticipationType entity);
+    public partial List<ParticipationTypeDto> MapToDtos(IEnumerable<ParticipationType> entities);
+
+    public partial ActivityTypeDto MapToDto(ActivityType entity);
+    public partial List<ActivityTypeDto> MapToDtos(IEnumerable<ActivityType> entities);
 
     // CV & Job Board
     public partial CurriculumVitaeDto MapToDto(CurriculumVitae entity);

@@ -18,6 +18,7 @@ public class AlumniProfile : FullAuditedAggregateRoot<Guid>
     public bool IsVip { get; private set; } = false;
     public Guid BranchId { get; private set; } // For "Branch Scoping" security
     public string? PhotoUrl { get; private set; } // For "Personal Photo" update
+    public Guid? NationalityId { get; private set; }
     
     // Note: Educations collection handles degrees
     

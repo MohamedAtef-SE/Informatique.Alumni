@@ -51,7 +51,15 @@ public class AlumniDbMigrationService : ITransientDependency
         Logger.LogInformation("Started database migrations...");
 
         await MigrateDatabaseSchemaAsync();
-        await SeedDataAsync();
+        try 
+        {
+            await SeedDataAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error executing host database seed.");
+            throw; // Re-throw to ensure process fails if essential
+        }
 
         Logger.LogInformation($"Successfully completed host database migrations.");
 

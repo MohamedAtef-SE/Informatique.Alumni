@@ -4,6 +4,7 @@ using Informatique.Alumni.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Volo.Abp.EntityFrameworkCore;
 
@@ -12,9 +13,11 @@ using Volo.Abp.EntityFrameworkCore;
 namespace Informatique.Alumni.Migrations
 {
     [DbContext(typeof(AlumniDbContext))]
-    partial class AlumniDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260118124909_Added_ActivityType_Entity")]
+    partial class Added_ActivityType_Entity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1609,12 +1612,6 @@ namespace Informatique.Alumni.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("LastModifierId");
 
-                    b.Property<decimal?>("PaidAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("PaymentMethod")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -1622,9 +1619,6 @@ namespace Informatique.Alumni.Migrations
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
-
-                    b.Property<Guid?>("TimeslotId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -1820,34 +1814,24 @@ namespace Informatique.Alumni.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("ActivityName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid?>("AssociationEventId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("Date")
+                    b.Property<DateTime>("EndTime")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<TimeSpan>("EndTime")
-                        .HasColumnType("time");
 
                     b.Property<Guid>("EventId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Place")
+                    b.Property<string>("Speaker")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<TimeSpan>("StartTime")
-                        .HasColumnType("time");
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AssociationEventId");
 
                     b.ToTable("EventAgendaItems");
                 });
@@ -3056,9 +3040,6 @@ namespace Informatique.Alumni.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("NationalityId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("PhotoUrl")
                         .HasColumnType("nvarchar(max)");
 
@@ -3072,8 +3053,6 @@ namespace Informatique.Alumni.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("NationalityId");
 
                     b.HasIndex("UserId");
 
@@ -3214,63 +3193,6 @@ namespace Informatique.Alumni.Migrations
                     b.HasIndex("AlumniProfileId");
 
                     b.ToTable("AppExperiences", (string)null);
-                });
-
-            modelBuilder.Entity("Informatique.Alumni.Profiles.Nationality", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
-                        .IsRequired()
-                        .HasMaxLength(40)
-                        .HasColumnType("nvarchar(40)")
-                        .HasColumnName("ConcurrencyStamp");
-
-                    b.Property<DateTime>("CreationTime")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("CreationTime");
-
-                    b.Property<Guid?>("CreatorId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("CreatorId");
-
-                    b.Property<Guid?>("DeleterId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("DeleterId");
-
-                    b.Property<DateTime?>("DeletionTime")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("DeletionTime");
-
-                    b.Property<string>("ExtraProperties")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("ExtraProperties");
-
-                    b.Property<bool>("IsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false)
-                        .HasColumnName("IsDeleted");
-
-                    b.Property<DateTime?>("LastModificationTime")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("LastModificationTime");
-
-                    b.Property<Guid?>("LastModifierId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("LastModifierId");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AppNationalities", (string)null);
                 });
 
             modelBuilder.Entity("Informatique.Alumni.Syndicates.Syndicate", b =>
@@ -5718,13 +5640,6 @@ namespace Informatique.Alumni.Migrations
                     b.Navigation("ActivityType");
                 });
 
-            modelBuilder.Entity("Informatique.Alumni.Events.EventAgendaItem", b =>
-                {
-                    b.HasOne("Informatique.Alumni.Events.AssociationEvent", null)
-                        .WithMany("AgendaItems")
-                        .HasForeignKey("AssociationEventId");
-                });
-
             modelBuilder.Entity("Informatique.Alumni.Events.EventParticipatingCompany", b =>
                 {
                     b.HasOne("Informatique.Alumni.Events.Company", "Company")
@@ -5809,13 +5724,6 @@ namespace Informatique.Alumni.Migrations
                         .HasForeignKey("AssociationRequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Informatique.Alumni.Profiles.AlumniProfile", b =>
-                {
-                    b.HasOne("Informatique.Alumni.Profiles.Nationality", null)
-                        .WithMany()
-                        .HasForeignKey("NationalityId");
                 });
 
             modelBuilder.Entity("Informatique.Alumni.Profiles.ContactEmail", b =>
@@ -6082,8 +5990,6 @@ namespace Informatique.Alumni.Migrations
 
             modelBuilder.Entity("Informatique.Alumni.Events.AssociationEvent", b =>
                 {
-                    b.Navigation("AgendaItems");
-
                     b.Navigation("ParticipatingCompanies");
 
                     b.Navigation("Timeslots");

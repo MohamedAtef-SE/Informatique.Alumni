@@ -1,23 +1,44 @@
 using System;
-using Volo.Abp.Domain.Entities;
+using Volo.Abp;
+using Volo.Abp.Domain.Entities.Auditing;
 
 namespace Informatique.Alumni.Events;
 
-public class Company : AggregateRoot<Guid>
+public class Company : FullAuditedAggregateRoot<Guid>
 {
-    public string Name { get; set; } = string.Empty;
-    public string? Logo { get; set; }
-    public string? Website { get; set; }
-    public string? Industry { get; set; }
+    public string NameAr { get; private set; } = string.Empty;
+    public string NameEn { get; private set; } = string.Empty;
+    public string LogoBlobName { get; private set; } = string.Empty;
+    public string? WebsiteUrl { get; private set; }
 
     private Company() { }
 
-    public Company(Guid id, string name, string? logo = null, string? website = null, string? industry = null)
+    public Company(Guid id, string nameAr, string nameEn, string logoBlobName, string? websiteUrl = null)
         : base(id)
     {
-        Name = name;
-        Logo = logo;
-        Website = website;
-        Industry = industry;
+        SetNameAr(nameAr);
+        SetNameEn(nameEn);
+        SetLogoBlobName(logoBlobName);
+        WebsiteUrl = websiteUrl;
+    }
+
+    public void SetNameAr(string nameAr)
+    {
+        NameAr = Check.NotNullOrWhiteSpace(nameAr, nameof(nameAr));
+    }
+
+    public void SetNameEn(string nameEn)
+    {
+        NameEn = Check.NotNullOrWhiteSpace(nameEn, nameof(nameEn));
+    }
+
+    public void SetLogoBlobName(string logoBlobName)
+    {
+        LogoBlobName = Check.NotNullOrWhiteSpace(logoBlobName, nameof(logoBlobName));
+    }
+
+    public void SetWebsiteUrl(string? websiteUrl)
+    {
+        WebsiteUrl = websiteUrl;
     }
 }
