@@ -19,11 +19,41 @@ public static class AlumniDomainErrorCodes
         public const string NotPublished = "Alumni:Event:003";
         public const string AgendaItemOutsideEventDate = "Alumni:Event:004";
         public const string AgendaItemNotFound = "Alumni:Event:005";
+        public const string InvalidFeeAmount = "Alumni:Event:006";
+        public const string FeeAmountMustBeZero = "Alumni:Event:007";
+        public const string InvalidTimeslotRange = "Alumni:Event:008";
+        public const string NoTimeslotsDefined = "Alumni:Event:009";
+        public const string InvalidSubscriptionDate = "Events:InvalidSubscriptionDate";
+    }
+
+    public static class EventSubscription
+    {
+        public const string MembershipRequired = "Alumni:EventSubscription:001";
+        public const string DeadlinePassed = "Alumni:EventSubscription:002";
+        public const string TimeOverlap = "Alumni:EventSubscription:003";
+        public const string TimeslotFull = "Alumni:EventSubscription:004";
+        public const string InsufficientFunds = "Alumni:EventSubscription:005";
+        public const string TimeslotNotFound = "Alumni:EventSubscription:006";
+        public const string AlreadyRegistered = "Alumni:EventSubscription:007";
+    }
+
+    public static class Company
+    {
+        // Company Error Codes
+        public const string CompanyAlreadyExists = "Company:AlreadyExists";
+        public const string CannotDeleteUsedCompany = "Company:CannotDeleteUsedCompany";
+    }
+
+    public static class ParticipationType
+    {
+        public const string AlreadyExists = "ParticipationType:AlreadyExists";
+        public const string CannotDeleteUsed = "ParticipationType:CannotDeleteUsed";
     }
 
     public static class EventAgendaItem
     {
         public const string InvalidTimeRange = "Alumni:AgendaItem:001";
+        public const string ScheduleConflict = "Alumni:AgendaItem:002";
     }
 
     public static class Trip
@@ -97,6 +127,12 @@ public static class AlumniDomainErrorCodes
         public const string UnauthorizedPayment = "Alumni:Membership:003";
         public const string RequestNotPayable = "Alumni:Membership:004";
         public const string InactiveMembership = "Alumni:Membership:005";
+    }
+    public static class ActivityType
+    {
+        public const string DuplicateNameAr = "Alumni:ActivityType:001";
+        public const string DuplicateNameEn = "Alumni:ActivityType:002";
+        public const string CannotDeleteUsed = "Alumni:ActivityType:003";
     }
 }
 

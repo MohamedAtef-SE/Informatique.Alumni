@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Volo.Abp.Content;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 
@@ -9,15 +10,23 @@ namespace Informatique.Alumni.Events;
 public interface IEventsAppService : IApplicationService
 {
     // Event Management
+    // Event Browsing & Search
+    Task<PagedResultDto<EventListDto>> GetListAsync(GetEventsInput input);
+    Task<EventDetailDto> GetAsync(Guid id);
+    
+    // Event Management (Admin)
     Task<PagedResultDto<AssociationEventDto>> GetEventsAsync(PagedAndSortedResultRequestDto input);
-    Task<AssociationEventDto> CreateEventAsync(CreateUpdateEventDto input);
-    Task<AssociationEventDto> UpdateEventAsync(Guid id, CreateUpdateEventDto input);
+    Task<AssociationEventDto> CreateEventAsync(CreateEventDto input);
+    Task<AssociationEventDto> UpdateEventAsync(Guid id, UpdateEventDto input);
     Task DeleteEventAsync(Guid id);
     Task PublishEventAsync(Guid id);
     
-    // Agenda Management
-    Task AddAgendaItemAsync(Guid eventId, CreateAgendaItemDto input);
-    Task RemoveAgendaItemAsync(Guid eventId, Guid agendaItemId);
+    
+    // Agenda/Schedule Management
+    Task<EventAgendaItemDto> CreateScheduleItemAsync(Guid eventId, CreateAgendaItemDto input);
+    Task RemoveScheduleItemAsync(Guid eventId, Guid agendaItemId);
+    Task<IRemoteStreamContent> GetAgendaPdfAsync(Guid eventId);
+
 
     // Registration
     Task<AlumniEventRegistrationDto> RegisterAsync(Guid eventId);
@@ -28,5 +37,10 @@ public interface IEventsAppService : IApplicationService
 
     // Companies
     Task<List<CompanyDto>> GetCompaniesAsync();
-    Task<CompanyDto> CreateCompanyAsync(CompanyDto input);
+    // Participant Management (Employees)
+    Task<PagedResultDto<ActivityParticipantDto>> GetParticipantsAsync(ActivityParticipantFilterDto input);
+    Task RemoveParticipantAsync(Guid subscriptionId, string cancellationReason);
+    
+    // Bulk Email
+    Task SendEmailToParticipantsAsync(SendEventEmailInputDto input);
 }

@@ -7,19 +7,31 @@ namespace Informatique.Alumni.Events;
 public class EventAgendaItem : Entity<Guid>
 {
     public Guid EventId { get; private set; }
-    public string Title { get; private set; } = string.Empty;
-    public DateTime StartTime { get; private set; }
-    public DateTime EndTime { get; private set; }
-    public string Speaker { get; private set; } = string.Empty;
+    public DateTime Date { get; private set; }
+    public TimeSpan StartTime { get; private set; }
+    public TimeSpan EndTime { get; private set; }
+    public string ActivityName { get; private set; } = string.Empty;
+    public string? Place { get; private set; }
+    public string? Description { get; private set; }
 
     private EventAgendaItem() { }
 
-    public EventAgendaItem(Guid id, Guid eventId, string title, DateTime startTime, DateTime endTime, string speaker)
+    public EventAgendaItem(
+        Guid id, 
+        Guid eventId, 
+        DateTime date,
+        TimeSpan startTime, 
+        TimeSpan endTime, 
+        string activityName,
+        string? place = null,
+        string? description = null)
         : base(id)
     {
         EventId = Check.NotDefaultOrNull<Guid>(eventId, nameof(eventId));
-        Title = Check.NotNullOrWhiteSpace(title, nameof(title), EventConsts.MaxAgendaTitleLength);
-        Speaker = Check.NotNullOrWhiteSpace(speaker, nameof(speaker), EventConsts.MaxSpeakerLength);
+        Date = date;
+        ActivityName = Check.NotNullOrWhiteSpace(activityName, nameof(activityName), EventConsts.MaxActivityNameLength);
+        Place = place;
+        Description = description;
         
         if (startTime >= endTime)
         {
@@ -32,10 +44,18 @@ public class EventAgendaItem : Entity<Guid>
         EndTime = endTime;
     }
 
-    public void Update(string title, DateTime startTime, DateTime endTime, string speaker)
+    public void Update(
+        DateTime date,
+        TimeSpan startTime, 
+        TimeSpan endTime, 
+        string activityName,
+        string? place,
+        string? description)
     {
-        Title = Check.NotNullOrWhiteSpace(title, nameof(title), EventConsts.MaxAgendaTitleLength);
-        Speaker = Check.NotNullOrWhiteSpace(speaker, nameof(speaker), EventConsts.MaxSpeakerLength);
+        Date = date;
+        ActivityName = Check.NotNullOrWhiteSpace(activityName, nameof(activityName), EventConsts.MaxActivityNameLength);
+        Place = place;
+        Description = description;
         
         if (startTime >= endTime)
         {
