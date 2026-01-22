@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj" />
-    <ProjectReference Include="..\Informatique.Alumni.Application.Tests\Informatique.Alumni.Application.Tests.csproj" />
+    <ProjectReference Include="..\Informatique.Alumni.TestBase\Informatique.Alumni.TestBase.csproj" />
   </ItemGroup>
 
   <ItemGroup>

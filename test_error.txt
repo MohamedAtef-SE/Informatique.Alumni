@@ -1,0 +1,5 @@
+TYPE=ShouldAssertException, MSG=result.Status
+    should be
+CertificateRequestStatus.PendingPayment
+    but was
+CertificateRequestStatus.Processing

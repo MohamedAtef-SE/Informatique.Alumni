@@ -1,4 +1,3 @@
-
 using System;
 using System.Threading.Tasks;
 using Volo.Abp;
@@ -10,42 +9,47 @@ namespace Informatique.Alumni.Benefits;
 public class DiscountCategoryManager : DomainService
 {
     private readonly IRepository<DiscountCategory, Guid> _categoryRepository;
-    private readonly IRepository<CommercialDiscount, Guid> _discountRepository;
+    private readonly IRepository<DiscountOffer, Guid> _offerRepository;
 
     public DiscountCategoryManager(
         IRepository<DiscountCategory, Guid> categoryRepository,
-        IRepository<CommercialDiscount, Guid> discountRepository)
+        IRepository<DiscountOffer, Guid> offerRepository)
     {
         _categoryRepository = categoryRepository;
-        _discountRepository = discountRepository;
+        _offerRepository = offerRepository;
     }
 
-    public async Task<DiscountCategory> CreateAsync(string nameAr, string nameEn, string? logoPath)
+    public async Task<DiscountCategory> CreateAsync(string nameAr, string nameEn, string? logoUrl)
     {
         await ValidateUniquenessAsync(nameAr, nameEn);
 
-        return new DiscountCategory(
-            GuidGenerator.Create(),
-            nameAr,
-            nameEn,
-            logoPath
+        return await _categoryRepository.InsertAsync(
+            new DiscountCategory(
+                GuidGenerator.Create(),
+                nameAr,
+                nameEn,
+                logoUrl
+            )
         );
     }
 
-    public async Task UpdateAsync(DiscountCategory category, string nameAr, string nameEn, string? logoPath)
+    public async Task UpdateAsync(DiscountCategory category, string nameAr, string nameEn, string? logoUrl)
     {
         if (category.NameAr != nameAr || category.NameEn != nameEn)
         {
              await ValidateUniquenessAsync(nameAr, nameEn, category.Id);
         }
 
-        category.UpdateInfo(nameAr, nameEn, logoPath);
+        category.SetName(nameAr, nameEn);
+        category.SetLogoUrl(logoUrl);
+        
+        await _categoryRepository.UpdateAsync(category);
     }
 
     public async Task DeleteAsync(Guid id)
     {
         // Integrity Check: Cannot delete if linked offers exist
-        if (await _discountRepository.AnyAsync(x => x.CategoryId == id))
+        if (await _offerRepository.AnyAsync(x => x.DiscountCategoryId == id))
         {
             throw new UserFriendlyException("Cannot delete category because it has related offers.");
         }

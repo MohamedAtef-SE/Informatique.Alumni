@@ -38,7 +38,7 @@ public class JobAppService : AlumniAppService, IJobAppService
 
     public async Task<PagedResultDto<JobDto>> GetJobsAsync(PagedAndSortedResultRequestDto input)
     {
-        var query = await _jobRepository.GetQueryableAsync();
+        var query = await _jobRepository.WithDetailsAsync();
         query = query.Where(x => x.IsActive);
         
         var count = await AsyncExecuter.CountAsync(query);
@@ -95,7 +95,8 @@ public class JobAppService : AlumniAppService, IJobAppService
     [Authorize(AlumniPermissions.Careers.JobManage)]
     public async Task<List<JobApplicationDto>> GetApplicationsAsync(Guid jobId)
     {
-        var list = await _applicationRepository.GetListAsync(x => x.JobId == jobId);
+        var query = await _applicationRepository.WithDetailsAsync();
+        var list = await AsyncExecuter.ToListAsync(query.Where(x => x.JobId == jobId));
         return _alumniMappers.MapToDtos(list);
     }
 }

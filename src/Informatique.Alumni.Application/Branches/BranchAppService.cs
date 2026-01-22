@@ -22,13 +22,16 @@ public class BranchAppService :
     protected override string? DeletePolicyName { get; set; } = AlumniPermissions.Branches.Delete;
 
     private readonly IDistributedCache<List<BranchDto>> _academicStructureCache;
+    private readonly AlumniApplicationMappers _alumniMappers;
 
     public BranchAppService(
         IRepository<Branch, Guid> repository,
-        IDistributedCache<List<BranchDto>> academicStructureCache) 
+        IDistributedCache<List<BranchDto>> academicStructureCache,
+        AlumniApplicationMappers alumniMappers) 
         : base(repository)
     {
         _academicStructureCache = academicStructureCache;
+        _alumniMappers = alumniMappers;
     }
 
     public async Task<List<BranchDto>> GetAcademicStructureAsync()
@@ -38,7 +41,7 @@ public class BranchAppService :
             async () =>
             {
                 var branches = await Repository.GetListAsync();
-                return ObjectMapper.Map<List<Branch>, List<BranchDto>>(branches);
+                return _alumniMappers.MapToDtos(branches);
             },
             () => new Microsoft.Extensions.Caching.Distributed.DistributedCacheEntryOptions
             {

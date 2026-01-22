@@ -136,17 +136,52 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
 
         // Execute query
         var entities = await AsyncExecuter.ToListAsync(queryable);
+        // Map to DTOs
         var dtos = _alumniMappers.MapToDtos(entities);
 
-        // Populate names for all items
+        // Pre-fetch Branch Names for optimization
+        // Pre-fetch Branch Names for optimization
+        var branchIds = dtos.Where(x => x.TargetBranchId.HasValue).Select(x => x.TargetBranchId.Value).Distinct().ToList();
+        var branches = await _branchRepository.GetListAsync(x => branchIds.Contains(x.Id));
+        var branchDict = branches.ToDictionary(k => k.Id, v => v.Name);
+
+        // ========== Bulk Fetch for Items Implementation (N+1 Fix) ==========
+        var allItems = dtos.SelectMany(d => d.Items).ToList();
+        
+        // 1. Certificate Definitions
+        var definitionIds = allItems.Select(x => x.CertificateDefinitionId).Distinct().ToList();
+        var definitions = await _definitionRepository.GetListAsync(x => definitionIds.Contains(x.Id));
+        var defDict = definitions.ToDictionary(x => x.Id, x => x.NameEn);
+
+        // 2. Qualifications
+        var qualificationIds = allItems.Where(x => x.QualificationId.HasValue)
+                                       .Select(x => x.QualificationId!.Value).Distinct().ToList();
+        Dictionary<Guid, string> qualDict = new();
+        if (qualificationIds.Any())
+        {
+            var qualifications = await _educationRepository.GetListAsync(x => qualificationIds.Contains(x.Id));
+            qualDict = qualifications.ToDictionary(x => x.Id, x => $"{x.Degree} - {x.InstitutionName}");
+        }
+
+        // 3. Map in Memory
         foreach (var dto in dtos)
         {
-            await PopulateItemNamesAsync(dto);
-            
-            if (dto.TargetBranchId.HasValue)
+            if (dto.TargetBranchId.HasValue && branchDict.TryGetValue(dto.TargetBranchId.Value, out var branchName))
             {
-                var branch = await _branchRepository.FindAsync(dto.TargetBranchId.Value);
-                dto.TargetBranchName = branch?.Name;
+                dto.TargetBranchName = branchName;
+            }
+
+            foreach (var item in dto.Items)
+            {
+                if (defDict.TryGetValue(item.CertificateDefinitionId, out var defName))
+                {
+                    item.CertificateDefinitionName = defName;
+                }
+                
+                if (item.QualificationId.HasValue && qualDict.TryGetValue(item.QualificationId.Value, out var qualName))
+                {
+                    item.QualificationName = qualName;
+                }
             }
         }
 
@@ -203,8 +238,18 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
         );
 
         await _repository.InsertAsync(request);
+
+        // Optimization: Map directly to avoid re-fetching entity
+        var dto = _alumniMappers.MapToDto(request);
+        await PopulateItemNamesAsync(dto);
+
+        if (request.TargetBranchId.HasValue)
+        {
+            var branch = await _branchRepository.GetAsync(request.TargetBranchId.Value);
+            dto.TargetBranchName = branch.Name;
+        }
         
-        return await GetAsync(request.Id);
+        return dto;
     }
 
     [Authorize(AlumniPermissions.Certificates.Process)]
@@ -311,24 +356,16 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
     public async Task<CertificateRequestDto> GetByHashAsync(string hash)
     {
         // Find the request by searching through items
-        var requests = await _repository.GetListAsync();
+        // Efficiently query the item by hash using Linq-to-Entities
+        // This requires Items to be indexed or accessible
+        var entity = await _repository.FirstOrDefaultAsync(r => r.Items.Any(i => i.VerificationHash == hash));
         
-        CertificateRequest? foundRequest = null;
-        foreach (var request in requests)
-        {
-            if (request.Items.Any(x => x.VerificationHash == hash))
-            {
-                foundRequest = request;
-                break;
-            }
-        }
-        
-        if (foundRequest == null)
+        if (entity == null)
         {
             throw new UserFriendlyException("Invalid or expired certificate hash.");
         }
 
-        return await GetAsync(foundRequest.Id);
+        return await GetAsync(entity.Id);
     }
 
     private async Task PopulateItemNamesAsync(CertificateRequestDto dto)

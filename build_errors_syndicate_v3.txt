@@ -1,0 +1,29 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Informatique.Alumni.Domain.Shared -> d:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain.Shared\bin\Debug\net10.0\Informatique.Alumni.Domain.Shared.dll
+  Informatique.Alumni.TestBase -> d:\Projects\Informatique.Alumni\test\Informatique.Alumni.TestBase\bin\Debug\net10.0\Informatique.Alumni.TestBase.dll
+  Informatique.Alumni.Domain -> d:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\bin\Debug\net10.0\Informatique.Alumni.Domain.dll
+  Informatique.Alumni.Application.Contracts -> d:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\bin\Debug\net10.0\Informatique.Alumni.Application.Contracts.dll
+  Informatique.Alumni.Domain.Tests -> d:\Projects\Informatique.Alumni\test\Informatique.Alumni.Domain.Tests\bin\Debug\net10.0\Informatique.Alumni.Domain.Tests.dll
+  Informatique.Alumni.HttpApi -> d:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\bin\Debug\net10.0\Informatique.Alumni.HttpApi.dll
+  Informatique.Alumni.Application -> d:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\bin\Debug\net10.0\Informatique.Alumni.Application.dll
+  Informatique.Alumni.HttpApi.Client -> d:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Client\bin\Debug\net10.0\Informatique.Alumni.HttpApi.Client.dll
+  Informatique.Alumni.Application.Tests -> d:\Projects\Informatique.Alumni\test\Informatique.Alumni.Application.Tests\bin\Debug\net10.0\Informatique.Alumni.Application.Tests.dll
+  Informatique.Alumni.HttpApi.Client.ConsoleTestApp -> d:\Projects\Informatique.Alumni\test\Informatique.Alumni.HttpApi.Client.ConsoleTestApp\bin\Debug\net10.0\Informatique.Alumni.HttpApi.Client.ConsoleTestApp.dll
+d:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Magazine\EfCorePostRepository.cs(66,63): warning CS8629: Nullable value type may be null. [d:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj]
+d:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Magazine\EfCorePostRepository.cs(67,63): warning CS8629: Nullable value type may be null. [d:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj]
+d:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Magazine\EfCorePostRepository.cs(68,66): warning CS8629: Nullable value type may be null. [d:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj]
+  Informatique.Alumni.EntityFrameworkCore -> d:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\bin\Debug\net10.0\Informatique.Alumni.EntityFrameworkCore.dll
+  Informatique.Alumni.EntityFrameworkCore.Tests -> d:\Projects\Informatique.Alumni\test\Informatique.Alumni.EntityFrameworkCore.Tests\bin\Debug\net10.0\Informatique.Alumni.EntityFrameworkCore.Tests.dll
+  Informatique.Alumni.DbMigrator -> d:\Projects\Informatique.Alumni\src\Informatique.Alumni.DbMigrator\bin\Debug\net10.0\Informatique.Alumni.DbMigrator.dll
+  Informatique.Alumni.HttpApi.Host -> d:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\bin\Debug\net10.0\Informatique.Alumni.HttpApi.Host.dll
+
+Build succeeded.
+
+d:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Magazine\EfCorePostRepository.cs(66,63): warning CS8629: Nullable value type may be null. [d:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj]
+d:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Magazine\EfCorePostRepository.cs(67,63): warning CS8629: Nullable value type may be null. [d:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj]
+d:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Magazine\EfCorePostRepository.cs(68,66): warning CS8629: Nullable value type may be null. [d:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj]
+    3 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:27.37

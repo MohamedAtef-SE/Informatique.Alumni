@@ -18,10 +18,12 @@ using Informatique.Alumni.Delivery;
 using Informatique.Alumni.Dashboard;
 using Informatique.Alumni.Trips;
 
+using Volo.Abp.DependencyInjection;
+
 namespace Informatique.Alumni;
 
 [Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
-public partial class AlumniApplicationMappers
+public partial class AlumniApplicationMappers : ITransientDependency
 {
     public partial BranchDto MapToDto(Branch branch);
     public partial List<BranchDto> MapToDtos(List<Branch> branches);

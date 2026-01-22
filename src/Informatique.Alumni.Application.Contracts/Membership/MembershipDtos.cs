@@ -33,6 +33,11 @@ public class AssociationRequestDto : FullAuditedEntityDto<Guid>
     public DateTime? ApprovalDate { get; set; }
     public string? RejectionReason { get; set; }
     public string IdempotencyKey { get; set; } = string.Empty;
+    public decimal UsedWalletAmount { get; set; }
+    public decimal RemainingAmount { get; set; }
+    public decimal DeliveryFee { get; set; }
+    public Guid TargetBranchId { get; set; }
+    public DeliveryMethod DeliveryMethod { get; set; }
 }
 
 public class CreateAssociationRequestDto

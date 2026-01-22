@@ -22,5 +22,8 @@ namespace Informatique.Alumni;
     )]
 public class AlumniApplicationModule : AbpModule
 {
-
+    public override void ConfigureServices(ServiceConfigurationContext context)
+    {
+        context.Services.AddTransient<AlumniApplicationMappers>();
+    }
 }

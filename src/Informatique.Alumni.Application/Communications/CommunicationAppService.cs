@@ -93,8 +93,8 @@ public class CommunicationAppService : AlumniAppService
 
     private async Task<IQueryable<AlumniProfile>> BuildFilteredQueryAsync(AlumniCommunicationFilterDto filter)
     {
-        var query = await _profileRepository.GetQueryableAsync();
-        var educationQuery = await _educationRepository.GetQueryableAsync();
+        // Use WithDetailsAsync to ensure navigation properties are available for filtering logic
+        var query = await _profileRepository.WithDetailsAsync(x => x.Educations);
 
         // 1. Branch Filter (Mandatory)
         query = query.Where(p => p.BranchId == filter.BranchId);

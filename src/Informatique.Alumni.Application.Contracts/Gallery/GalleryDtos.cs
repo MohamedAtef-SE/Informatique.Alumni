@@ -35,7 +35,6 @@ public class UploadGalleryImagesDto
 public class GalleryAlbumListDto : AuditedEntityDto<Guid>
 {
     public string Title { get; set; } = string.Empty;
-    public DateTime CreationTime { get; set; }
     public string CoverImageUrl { get; set; } = string.Empty;
 }
 

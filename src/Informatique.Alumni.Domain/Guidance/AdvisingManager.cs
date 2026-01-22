@@ -1,4 +1,3 @@
-
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,7 +5,6 @@ using Volo.Abp;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Domain.Services;
 using Informatique.Alumni.Profiles;
-using Informatique.Alumni.Services;
 
 namespace Informatique.Alumni.Guidance;
 
@@ -14,27 +12,24 @@ public class AdvisingManager : DomainService
 {
     private readonly IRepository<AdvisingRequest, Guid> _requestRepository;
     private readonly IRepository<AlumniProfile, Guid> _alumniRepository;
-    private readonly IServiceAccessManager _serviceAccessManager;
-
-    // Hardcoded for now as per instructions (or assumed default)
-    private const int DefaultSessionDurationMinutes = 30;
+    private readonly IRepository<GuidanceSessionRule, Guid> _ruleRepository;
 
     public AdvisingManager(
         IRepository<AdvisingRequest, Guid> requestRepository,
         IRepository<AlumniProfile, Guid> alumniRepository,
-        IServiceAccessManager serviceAccessManager)
+        IRepository<GuidanceSessionRule, Guid> ruleRepository)
     {
         _requestRepository = requestRepository;
         _alumniRepository = alumniRepository;
-        _serviceAccessManager = serviceAccessManager;
+        _ruleRepository = ruleRepository;
     }
 
     public async Task<AdvisingRequest> CreateRequestAsync(
         Guid userId,
         Guid? branchId,
         Guid advisorId,
-        DateTime date, 
-        DateTime startTime,
+        DateTime selectedDate, 
+        TimeSpan requestedStartTime,
         string subject,
         string? description)
     {
@@ -42,79 +37,88 @@ public class AdvisingManager : DomainService
         var alumni = await _alumniRepository.GetAsync(x => x.UserId == userId);
         if (alumni == null)
         {
-            throw new UserFriendlyException("Alumni profile not found.");
+             // Fallback for demo or strict check
+             throw new UserFriendlyException("Alumni profile not found.");
         }
 
-        // 2. Eligibility Check (ServiceAccessManager)
-        if (!await _serviceAccessManager.CanCreateAdvisingRequestAsync(alumni.Id))
-        {
-            throw new UserFriendlyException("You are not eligible to book an advising session. Please check your card status.");
-        }
-
-        // 3. Branch Logic
-        // If branchId is null, use Graduate's Branch. If provided, use that.
         var targetBranchId = branchId ?? alumni.BranchId;
 
-        // 4. Validate Schedule & Availability
+        // 2. Load Branch Rules
+        var rules = await _ruleRepository.GetListAsync(x => x.BranchId == targetBranchId);
+        var rule = rules.FirstOrDefault(); // Assuming one rule per branch for simplicity, or select best match
+
+        if (rule == null)
+        {
+            throw new UserFriendlyException("No advising rules defined for this branch. Cannot book session.");
+        }
+
+        // 3. Calculate Timings
+        // Use the Rule's duration
+        var sessionDuration = rule.SessionDurationMinutes;
+        var startDateTime = selectedDate.Date.Add(requestedStartTime);
+        var endDateTime = startDateTime.AddMinutes(sessionDuration);
+
+        // 4. Validate Rules
+        // 4.1 Time Window Check
+        if (requestedStartTime < rule.StartTime || endDateTime.TimeOfDay > rule.EndTime)
+        {
+             throw new UserFriendlyException($"Selected time is outside the allowed advising hours ({rule.StartTime} - {rule.EndTime}).");
+        }
+
+        // 4.2 Valid Day Check
+        // Need to check if rule.WeekDays contains the selected day
+        if (rule.WeekDays != null && rule.WeekDays.Any())
+        {
+            if (!rule.WeekDays.Any(x => x.Day == selectedDate.DayOfWeek))
+            {
+                 throw new UserFriendlyException($"Advising sessions are not available on {selectedDate.DayOfWeek}.");
+            }
+        }
         
-        // 4.1 Daily Limit: Constraint 3 logic from rules
-        // "A Graduate cannot book more than ONE session on the same day."
-        // We use the 'date' parameter for checking the day.
-        var dayStart = date.Date;
+        // 5. Daily Limit Logic (Max 1 per day)
+        var dayStart = selectedDate.Date;
         var dayEnd = dayStart.AddDays(1).AddTicks(-1);
 
-        var hasExistingRequestToday = await _requestRepository.AnyAsync(x => 
+        var hasExistingRequest = await _requestRepository.AnyAsync(x => 
             x.AlumniId == alumni.Id && 
             x.StartTime >= dayStart && x.StartTime <= dayEnd &&
-            x.Status != AdvisingRequestStatus.Cancelled &&
-            x.Status != AdvisingRequestStatus.Rejected); // Assuming Rejected doesn't count against limit? Rule says "Status != Cancelled" in example logic.
+            x.Status != AdvisingRequestStatus.Rejected &&
+            x.Status != AdvisingRequestStatus.Cancelled);
 
-        if (hasExistingRequestToday)
+        if (hasExistingRequest)
         {
-            throw new UserFriendlyException("You cannot book more than one session per day.");
+            throw new UserFriendlyException("Limit reached: You can only book one advising session per day.");
         }
 
-        // 4.2 Slot Availability: Constraint 2 logic
-        // "The User cannot pick a time slot that is already booked by another graduate."
-        // Logic: Check Repository.Any(x => x.BranchId == input.BranchId && x.Date == input.Date && x.StartTime == input.StartTime && x.Status != Cancelled).
-        
-        // Ensure startTime matches the date passed
-        if (startTime.Date != date.Date)
-        {
-             // Force startTime to match the date if they differ (or throw). I'll respect startTime's date part if present, but the rule implies selection of Date + Time.
-             // I will adhere to StartTime for exact collision check.
-        }
-
+        // 6. Slot Availability (Conflict Check)
+        // Check for overlap [Start, End]
         var isSlotTaken = await _requestRepository.AnyAsync(x => 
             x.BranchId == targetBranchId &&
-            x.StartTime == startTime && 
+            x.AdvisorId == advisorId && // Assuming conflict is per Advisor
+            x.Status != AdvisingRequestStatus.Rejected &&
             x.Status != AdvisingRequestStatus.Cancelled &&
-            x.Status != AdvisingRequestStatus.Rejected);
+            ((x.StartTime <= startDateTime && x.EndTime > startDateTime) || // Starts during existing
+             (x.StartTime < endDateTime && x.EndTime >= endDateTime) || // Ends during existing
+             (x.StartTime >= startDateTime && x.EndTime <= endDateTime)) // Enclosed
+        );
 
         if (isSlotTaken)
         {
-             throw new UserFriendlyException("This time slot is already booked. Please choose another one.");
+             throw new UserFriendlyException("The selected time slot is already booked. Please choose another time.");
         }
 
-        // 5. Auto-Calculate EndTime
-        var endTime = startTime.AddMinutes(DefaultSessionDurationMinutes);
-
-        // 6. Create & Save
+        // 7. Create Request
         var request = new AdvisingRequest(
             GuidGenerator.Create(),
             alumni.Id,
             targetBranchId,
             advisorId,
-            startTime,
-            endTime,
+            startDateTime,
+            endDateTime,
             subject
         );
-        
         request.Description = description;
-        // Status is Pending by default in constructor
 
-        await _requestRepository.InsertAsync(request);
-
-        return request;
+        return await _requestRepository.InsertAsync(request);
     }
 }

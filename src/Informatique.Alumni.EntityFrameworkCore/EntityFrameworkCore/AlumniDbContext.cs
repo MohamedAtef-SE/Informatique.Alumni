@@ -39,6 +39,8 @@ using Informatique.Alumni.Infrastructure.Email; // Added for Email Logs
 using Informatique.Alumni.Payment;
 using Informatique.Alumni.Delivery;
 using Informatique.Alumni.Communications;
+using Informatique.Alumni.EntityFrameworkCore.Syndicates;
+using Informatique.Alumni.EntityFrameworkCore.Membership;
 
 namespace Informatique.Alumni.EntityFrameworkCore;
 
@@ -60,12 +62,15 @@ public class AlumniDbContext :
     // Membership
     public DbSet<SubscriptionFee> SubscriptionFees { get; set; }
     public DbSet<AssociationRequest> AssociationRequests { get; set; }
+    public DbSet<Informatique.Alumni.Membership.MembershipFeeConfig> MembershipFeeConfigs { get; set; }
     public DbSet<Informatique.Alumni.Membership.PaymentTransaction> PaymentTransactions { get; set; }
 
     // Profiles
     public DbSet<AlumniProfile> AlumniProfiles { get; set; }
     public DbSet<Experience> Experiences { get; set; }
     public DbSet<Education> Educations { get; set; }
+    public DbSet<College> Colleges { get; set; }
+    public DbSet<Major> Majors { get; set; }
     public DbSet<Nationality> Nationalities { get; set; } // Added for Reporting
 
 
@@ -95,6 +100,7 @@ public class AlumniDbContext :
     
     // Career
     public DbSet<CareerService> CareerServices { get; set; }
+    public DbSet<CareerServiceTimeslot> CareerServiceTimeslots { get; set; }
     public DbSet<AlumniCareerSubscription> AlumniCareerSubscriptions { get; set; }
     
     // Syndicates
@@ -143,6 +149,7 @@ public class AlumniDbContext :
     // Payment
     public DbSet<Informatique.Alumni.Payment.PaymentTransaction> AppPaymentTransactions { get; set; }
     public DbSet<PaymentConfig> PaymentConfigs { get; set; }
+    public DbSet<Informatique.Alumni.Payment.PaymentMethod> PaymentMethods { get; set; }
 
     // Delivery
     public DbSet<DeliveryProvider> DeliveryProviders { get; set; }
@@ -249,21 +256,10 @@ public class AlumniDbContext :
 
 
         // Membership
-        builder.Entity<SubscriptionFee>(b =>
-        {
-            b.ToTable(AlumniConsts.DbTablePrefix + "SubscriptionFees", AlumniConsts.DbSchema);
-            b.ConfigureByConvention();
-            b.Property(x => x.Name).IsRequired().HasMaxLength(128);
-        });
-
-        builder.Entity<AssociationRequest>(b =>
-        {
-            b.ToTable(AlumniConsts.DbTablePrefix + "AssociationRequests", AlumniConsts.DbSchema);
-            b.ConfigureByConvention();
-            b.Property(x => x.IdempotencyKey).HasMaxLength(128);
-            b.HasIndex(x => x.IdempotencyKey);
-            b.HasOne<SubscriptionFee>().WithMany().HasForeignKey(x => x.SubscriptionFeeId).IsRequired();
-        });
+        builder.ApplyConfiguration(new AssociationRequestConfiguration());
+        builder.ApplyConfiguration(new SubscriptionFeeConfiguration());
+        builder.ApplyConfiguration(new RequestStatusHistoryConfiguration());
+        builder.ApplyConfiguration(new MembershipFeeConfigConfiguration());
 
         builder.Entity<Informatique.Alumni.Membership.PaymentTransaction>(b =>
         {
@@ -301,6 +297,21 @@ public class AlumniDbContext :
             b.ToTable(AlumniConsts.DbTablePrefix + "Nationalities", AlumniConsts.DbSchema);
             b.ConfigureByConvention();
             b.Property(x => x.Name).IsRequired().HasMaxLength(128);
+        });
+
+        builder.Entity<College>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "Colleges", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(128);
+        });
+
+        builder.Entity<Major>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "Majors", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(128);
+            b.HasIndex(x => x.CollegeId);
         });
 
         // Directory
@@ -414,29 +425,9 @@ public class AlumniDbContext :
             b.HasIndex(x => new { x.CareerServiceId, x.AlumniId }).IsUnique();
         });
 
-        builder.Entity<Syndicate>(b =>
-        {
-            b.ToTable(AlumniConsts.DbTablePrefix + "Syndicates", AlumniConsts.DbSchema);
-            b.ConfigureByConvention();
-            b.Property(x => x.Name).IsRequired().HasMaxLength(SyndicateConsts.MaxNameLength);
-            b.Property(x => x.Description).HasMaxLength(SyndicateConsts.MaxDescriptionLength);
-        });
-
-        builder.Entity<SyndicateSubscription>(b =>
-        {
-            b.ToTable(AlumniConsts.DbTablePrefix + "SyndicateSubscriptions", AlumniConsts.DbSchema);
-            b.ConfigureByConvention();
-            b.HasMany(p => p.Documents).WithOne().HasForeignKey(x => x.SyndicateSubscriptionId).IsRequired();
-            b.HasIndex(x => new { x.AlumniId, x.SyndicateId });
-        });
-
-        builder.Entity<SyndicateDocument>(b =>
-        {
-            b.ToTable(AlumniConsts.DbTablePrefix + "SyndicateDocuments", AlumniConsts.DbSchema);
-            b.ConfigureByConvention();
-            b.Property(x => x.RequirementName).IsRequired().HasMaxLength(128);
-            b.Property(x => x.FileBlobName).IsRequired().HasMaxLength(256);
-        });
+        builder.ApplyConfiguration(new SyndicateConfiguration());
+        builder.ApplyConfiguration(new SyndicateSubscriptionConfiguration());
+        builder.ApplyConfiguration(new SyndicateDocumentConfiguration());
 
         builder.Entity<Company>(b =>
         {
@@ -566,9 +557,11 @@ public class AlumniDbContext :
         {
             b.ToTable(AlumniConsts.DbTablePrefix + "AcademicGrants", AlumniConsts.DbSchema);
             b.ConfigureByConvention();
-            b.Property(x => x.Title).IsRequired().HasMaxLength(BenefitConsts.MaxTitleLength);
-            b.Property(x => x.Description).IsRequired().HasMaxLength(BenefitConsts.MaxDescriptionLength);
-            b.Property(x => x.Amount).HasColumnType("decimal(18,2)");
+            b.Property(x => x.NameAr).IsRequired().HasMaxLength(BenefitConsts.MaxTitleLength); // Assuming MaxTitleLength is appropriate
+            b.Property(x => x.NameEn).IsRequired().HasMaxLength(BenefitConsts.MaxTitleLength);
+            b.Property(x => x.Type).IsRequired().HasMaxLength(50); // Hardcoded or find constants?
+            // b.Property(x => x.Amount).HasColumnType("decimal(18,2)"); // Removed as it doesn't exist
+            b.Property(x => x.Percentage);
         });
 
         builder.Entity<CommercialDiscount>(b =>
@@ -582,7 +575,7 @@ public class AlumniDbContext :
             b.Property(x => x.PromoCode).HasMaxLength(BenefitConsts.MaxPromoCodeLength);
         });
 
-        builder.Entity<AcademicGrant>().HasQueryFilter(x => x.ValidUntil > DateTime.Now);
+        // builder.Entity<AcademicGrant>().HasQueryFilter(x => x.ValidUntil > DateTime.Now);
         builder.Entity<CommercialDiscount>().HasQueryFilter(x => x.ValidUntil > DateTime.Now);
 
         builder.Entity<Branch>().HasQueryFilter(b => !CurrentCollegeId.HasValue || b.Id == CurrentCollegeId);
