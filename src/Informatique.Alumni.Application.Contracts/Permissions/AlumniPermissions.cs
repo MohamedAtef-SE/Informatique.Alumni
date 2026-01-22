@@ -17,6 +17,7 @@ public static class AlumniPermissions
     public static class Users
     {
         public const string CreateAlumni = GroupName + ".Users.CreateAlumni";
+        public const string Manage = GroupName + ".Users.Manage";
         public const string SystemUsersReport = GroupName + ".Reports.SystemUsers";
         public const string LoginAuditReport = GroupName + ".Reports.LoginAudit";
     }

@@ -17,6 +17,7 @@ public class AlumniPermissionDefinitionProvider : PermissionDefinitionProvider
         branchPermission.AddChild(AlumniPermissions.Branches.Delete, L("Permission:Delete"));
 
         var userPermission = myGroup.AddPermission(AlumniPermissions.Users.CreateAlumni, L("Permission:CreateAlumni"));
+        myGroup.AddPermission(AlumniPermissions.Users.Manage, L("Permission:ManageUsers"));
         myGroup.AddPermission(AlumniPermissions.Users.SystemUsersReport, L("Permission:SystemUsersReport"));
         myGroup.AddPermission(AlumniPermissions.Users.LoginAuditReport, L("Permission:LoginAuditReport"));
 

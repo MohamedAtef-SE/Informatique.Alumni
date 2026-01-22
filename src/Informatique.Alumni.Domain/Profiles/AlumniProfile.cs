@@ -143,6 +143,11 @@ public class AlumniProfile : FullAuditedAggregateRoot<Guid>
     {
         IsVip = isVip;
     }
+
+    public void SetUserId(Guid userId)
+    {
+        UserId = Check.NotDefaultOrNull<Guid>(userId, nameof(userId));
+    }
     
     // Contact Management Methods
     public void AddEmail(ContactEmail email)

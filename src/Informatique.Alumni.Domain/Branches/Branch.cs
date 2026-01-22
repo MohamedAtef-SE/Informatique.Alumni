@@ -10,6 +10,13 @@ public class Branch : FullAuditedAggregateRoot<Guid>, IHasCollege
     public string Name { get; private set; } = default!;
     public string Code { get; private set; } = default!;
     public string? Address { get; private set; }
+    public string? ExternalId { get; set; } // Added for integration
+    
+    // Navigation property
+    // We reference the FULL name or add using if needed.
+    // College is in Informatique.Alumni.Profiles
+    public virtual System.Collections.Generic.ICollection<Informatique.Alumni.Profiles.College> Colleges { get; private set; }
+
     public Guid? CollegeId => Id;
 
     protected Branch()
