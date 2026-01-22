@@ -4,7 +4,7 @@ using Volo.Abp;
 
 namespace Informatique.Alumni.Career;
 
-public class CareerServiceTimeslot : FullAuditedEntity<Guid>
+public class CareerServiceTimeslot : FullAuditedAggregateRoot<Guid>
 {
     public Guid CareerServiceId { get; private set; }
     public DateTime Date { get; private set; }

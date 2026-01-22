@@ -99,6 +99,8 @@ public class MembershipManager : DomainService
         int graduationYear,
         DeliveryMethod deliveryMethod,
         decimal deliveryFee,
+        decimal usedWalletAmount,
+        decimal remainingAmount,
         string? personalPhotoBlobName)
     {
         // Idempotency check
@@ -125,6 +127,8 @@ public class MembershipManager : DomainService
             validity.EndDate,
             deliveryMethod,
             deliveryFee,
+            usedWalletAmount,
+            remainingAmount,
             personalPhotoBlobName
         );
 

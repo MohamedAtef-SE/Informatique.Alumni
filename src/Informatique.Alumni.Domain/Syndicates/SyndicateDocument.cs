@@ -1,13 +1,14 @@
 using System;
+using Volo.Abp;
 using Volo.Abp.Domain.Entities;
 
 namespace Informatique.Alumni.Syndicates;
 
 public class SyndicateDocument : Entity<Guid>
 {
-    public Guid SyndicateSubscriptionId { get; set; }
-    public string RequirementName { get; set; } = string.Empty;
-    public string FileBlobName { get; set; } = string.Empty;
+    public Guid SyndicateSubscriptionId { get; private set; }
+    public string RequirementName { get; private set; } = string.Empty;
+    public string FileBlobName { get; private set; } = string.Empty;
 
     private SyndicateDocument() { }
 
@@ -15,7 +16,7 @@ public class SyndicateDocument : Entity<Guid>
         : base(id)
     {
         SyndicateSubscriptionId = syndicateSubscriptionId;
-        RequirementName = requirementName;
-        FileBlobName = fileBlobName;
+        RequirementName = Check.NotNullOrWhiteSpace(requirementName, nameof(requirementName));
+        FileBlobName = Check.NotNullOrWhiteSpace(fileBlobName, nameof(fileBlobName));
     }
 }

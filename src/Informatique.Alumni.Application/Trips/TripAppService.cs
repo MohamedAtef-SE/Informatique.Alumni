@@ -32,7 +32,8 @@ public class TripAppService : AlumniAppService, ITripAppService
 
     public async Task<PagedResultDto<AlumniTripDto>> GetActiveTripsAsync(PagedAndSortedResultRequestDto input)
     {
-        var query = (await _tripRepository.GetQueryableAsync())
+        // Eager load child collections to prevent N+1 during mapping
+        var query = (await _tripRepository.WithDetailsAsync(x => x.PricingTiers, x => x.Requirements))
             .Where(x => x.IsActive && x.StartDate > DateTime.Now);
         
         var count = await AsyncExecuter.CountAsync(query);

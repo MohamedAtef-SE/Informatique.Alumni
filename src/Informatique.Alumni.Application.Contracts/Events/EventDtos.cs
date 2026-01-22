@@ -55,6 +55,11 @@ public class AlumniEventRegistrationDto : FullAuditedEntityDto<Guid>
     public string TicketCode { get; set; } = string.Empty;
     public RegistrationStatus Status { get; set; }
     public string QrCodeUrl { get; set; } = string.Empty;
+    
+    // Properties for UI/Optimization (Bulk loaded)
+    public string? EventName { get; set; }
+    public DateTime? EventDate { get; set; }
+    public string? Location { get; set; }
 }
 
 public class CreateEventDto

@@ -42,17 +42,37 @@ public class AlumniUserAppService : ApplicationService, IAlumniUserAppService
     [Authorize(AlumniPermissions.Users.SystemUsersReport)]
     public async Task<List<UserReportDto>> GetSystemUsersReportAsync()
     {
-        var users = await _userRepository.GetListAsync();
+        // Efficiently fetch users with details (includes roles)
+        var users = await _userRepository.GetListAsync(includeDetails: true);
+        
+        // Fetch all roles to map RoleId to RoleName
+        // Note: IIdentityRoleRepository is needed ideally, but we can assume basic mapping or fetch all if possible.
+        // Or cleaner: Use IdentityUserManager to optimize? No, manager is usually single-user focused.
+        // Let's use LazyServiceProvider or similar if role repo is missing, but typically we can get roles.
+        // For now, simpler optimization: 
+        // Iterate users, but since we have "includeDetails: true", `user.Roles` is populated.
+        // `user.Roles` contains `IdentityUserRole` objects (UserId, RoleId).
+        // We still need Role Names.
+        // Bulk fetch roles.
+        var roleRepo = LazyServiceProvider.LazyGetRequiredService<IIdentityRoleRepository>();
+        var allRoles = await roleRepo.GetListAsync();
+        var roleDict = allRoles.ToDictionary(r => r.Id, r => r.Name);
+
         var report = new List<UserReportDto>();
 
         foreach (var user in users)
         {
-            var roles = await _userManager.GetRolesAsync(user);
+            // Roles logic
+            var roleNames = user.Roles
+                .Select(ur => roleDict.ContainsKey(ur.RoleId) ? roleDict[ur.RoleId] : null)
+                .Where(n => n != null)
+                .ToList();
+
             report.Add(new UserReportDto
             {
                 UserName = user.UserName,
                 Email = user.Email,
-                Role = roles.FirstOrDefault() ?? "N/A",
+                Role = roleNames.FirstOrDefault() ?? "N/A", // Taking first role as per previous logic
                 CollegeId = user.GetProperty<Guid?>("CollegeId")
             });
         }

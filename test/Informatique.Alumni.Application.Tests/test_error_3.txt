@@ -1,0 +1,47 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Informatique.Alumni.Domain.Shared -> d:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain.Shared\bin\Debug\net10.0\Informatique.Alumni.Domain.Shared.dll
+  Informatique.Alumni.TestBase -> d:\Projects\Informatique.Alumni\test\Informatique.Alumni.TestBase\bin\Debug\net10.0\Informatique.Alumni.TestBase.dll
+  Informatique.Alumni.Application.Contracts -> d:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\bin\Debug\net10.0\Informatique.Alumni.Application.Contracts.dll
+  Informatique.Alumni.Domain -> d:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\bin\Debug\net10.0\Informatique.Alumni.Domain.dll
+  Informatique.Alumni.Application -> d:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\bin\Debug\net10.0\Informatique.Alumni.Application.dll
+  Informatique.Alumni.EntityFrameworkCore -> d:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\bin\Debug\net10.0\Informatique.Alumni.EntityFrameworkCore.dll
+  Informatique.Alumni.Domain.Tests -> d:\Projects\Informatique.Alumni\test\Informatique.Alumni.Domain.Tests\bin\Debug\net10.0\Informatique.Alumni.Domain.Tests.dll
+  Informatique.Alumni.EntityFrameworkCore.Tests -> d:\Projects\Informatique.Alumni\test\Informatique.Alumni.EntityFrameworkCore.Tests\bin\Debug\net10.0\Informatique.Alumni.EntityFrameworkCore.Tests.dll
+  Informatique.Alumni.Application.Tests -> d:\Projects\Informatique.Alumni\test\Informatique.Alumni.Application.Tests\bin\Debug\net10.0\Informatique.Alumni.Application.Tests.dll
+Test run for d:\Projects\Informatique.Alumni\test\Informatique.Alumni.Application.Tests\bin\Debug\net10.0\Informatique.Alumni.Application.Tests.dll (.NETCoreApp,Version=v10.0)
+VSTest version 18.0.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:06.48]     Informatique.Alumni.Membership.MembershipAppServiceTests.RequestMembershipAsync_Should_Create_Request_And_Deduct_Wallet [FAIL]
+  Failed Informatique.Alumni.Membership.MembershipAppServiceTests.RequestMembershipAsync_Should_Create_Request_And_Deduct_Wallet [6 s]
+  Error Message:
+   Volo.Abp.Domain.Entities.EntityNotFoundException`1[[Volo.Abp.Identity.IdentityUser, Volo.Abp.Identity.Domain, Version=10.0.1.0, Culture=neutral, PublicKeyToken=null]] : There is no such an entity. Entity type: Volo.Abp.Identity.IdentityUser, id: 264d0534-402a-462f-dff1-3a1eecf97213
+  Stack Trace:
+     at Volo.Abp.Domain.Repositories.EntityFrameworkCore.EfCoreRepository`3.GetAsync(TKey id, Boolean includeDetails, CancellationToken cancellationToken)
+   at Castle.DynamicProxy.AsyncInterceptorBase.ProceedAsynchronous[TResult](IInvocation invocation, IInvocationProceedInfo proceedInfo)
+   at Volo.Abp.Castle.DynamicProxy.CastleAbpMethodInvocationAdapterWithReturnValue`1.ProceedAsync()
+   at Volo.Abp.Uow.UnitOfWorkInterceptor.InterceptAsync(IAbpMethodInvocation invocation)
+   at Volo.Abp.Castle.DynamicProxy.CastleAsyncAbpInterceptorAdapter`1.InterceptAsync[TResult](IInvocation invocation, IInvocationProceedInfo proceedInfo, Func`3 proceed)
+   at Informatique.Alumni.Directory.CacheSyncHandler.HandleEventAsync(EntityChangedEventData`1 eventData) in d:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Directory\CacheSyncHandler.cs:line 43
+   at Castle.DynamicProxy.AsyncInterceptorBase.ProceedAsynchronous(IInvocation invocation, IInvocationProceedInfo proceedInfo)
+   at Volo.Abp.Castle.DynamicProxy.CastleAbpMethodInvocationAdapter.ProceedAsync()
+   at Volo.Abp.Uow.UnitOfWorkInterceptor.InterceptAsync(IAbpMethodInvocation invocation)
+   at Volo.Abp.Castle.DynamicProxy.CastleAsyncAbpInterceptorAdapter`1.InterceptAsync(IInvocation invocation, IInvocationProceedInfo proceedInfo, Func`3 proceed)
+   at Volo.Abp.EventBus.EventHandlerInvoker.InvokeAsync(IEventHandler eventHandler, Object eventData, Type eventType)
+   at Volo.Abp.EventBus.EventBusBase.TriggerHandlerAsync(IEventHandlerFactory asyncHandlerFactory, Type eventType, Object eventData, List`1 exceptions, InboxConfig inboxConfig)
+   at System.AbpExceptionExtensions.ReThrow(Exception exception)
+   at Volo.Abp.EventBus.EventBusBase.ThrowOriginalExceptions(Type eventType, List`1 exceptions)
+   at Volo.Abp.EventBus.EventBusBase.TriggerHandlersAsync(Type eventType, Object eventData)
+   at Volo.Abp.EventBus.Local.LocalEventBus.PublishAsync(LocalEventMessage localEventMessage)
+   at Volo.Abp.EventBus.Local.LocalEventBus.PublishToEventBusAsync(Type eventType, Object eventData)
+   at Volo.Abp.EventBus.EventBusBase.PublishAsync(Type eventType, Object eventData, Boolean onUnitOfWorkComplete)
+   at Volo.Abp.EventBus.UnitOfWorkEventPublisher.PublishLocalEventsAsync(IEnumerable`1 localEvents)
+   at Volo.Abp.Uow.UnitOfWork.CompleteAsync(CancellationToken cancellationToken)
+   at Volo.Abp.Uow.UnitOfWorkInterceptor.InterceptAsync(IAbpMethodInvocation invocation)
+   at Volo.Abp.Castle.DynamicProxy.CastleAsyncAbpInterceptorAdapter`1.InterceptAsync[TResult](IInvocation invocation, IInvocationProceedInfo proceedInfo, Func`3 proceed)
+   at Informatique.Alumni.Membership.MembershipAppServiceTests.RequestMembershipAsync_Should_Create_Request_And_Deduct_Wallet() in d:\Projects\Informatique.Alumni\test\Informatique.Alumni.Application.Tests\Membership\MembershipAppServiceTests.cs:line 73
+--- End of stack trace from previous location ---
+
+Failed!  - Failed:     1, Passed:     0, Skipped:     0, Total:     1, Duration: 6 s - Informatique.Alumni.Application.Tests.dll (net10.0)

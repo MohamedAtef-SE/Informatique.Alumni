@@ -25,6 +25,7 @@ public class MagazineAppService : AlumniAppService, IMagazineAppService
     private readonly IBlobContainer<MagazineBlobContainer> _magazineBlobContainer;
     private readonly MembershipManager _membershipManager;
     private readonly AlumniApplicationMappers _alumniMappers;
+    private readonly MembershipGuard _membershipGuard;
 
     public MagazineAppService(
         IRepository<MagazineIssue, Guid> issueRepository,
@@ -33,7 +34,8 @@ public class MagazineAppService : AlumniAppService, IMagazineAppService
         IBlobContainer<GalleryBlobContainer> galleryBlobContainer,
         IBlobContainer<MagazineBlobContainer> magazineBlobContainer,
         MembershipManager membershipManager,
-        AlumniApplicationMappers alumniMappers)
+        AlumniApplicationMappers alumniMappers,
+        MembershipGuard membershipGuard)
     {
         _issueRepository = issueRepository;
         _magazineRepository = magazineRepository;
@@ -42,9 +44,9 @@ public class MagazineAppService : AlumniAppService, IMagazineAppService
         _magazineBlobContainer = magazineBlobContainer;
         _membershipManager = membershipManager;
         _alumniMappers = alumniMappers;
+        _membershipGuard = membershipGuard;
     }
 
-    // Existing MagazineIssue Methods (Preserved)
     [Authorize(AlumniPermissions.Magazine.ManageIssues)]
     public async Task<MagazineIssueDto> CreateIssueAsync(CreateUpdateMagazineIssueDto input)
     {
@@ -78,14 +80,10 @@ public class MagazineAppService : AlumniAppService, IMagazineAppService
         await _issueRepository.DeleteAsync(issue);
     }
 
-    // =========================================================
-    // NEW: Graduate Portal Implementation (Phase 19)
-    // =========================================================
-
     public async Task<PagedResultDto<MagazineListDto>> GetListAsync(GetMagazinesInput input)
     {
         // 1. Gate: Check Membership
-        await CheckMembershipActiveAsync();
+        await _membershipGuard.CheckAsync();
 
         // 2. Query
         var queryable = await _magazineRepository.GetQueryableAsync();
@@ -111,7 +109,7 @@ public class MagazineAppService : AlumniAppService, IMagazineAppService
             Title = x.Title,
             IssueDate = x.IssueDate,
             CreationTime = x.CreationTime,
-            DownloadUrl = $"/api/app/magazine/{x.Id}/download" // Convention
+            DownloadUrl = $"/api/app/magazine/{x.Id}/download"
         }).ToList();
 
         return new PagedResultDto<MagazineListDto>(totalCount, dtos);
@@ -120,41 +118,10 @@ public class MagazineAppService : AlumniAppService, IMagazineAppService
     public async Task<System.IO.Stream> DownloadAsync(Guid id)
     {
         // 1. Gate: Check Membership
-        await CheckMembershipActiveAsync();
+        await _membershipGuard.CheckAsync();
 
         var magazine = await _magazineRepository.GetAsync(id);
         
         return await _magazineBlobContainer.GetAsync(magazine.FileBlobName);
-    }
-
-    /// <summary>
-    /// Helper to enforce Active Membership Rule
-    /// </summary>
-    private async Task CheckMembershipActiveAsync()
-    {
-        var currentUserId = CurrentUser.Id;
-        if (currentUserId == null)
-        {
-            throw new UserFriendlyException("User not authenticated.");
-        }
-
-        // Resolve Profile
-        var queryable = await _profileRepository.GetQueryableAsync();
-        var profile = await AsyncExecuter.FirstOrDefaultAsync(
-            queryable.Where(p => p.UserId == currentUserId.Value)
-        );
-
-        if (profile == null)
-        {
-             // If no profile, can't be member
-             throw new UserFriendlyException("Active membership required to view the magazine.");
-        }
-
-        // Check Membership Status
-        var isActive = await _membershipManager.IsActiveAsync(profile.Id);
-        if (!isActive)
-        {
-            throw new UserFriendlyException("Active membership required to view the magazine.");
-        }
     }
 }

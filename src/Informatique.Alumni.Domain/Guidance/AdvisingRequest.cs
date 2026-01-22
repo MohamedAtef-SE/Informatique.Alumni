@@ -1,4 +1,5 @@
 using System;
+using Volo.Abp;
 using Volo.Abp.Domain.Entities.Auditing;
 
 namespace Informatique.Alumni.Guidance;
@@ -10,10 +11,10 @@ public class AdvisingRequest : FullAuditedAggregateRoot<Guid>
     public Guid AdvisorId { get; private set; }
     public DateTime StartTime { get; private set; }
     public DateTime EndTime { get; private set; }
-    public string Subject { get; set; } = string.Empty;
+    public string Subject { get; private set; }
     public string? Description { get; set; }
-    public AdvisingRequestStatus Status { get; set; }
-    public string? AdminNotes { get; set; }
+    public AdvisingRequestStatus Status { get; private set; }
+    public string? AdminNotes { get; private set; }
 
     private AdvisingRequest() { }
 
@@ -25,12 +26,28 @@ public class AdvisingRequest : FullAuditedAggregateRoot<Guid>
         AdvisorId = advisorId;
         StartTime = startTime;
         EndTime = endTime;
-        Subject = subject;
-        Status = AdvisingRequestStatus.Requested;
+        Subject = Check.NotNullOrWhiteSpace(subject, nameof(subject));
+        Status = AdvisingRequestStatus.Pending; // Requirement: Pending
     }
 
-    public void SetStatus(AdvisingRequestStatus status)
+    public void Approve()
     {
-        Status = status;
+        EnsureStatusIsPending();
+        Status = AdvisingRequestStatus.Approved;
+    }
+
+    public void Reject(string reason)
+    {
+        EnsureStatusIsPending();
+        Status = AdvisingRequestStatus.Rejected;
+        AdminNotes = Check.NotNullOrWhiteSpace(reason, nameof(reason));
+    }
+
+    private void EnsureStatusIsPending()
+    {
+        if (Status != AdvisingRequestStatus.Pending)
+        {
+            throw new UserFriendlyException("Cannot change status of a request that is already decided.");
+        }
     }
 }

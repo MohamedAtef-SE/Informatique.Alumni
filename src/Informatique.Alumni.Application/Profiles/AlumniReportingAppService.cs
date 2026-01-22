@@ -92,21 +92,20 @@ public class AlumniReportingAppService : ApplicationService, IAlumniReportingApp
         );
 
         // Map to DTOs (simplified - you'd fetch related data)
+        // Efficiently fetch related Users in bulk
+        var userIds = profiles.Select(p => p.UserId).Distinct().ToList();
+        var users = await _userRepository.GetListByIdsAsync(userIds);
+        var userDict = users.ToDictionary(u => u.Id);
+
         var dtos = new List<AlumniReportDetailDto>();
         int serialNo = input.SkipCount + 1;
 
         foreach (var profile in profiles)
         {
-            var user = await _userRepository.FindAsync(profile.UserId);
+            var user = userDict.TryGetValue(profile.UserId, out var u) ? u : null;
             
             // Get latest membership card expiry date
             // TODO: Fix MembershipStatus enum reference
-            // var membershipQuery = await _membershipRepository.GetQueryableAsync();
-            // var latestMembership = await AsyncExecuter.FirstOrDefaultAsync(
-            //     membershipQuery
-            //         .Where(x => x.AlumniId == profile.Id && x.Status == MembershipStatus.Approved)
-            //         .OrderByDescending(x => x.CreationTime)
-            // );
             DateTime? cardExpiryDate = null; // Placeholder until MembershipStatus enum is defined
 
             var dto = new AlumniReportDetailDto

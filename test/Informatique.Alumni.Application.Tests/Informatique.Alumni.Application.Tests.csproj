@@ -11,6 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj" />
     <ProjectReference Include="..\Informatique.Alumni.Domain.Tests\Informatique.Alumni.Domain.Tests.csproj" />
+    <ProjectReference Include="..\Informatique.Alumni.EntityFrameworkCore.Tests\Informatique.Alumni.EntityFrameworkCore.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

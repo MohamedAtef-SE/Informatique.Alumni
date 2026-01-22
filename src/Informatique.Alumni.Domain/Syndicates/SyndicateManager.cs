@@ -24,7 +24,8 @@ public class SyndicateManager : DomainService
 
     public async Task<SyndicateSubscription> CreateRequestAsync(Guid alumniId, Guid syndicateId, decimal feeAmount)
     {
-        // Singleton Constraint: Check for any active request
+        // Singleton Rule: Check for any active request
+        // Active = Anything NOT Received AND NOT Rejected
         var activeRequest = await _subscriptionRepository.AnyAsync(x => 
             x.AlumniId == alumniId && 
             x.Status != SyndicateStatus.Received && 
@@ -35,11 +36,7 @@ public class SyndicateManager : DomainService
             throw new UserFriendlyException("You already have an active syndicate request. Please complete or cancel it first.");
         }
 
-        return new SyndicateSubscription(GuidGenerator.Create(), alumniId, syndicateId)
-        {
-            FeeAmount = feeAmount,
-            PaymentStatus = PaymentStatus.NotPaid
-        };
+        return new SyndicateSubscription(GuidGenerator.Create(), alumniId, syndicateId, feeAmount);
     }
 
     public async Task<decimal> PayRequestAsync(SyndicateSubscription subscription, PaymentGatewayType gatewayType)
@@ -53,75 +50,48 @@ public class SyndicateManager : DomainService
         
         // Split Payment Logic
         decimal walletDeduction = 0;
-        decimal gatewayAmount = subscription.FeeAmount;
+        decimal gatewayAmount = subscription.FeeAmount; // Default: All Gateway
 
         if (profile.WalletBalance > 0)
         {
             if (profile.WalletBalance >= subscription.FeeAmount)
             {
+                // Cover full amount with Wallet
                 walletDeduction = subscription.FeeAmount;
                 gatewayAmount = 0;
             }
             else
             {
+                // Partial cover
                 walletDeduction = profile.WalletBalance;
                 gatewayAmount = subscription.FeeAmount - walletDeduction;
             }
         }
 
-        // Processing
+        // Processing Logic
         if (walletDeduction > 0)
         {
             profile.DeductWallet(walletDeduction);
-            subscription.PaidByWallet = walletDeduction;
         }
 
-        subscription.PaidByGateway = gatewayAmount;
-        subscription.PaymentMethod = gatewayType;
+        subscription.InitializePayment(walletDeduction, gatewayAmount, gatewayType);
 
         // If fully paid by wallet, mark as Paid immediately
         if (gatewayAmount == 0)
         {
-            subscription.PaymentStatus = PaymentStatus.Paid;
+            subscription.SetPaymentStatus(PaymentStatus.Paid);
         }
         else
         {
             // Pending Gateway Payment
-            // In a real scenario, we return this amount to the AppService to initiate Gateway Transaction
-             subscription.PaymentStatus = PaymentStatus.Pending; // Waiting for WebHook/Callback
+            subscription.SetPaymentStatus(PaymentStatus.Pending);
         }
         
         await _alumniProfileRepository.UpdateAsync(profile);
         
+        // Return the amount needed to be charged via Gateway
         return gatewayAmount;
     }
-
-    public async Task CancelRequestAsync(SyndicateSubscription subscription)
-    {
-        if (subscription.Status == SyndicateStatus.Received)
-        {
-             throw new UserFriendlyException("Cannot cancel a received request.");
-        }
-
-        // Refund Logic
-        if (subscription.PaidByWallet > 0)
-        {
-            var profile = await _alumniProfileRepository.GetAsync(subscription.AlumniId);
-            profile.AddCredit(subscription.PaidByWallet);
-            await _alumniProfileRepository.UpdateAsync(profile);
-        }
-
-        if (subscription.PaidByGateway > 0)
-        {
-            // Log for Manual Refund
-            // In a real system: _auditLog.Log("Manual Refund Required", subscription.PaidByGateway);
-            // Here we just set a note or assume external process
-            subscription.AdminNotes += $" [System]: Auto-Refunded {subscription.PaidByWallet} to Wallet. Manual Refund of {subscription.PaidByGateway} required.";
-        }
-
-        subscription.Status = SyndicateStatus.Rejected; // or Cancelled if enum had it, using Rejected as terminal
-    }
-
     public void VerifyRequirementCompletion(SyndicateSubscription subscription, Syndicate syndicate)
     {
         if (string.IsNullOrWhiteSpace(syndicate.Requirements)) return;
@@ -151,8 +121,6 @@ public class SyndicateManager : DomainService
         }
 
         // 2. Logical Flow Guards
-        // Ensure status changes follow a logical flow (e.g., cannot jump from New to Received).
-        
         // Rule: Received status can only be reached from CardReady.
         if (newStatus == SyndicateStatus.Received && currentStatus != SyndicateStatus.CardReady)
         {

@@ -10,17 +10,13 @@ using SixLabors.ImageSharp.Processing;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.BlobStoring;
 using Volo.Abp.Domain.Repositories;
-
 using Informatique.Alumni.Membership;
 using Informatique.Alumni.Profiles;
 using Volo.Abp;
 using Volo.Abp.Users;
 
-// ... existing usings ...
-
 namespace Informatique.Alumni.Gallery;
 
-[Authorize]
 [Authorize]
 public class GalleryAppService : AlumniAppService, IGalleryAppService
 {
@@ -30,6 +26,7 @@ public class GalleryAppService : AlumniAppService, IGalleryAppService
     private readonly MembershipManager _membershipManager;
     private readonly AlumniApplicationMappers _alumniMappers;
     private readonly GalleryManager _galleryManager;
+    private readonly MembershipGuard _membershipGuard;
 
     public GalleryAppService(
         IRepository<GalleryAlbum, Guid> albumRepository,
@@ -37,7 +34,8 @@ public class GalleryAppService : AlumniAppService, IGalleryAppService
         IBlobContainer<GalleryBlobContainer> blobContainer,
         MembershipManager membershipManager,
         AlumniApplicationMappers alumniMappers,
-        GalleryManager galleryManager)
+        GalleryManager galleryManager,
+        MembershipGuard membershipGuard)
     {
         _albumRepository = albumRepository;
         _profileRepository = profileRepository;
@@ -45,13 +43,11 @@ public class GalleryAppService : AlumniAppService, IGalleryAppService
         _membershipManager = membershipManager;
         _alumniMappers = alumniMappers;
         _galleryManager = galleryManager;
+        _membershipGuard = membershipGuard;
     }
 
     public async Task<GalleryAlbumDto> CreateAlbumAsync(CreateGalleryAlbumDto input)
     {
-        // Using Manager for validation
-        // Note: DTO creates with empty media list for now as per previous logic, 
-        // or we could extend DTO. Keeping it simple as per prompt.
         var album = await _galleryManager.CreateAsync(input.Name, null, new List<(string, GalleryMediaType, string)>());
         
         // Description helper
@@ -68,8 +64,6 @@ public class GalleryAppService : AlumniAppService, IGalleryAppService
         
         if (album == null) return null;
 
-        // Custom Mapping since AutoMapper might need config update for MediaItems
-        // Assuming MapToDto handles basic mapping, but we might need manual mapping for MediaItems -> GalleryImageDto for backward compat
         var dto = new GalleryAlbumDto 
         { 
             Id = album.Id, 
@@ -92,7 +86,6 @@ public class GalleryAppService : AlumniAppService, IGalleryAppService
         var count = await _albumRepository.GetCountAsync();
         var entities = await _albumRepository.GetPagedListAsync(input.SkipCount, input.MaxResultCount, input.Sorting);
         
-        // Minimal mapping for list
         var dtos = entities.Select(e => new GalleryAlbumDto 
         { 
             Id = e.Id, 
@@ -142,8 +135,7 @@ public class GalleryAppService : AlumniAppService, IGalleryAppService
             // 1. Save Original
             await _blobContainer.SaveAsync(originalBlobName, bytes);
 
-            // 2. Generate and Save Thumbnail (Only for images)
-            // Assuming input is only photos for now based on DTO name "UploadGalleryImages"
+            // 2. Generate and Save Thumbnail
             using var image = Image.Load(bytes);
             image.Mutate(x => x.Resize(new ResizeOptions
             {
@@ -156,7 +148,6 @@ public class GalleryAppService : AlumniAppService, IGalleryAppService
             await _blobContainer.SaveAsync(thumbnailBlobName, ms.ToArray());
 
             // 3. Update DB
-            // Use MediaItem
             album.AddMediaItem(GuidGenerator.Create(), originalBlobName, GalleryMediaType.Photo, fileName);
         }
 
@@ -168,27 +159,20 @@ public class GalleryAppService : AlumniAppService, IGalleryAppService
         return await _blobContainer.GetAllBytesAsync(blobName);
     }
 
-    // =========================================================
-    // NEW: Graduate Portal Implementation (Phase 16)
-    // =========================================================
-
     public async Task<PagedResultDto<GalleryAlbumListDto>> GetAlbumsAsync(GalleryFilterDto input)
     {
         // 1. Gate: Check Membership
-        await CheckMembershipActiveAsync();
+        await _membershipGuard.CheckAsync();
 
         // 2. Query
         var queryable = await _albumRepository.WithDetailsAsync(x => x.MediaItems);
-        
         var query = queryable.AsQueryable();
 
-        // Filter: Title (Partial) / Name
         if (!string.IsNullOrWhiteSpace(input.Filter))
         {
             query = query.Where(x => x.Name.Contains(input.Filter));
         }
 
-        // Filter: Creation Date
         if (input.MinDate.HasValue)
         {
             query = query.Where(x => x.CreationTime >= input.MinDate.Value);
@@ -198,7 +182,6 @@ public class GalleryAppService : AlumniAppService, IGalleryAppService
             query = query.Where(x => x.CreationTime <= input.MaxDate.Value);
         }
 
-        // Logic: Sort by Creation Date Descending
         query = query.OrderByDescending(x => x.CreationTime);
 
         var totalCount = await AsyncExecuter.CountAsync(query);
@@ -207,13 +190,11 @@ public class GalleryAppService : AlumniAppService, IGalleryAppService
             query.Skip(input.SkipCount).Take(input.MaxResultCount)
         );
 
-        // 3. Map
         var dtos = entities.Select(x => new GalleryAlbumListDto
         {
             Id = x.Id,
-            Title = x.Name, // Mapping Name to Title
+            Title = x.Name,
             CreationTime = x.CreationTime,
-            // Cover Image logic: First Photo's thumbnail
             CoverImageUrl = x.MediaItems.Any(m => m.MediaType == GalleryMediaType.Photo)
                 ? $"/api/app/gallery/image?blobName=thumb_{x.MediaItems.First(m => m.MediaType == GalleryMediaType.Photo).Url}" 
                 : string.Empty
@@ -225,7 +206,7 @@ public class GalleryAppService : AlumniAppService, IGalleryAppService
     public async Task<GalleryAlbumDetailDto> GetAlbumDetailsAsync(Guid id)
     {
         // 1. Gate: Check Membership
-        await CheckMembershipActiveAsync();
+        await _membershipGuard.CheckAsync();
 
         var queryable = await _albumRepository.WithDetailsAsync(x => x.MediaItems);
         var album = await AsyncExecuter.FirstOrDefaultAsync(queryable, x => x.Id == id);
@@ -246,33 +227,5 @@ public class GalleryAppService : AlumniAppService, IGalleryAppService
                 Type = item.MediaType.ToString()
             }).ToList()
         };
-    }
-
-    /// <summary>
-    /// Helper to enforce Active Membership Rule
-    /// </summary>
-    private async Task CheckMembershipActiveAsync()
-    {
-        var currentUserId = CurrentUser.Id;
-        if (currentUserId == null)
-        {
-            throw new UserFriendlyException("User not authenticated.");
-        }
-
-        var queryable = await _profileRepository.GetQueryableAsync();
-        var profile = await AsyncExecuter.FirstOrDefaultAsync(
-            queryable.Where(p => p.UserId == currentUserId.Value)
-        );
-
-        if (profile == null)
-        {
-             throw new UserFriendlyException("Access denied. Active membership required.");
-        }
-
-        var isActive = await _membershipManager.IsActiveAsync(profile.Id);
-        if (!isActive)
-        {
-            throw new UserFriendlyException("Access denied. Active membership required.");
-        }
     }
 }

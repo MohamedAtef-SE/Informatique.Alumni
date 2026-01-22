@@ -31,6 +31,15 @@ public class AdvisingRequestDto : FullAuditedEntityDto<Guid>
     public AdvisingRequestStatus Status { get; set; }
 }
 
+public class CreateAdvisingRequestDto
+{
+    public Guid AdvisorId { get; set; }
+    public DateTime Date { get; set; }
+    public TimeSpan StartTime { get; set; }
+    public string Subject { get; set; } = string.Empty;
+    public string? Description { get; set; }
+}
+
 public class BookSessionDto
 {
     public Guid AdvisorId { get; set; }

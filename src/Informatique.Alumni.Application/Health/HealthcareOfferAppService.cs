@@ -16,11 +16,6 @@ using Informatique.Alumni.Profiles;
 
 namespace Informatique.Alumni.Health;
 
-/// <summary>
-/// Application service for healthcare offers (graduate portal).
-/// Business Rule: STRICT membership gating - only active members can access.
-/// Clean Code: Guard clause pattern, small focused methods.
-/// </summary>
 [Authorize]
 public class HealthcareOfferAppService : ApplicationService, IHealthcareOfferAppService
 {
@@ -28,42 +23,36 @@ public class HealthcareOfferAppService : ApplicationService, IHealthcareOfferApp
     private readonly IRepository<AlumniProfile, Guid> _profileRepository;
     private readonly IBlobContainer<HealthcareBlobContainer> _blobContainer;
     private readonly MembershipManager _membershipManager;
+    private readonly MembershipGuard _membershipGuard;
 
     public HealthcareOfferAppService(
         IRepository<HealthcareOffer, Guid> offerRepository,
         IRepository<AlumniProfile, Guid> profileRepository,
         IBlobContainer<HealthcareBlobContainer> blobContainer,
-        MembershipManager membershipManager)
+        MembershipManager membershipManager,
+        MembershipGuard membershipGuard)
     {
         _offerRepository = offerRepository;
         _profileRepository = profileRepository;
         _blobContainer = blobContainer;
         _membershipManager = membershipManager;
+        _membershipGuard = membershipGuard;
     }
 
-    /// <summary>
-    /// Gets the list of healthcare offers for graduates with pagination.
-    /// Business Rule: GUARD CLAUSE - Check membership BEFORE fetching any data.
-    /// Clean Code: Fast-fail pattern, no nested conditionals.
-    /// </summary>
     public async Task<PagedResultDto<HealthcareOfferListDto>> GetListAsync(GetHealthcareOffersInput input)
     {
         // GUARD CLAUSE: Business Rule - Active membership required
-        await CheckMembershipActiveAsync();
+        await _membershipGuard.CheckAsync();
 
-        // Fetch offers with filtering (only executed if membership is active)
         var queryable = await _offerRepository.GetQueryableAsync();
 
-        // Apply filter
         if (!string.IsNullOrWhiteSpace(input.Filter))
         {
             queryable = queryable.Where(o => o.Title.Contains(input.Filter));
         }
 
-        // Get total count
         var totalCount = await AsyncExecuter.CountAsync(queryable);
 
-        // Apply sorting and paging
         var offers = await AsyncExecuter.ToListAsync(
             queryable
                 .OrderByDescending(o => o.UploadDate)
@@ -71,7 +60,6 @@ public class HealthcareOfferAppService : ApplicationService, IHealthcareOfferApp
                 .Take(input.MaxResultCount)
         );
 
-        // Map to DTOs with download URLs
         var dtos = offers.Select(offer => new HealthcareOfferListDto
         {
             Id = offer.Id,
@@ -83,70 +71,18 @@ public class HealthcareOfferAppService : ApplicationService, IHealthcareOfferApp
         return new PagedResultDto<HealthcareOfferListDto>(totalCount, dtos);
     }
 
-    /// <summary>
-    /// Downloads a healthcare offer file.
-    /// Business Rule: GUARD CLAUSE - Active membership required.
-    /// </summary>
     public async Task<Stream> DownloadAsync(Guid id)
     {
         // GUARD CLAUSE: Business Rule - Active membership required
-        await CheckMembershipActiveAsync();
+        await _membershipGuard.CheckAsync();
 
-        // Get offer
         var offer = await _offerRepository.GetAsync(id);
 
-        // Return file stream from blob storage
         return await _blobContainer.GetAsync(offer.FileBlobName);
     }
 
-    // ============ GUARD CLAUSE METHOD ============
-
-    /// <summary>
-    /// Checks if the current user has an active membership.
-    /// Business Rule: Access to healthcare offers is RESTRICTED to active members only.
-    /// Error Message: Exact text specified in requirements.
-    /// Clean Code: Single responsibility - membership validation only.
-    /// </summary>
-    private async Task CheckMembershipActiveAsync()
-    {
-        var currentUserId = CurrentUser.Id;
-
-        if (currentUserId == null)
-        {
-             throw new UserFriendlyException("User not authenticated");
-        }
-
-        // Query alumni profile with membership status
-        var queryable = await _profileRepository.GetQueryableAsync();
-        var profile = await AsyncExecuter.FirstOrDefaultAsync(
-            queryable.Where(p => p.UserId == currentUserId.Value)
-        );
-
-        if (profile == null)
-        {
-            throw new UserFriendlyException("Alumni profile not found");
-        }
-
-        // Business Rule: Check membership status via MembershipManager
-        var isActive = await _membershipManager.IsActiveAsync(profile.Id);
-
-        if (!isActive)
-        {
-            throw new UserFriendlyException(
-                "To benefit from these offers, membership must be active"
-            );
-        }
-    }
-
-    /// <summary>
-    /// Generates download URL for a healthcare offer.
-    /// Returns API endpoint URL for file download.
-    /// Clean Code: Centralized URL generation.
-    /// </summary>
     private string GenerateDownloadUrl(Guid offerId)
     {
-        // Return API endpoint URL for download
-        // Frontend will call this endpoint to download the file
         return $"/api/app/healthcare-offer/download/{offerId}";
     }
 }

@@ -151,17 +151,10 @@ public class MembershipAppService : AlumniAppService, IMembershipAppService
             maxGradYear,
             input.DeliveryMethod,
             deliveryFee,
+            usedWalletAmount,
+            remainingAmount,
             photoBlobName
         );
-
-        // 7. Update Financials on Request
-        // Since Manager creates generic request, we set these properties here? 
-        // Wait, I updated Manager to accept these or I need to set them.
-        // I updated Request entity with properties. I updated Manager signature to accept them.
-        // But Manager signature did NOT accept UsedWallet/Remaining. It accepted DeliveryFee/Method.
-        // So I must set Wallet/Remaining here.
-        request.UsedWalletAmount = usedWalletAmount;
-        request.RemainingAmount = remainingAmount;
         
         if (remainingAmount == 0)
         {

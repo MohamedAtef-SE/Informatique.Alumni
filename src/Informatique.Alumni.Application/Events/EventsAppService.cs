@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using System.IO;
 using Volo.Abp.BlobStoring;
 using Volo.Abp.Content;
+using Volo.Abp.Domain.Entities;
 
 namespace Informatique.Alumni.Events;
 
@@ -158,23 +159,23 @@ public class EventsAppService : AlumniAppService, IEventsAppService
     [AllowAnonymous] // Public can view event details
     public async Task<EventDetailDto> GetAsync(Guid id)
     {
-        var @event = await _eventRepository.GetAsync(id);
+        // Optimization: Use WithDetailsAsync to load collections in one query
+        // Note: ActivityType and Branch are not navigation properties in AssociationEvent, so we still fetch them separately if needed.
+        // Or if we can, we include them. But AssociationEvent definition showed no navigation prop for Branch/ActivityType.
+        // Checking AssociationEvent.cs again: 'ActivityType' IS a property! 'Branch' is NOT.
+        // So we can Include ActivityType.
         
-        // Load collections (Agenda and Timeslots)
-        await _eventRepository.EnsureCollectionLoadedAsync(@event, x => x.AgendaItems);
-        await _eventRepository.EnsureCollectionLoadedAsync(@event, x => x.Timeslots);
+        var @event = await _eventRepository.GetAsync(id, includeDetails: true); 
+        // ABP's GetAsync(includeDetails: true) usually loads all configured includes. 
+        // Or using explicit WithDetailsAsync.
+        // Let's use explicit to be sure about AgendaItems and Timeslots.
+        
+        var query = await _eventRepository.WithDetailsAsync(x => x.AgendaItems, x => x.Timeslots, x => x.ActivityType);
+        @event = await AsyncExecuter.FirstOrDefaultAsync(query.Where(x => x.Id == id));
+        
+        if (@event == null) throw new EntityNotFoundException(typeof(AssociationEvent), id);
 
-        // Get Activity Type name
-        string? activityTypeName = null;
-        Guid? activityTypeId = null;
-        if (@event.ActivityTypeId.HasValue)
-        {
-            var activityType = await _activityTypeRepository.GetAsync(@event.ActivityTypeId.Value);
-            activityTypeName = activityType.NameEn;
-            activityTypeId = activityType.Id;
-        }
-
-        // Get Branch name
+        // Get Branch name (Manual fetch as no navigation prop)
         string? branchName = null;
         Guid? branchId = null;
         if (@event.BranchId.HasValue)
@@ -194,8 +195,8 @@ public class EventsAppService : AlumniAppService, IEventsAppService
             Location = @event.Location,
             Address = @event.Address,
             GoogleMapUrl = @event.GoogleMapUrl,
-            ActivityTypeId = activityTypeId,
-            ActivityTypeName = activityTypeName,
+            ActivityTypeId = @event.ActivityTypeId,
+            ActivityTypeName = @event.ActivityType?.NameEn,
             BranchId = branchId,
             BranchName = branchName,
             LastSubscriptionDate = @event.LastSubscriptionDate,
@@ -488,12 +489,25 @@ public class EventsAppService : AlumniAppService, IEventsAppService
     {
         var alumniId = CurrentUser.GetId();
         var list = await _registrationRepository.GetListAsync(x => x.AlumniId == alumniId);
-        var dtos = _alumniMappers.MapToDtos(list);
         
-        foreach (var dto in dtos)
+        // Bulk load Events
+        var eventIds = list.Select(x => x.EventId).Distinct().ToList();
+        var events = await _eventRepository.GetListAsync(x => eventIds.Contains(x.Id));
+        var eventDict = events.ToDictionary(x => x.Id);
+
+        var dtos = list.Select(x => 
         {
-            dto.QrCodeUrl = $"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={dto.TicketCode}";
-        }
+            var dto = _alumniMappers.MapToDto(x);
+             dto.QrCodeUrl = $"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={dto.TicketCode}";
+            
+            if (eventDict.TryGetValue(x.EventId, out var evt))
+            {
+                dto.EventName = evt.NameEn; // Assuming DTO has EventName
+                dto.EventDate = evt.LastSubscriptionDate; // Or some date
+                dto.Location = evt.Location;
+            }
+            return dto;
+        }).ToList();
         
         return dtos;
     }

@@ -36,6 +36,20 @@ public class MembershipManagerTests
             _mockProfileRepository,
             _mockConfigRepository
         );
+        
+        var mockClock = Substitute.For<Volo.Abp.Timing.IClock>();
+        mockClock.Now.Returns(DateTime.UtcNow);
+        
+        var mockGuidGenerator = Substitute.For<Volo.Abp.Guids.IGuidGenerator>();
+        mockGuidGenerator.Create().Returns(Guid.NewGuid());
+        
+        var mockLazyServiceProvider = Substitute.For<Volo.Abp.DependencyInjection.IAbpLazyServiceProvider>();
+        mockLazyServiceProvider.LazyGetRequiredService<Volo.Abp.Timing.IClock>()
+            .ReturnsForAnyArgs(mockClock);
+        mockLazyServiceProvider.LazyGetRequiredService<Volo.Abp.Guids.IGuidGenerator>()
+            .ReturnsForAnyArgs(mockGuidGenerator);
+            
+        _membershipManager.LazyServiceProvider = mockLazyServiceProvider;
     }
 
     #region ValidateSubscriptionFeeAsync Tests
@@ -151,6 +165,8 @@ public class MembershipManagerTests
             DateTime.UtcNow.AddYears(1),
             MemDeliveryMethod.OfficePickup,
             0,
+            0, // UsedWalletAmount
+            0, // RemainingAmount
             null
         );
         
@@ -217,6 +233,8 @@ public class MembershipManagerTests
             2024,
             MemDeliveryMethod.OfficePickup,
             0,
+            0, // UsedWalletAmount
+            0, // RemainingAmount
             null
         );
 
@@ -249,6 +267,8 @@ public class MembershipManagerTests
             DateTime.UtcNow.AddYears(1),
             MemDeliveryMethod.OfficePickup,
             0,
+            0, // UsedWalletAmount
+            0, // RemainingAmount
             null
         );
         
@@ -269,6 +289,8 @@ public class MembershipManagerTests
             2024,
             MemDeliveryMethod.OfficePickup,
             0,
+            0, // UsedWalletAmount
+            0, // RemainingAmount
             null
         );
 
@@ -306,7 +328,7 @@ public class MembershipManagerTests
         // Act & Assert
         await Should.ThrowAsync<BusinessException>(
             async () => await _membershipManager.CreateMembershipRequestAsync(
-                requestId, alumniId, feeId, idempotencyKey, branchId, 2023, MemDeliveryMethod.OfficePickup, 0, null
+                requestId, alumniId, feeId, idempotencyKey, branchId, 2023, MemDeliveryMethod.OfficePickup, 0, 0, 0, null
             )
         );
     }
@@ -364,6 +386,8 @@ public class MembershipManagerTests
             DateTime.UtcNow.AddYears(1),
             MemDeliveryMethod.OfficePickup,
             0,
+            0, // UsedWalletAmount
+            0, // RemainingAmount
             null
         );
         request.MarkAsPaid();
@@ -392,6 +416,8 @@ public class MembershipManagerTests
             DateTime.UtcNow.AddYears(1),
             MemDeliveryMethod.OfficePickup,
             0,
+            0, // UsedWalletAmount
+            0, // RemainingAmount
             null
         );
         request.MarkAsPaid();
@@ -424,6 +450,8 @@ public class MembershipManagerTests
             DateTime.UtcNow.AddYears(1),
             MemDeliveryMethod.OfficePickup,
             0,
+            0, // UsedWalletAmount
+            0, // RemainingAmount
             null
         );
 
@@ -450,6 +478,8 @@ public class MembershipManagerTests
             DateTime.UtcNow.AddYears(1),
             MemDeliveryMethod.OfficePickup,
             0,
+            0, // UsedWalletAmount
+            0, // RemainingAmount
             null
         );
 
@@ -478,6 +508,8 @@ public class MembershipManagerTests
             DateTime.UtcNow.AddYears(1),
             MemDeliveryMethod.OfficePickup,
             0,
+            0, // UsedWalletAmount
+            0, // RemainingAmount
             null
         );
         request.MarkAsPaid(); // Already paid
@@ -532,6 +564,8 @@ public class MembershipManagerTests
             2024,
             MemDeliveryMethod.OfficePickup,
             0,
+            0, // UsedWalletAmount
+            0, // RemainingAmount
             null
         );
         request.Status.ShouldBe(MembershipRequestStatus.Pending);

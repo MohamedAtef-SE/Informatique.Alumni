@@ -35,4 +35,20 @@ public class CommercialDiscount : FullAuditedAggregateRoot<Guid>
         PromoCode = promoCode;
         ValidUntil = validUntil;
     }
+
+    public void UpdateInfo(
+        string providerName, 
+        string title, 
+        string description, 
+        decimal discountPercentage, 
+        string? promoCode, 
+        DateTime validUntil)
+    {
+        ProviderName = providerName;
+        Title = title;
+        Description = description;
+        DiscountPercentage = discountPercentage;
+        PromoCode = promoCode;
+        ValidUntil = validUntil;
+    }
 }

@@ -10,13 +10,14 @@ using Volo.Abp.FeatureManagement;
 using Volo.Abp.Modularity;
 using Volo.Abp.PermissionManagement;
 using Volo.Abp.Uow;
+using Informatique.Alumni;
 
 namespace Informatique.Alumni.EntityFrameworkCore;
 
 [DependsOn(
-    typeof(AlumniApplicationTestModule),
     typeof(AlumniEntityFrameworkCoreModule),
-    typeof(AbpEntityFrameworkCoreSqliteModule)
+    typeof(AbpEntityFrameworkCoreSqliteModule),
+    typeof(AlumniTestBaseModule)
 )]
 public class AlumniEntityFrameworkCoreTestModule : AbpModule
 {

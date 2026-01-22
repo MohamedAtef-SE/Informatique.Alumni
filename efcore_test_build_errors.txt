@@ -1,0 +1,21 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Informatique.Alumni.Domain.Shared -> d:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain.Shared\bin\Debug\net10.0\Informatique.Alumni.Domain.Shared.dll
+  Informatique.Alumni.Domain -> d:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\bin\Debug\net10.0\Informatique.Alumni.Domain.dll
+  Informatique.Alumni.TestBase -> d:\Projects\Informatique.Alumni\test\Informatique.Alumni.TestBase\bin\Debug\net10.0\Informatique.Alumni.TestBase.dll
+  Informatique.Alumni.EntityFrameworkCore -> d:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\bin\Debug\net10.0\Informatique.Alumni.EntityFrameworkCore.dll
+d:\Projects\Informatique.Alumni\test\Informatique.Alumni.EntityFrameworkCore.Tests\EntityFrameworkCore\Applications\EfCoreSampleAppServiceTests.cs(1,27): error CS0234: The type or namespace name 'Samples' does not exist in the namespace 'Informatique.Alumni' (are you missing an assembly reference?) [d:\Projects\Informatique.Alumni\test\Informatique.Alumni.EntityFrameworkCore.Tests\Informatique.Alumni.EntityFrameworkCore.Tests.csproj]
+d:\Projects\Informatique.Alumni\test\Informatique.Alumni.EntityFrameworkCore.Tests\EntityFrameworkCore\Domains\EfCoreSampleDomainTests.cs(1,27): error CS0234: The type or namespace name 'Samples' does not exist in the namespace 'Informatique.Alumni' (are you missing an assembly reference?) [d:\Projects\Informatique.Alumni\test\Informatique.Alumni.EntityFrameworkCore.Tests\Informatique.Alumni.EntityFrameworkCore.Tests.csproj]
+d:\Projects\Informatique.Alumni\test\Informatique.Alumni.EntityFrameworkCore.Tests\EntityFrameworkCore\Domains\EfCoreSampleDomainTests.cs(7,40): error CS0246: The type or namespace name 'SampleDomainTests<>' could not be found (are you missing a using directive or an assembly reference?) [d:\Projects\Informatique.Alumni\test\Informatique.Alumni.EntityFrameworkCore.Tests\Informatique.Alumni.EntityFrameworkCore.Tests.csproj]
+d:\Projects\Informatique.Alumni\test\Informatique.Alumni.EntityFrameworkCore.Tests\EntityFrameworkCore\Applications\EfCoreSampleAppServiceTests.cs(7,44): error CS0246: The type or namespace name 'SampleAppServiceTests<>' could not be found (are you missing a using directive or an assembly reference?) [d:\Projects\Informatique.Alumni\test\Informatique.Alumni.EntityFrameworkCore.Tests\Informatique.Alumni.EntityFrameworkCore.Tests.csproj]
+
+Build FAILED.
+
+d:\Projects\Informatique.Alumni\test\Informatique.Alumni.EntityFrameworkCore.Tests\EntityFrameworkCore\Applications\EfCoreSampleAppServiceTests.cs(1,27): error CS0234: The type or namespace name 'Samples' does not exist in the namespace 'Informatique.Alumni' (are you missing an assembly reference?) [d:\Projects\Informatique.Alumni\test\Informatique.Alumni.EntityFrameworkCore.Tests\Informatique.Alumni.EntityFrameworkCore.Tests.csproj]
+d:\Projects\Informatique.Alumni\test\Informatique.Alumni.EntityFrameworkCore.Tests\EntityFrameworkCore\Domains\EfCoreSampleDomainTests.cs(1,27): error CS0234: The type or namespace name 'Samples' does not exist in the namespace 'Informatique.Alumni' (are you missing an assembly reference?) [d:\Projects\Informatique.Alumni\test\Informatique.Alumni.EntityFrameworkCore.Tests\Informatique.Alumni.EntityFrameworkCore.Tests.csproj]
+d:\Projects\Informatique.Alumni\test\Informatique.Alumni.EntityFrameworkCore.Tests\EntityFrameworkCore\Domains\EfCoreSampleDomainTests.cs(7,40): error CS0246: The type or namespace name 'SampleDomainTests<>' could not be found (are you missing a using directive or an assembly reference?) [d:\Projects\Informatique.Alumni\test\Informatique.Alumni.EntityFrameworkCore.Tests\Informatique.Alumni.EntityFrameworkCore.Tests.csproj]
+d:\Projects\Informatique.Alumni\test\Informatique.Alumni.EntityFrameworkCore.Tests\EntityFrameworkCore\Applications\EfCoreSampleAppServiceTests.cs(7,44): error CS0246: The type or namespace name 'SampleAppServiceTests<>' could not be found (are you missing a using directive or an assembly reference?) [d:\Projects\Informatique.Alumni\test\Informatique.Alumni.EntityFrameworkCore.Tests\Informatique.Alumni.EntityFrameworkCore.Tests.csproj]
+    0 Warning(s)
+    4 Error(s)
+
+Time Elapsed 00:00:01.83

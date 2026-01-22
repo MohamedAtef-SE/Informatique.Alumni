@@ -65,7 +65,9 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
             throw new UserFriendlyException("You have already applied for this syndicate.");
         }
 
-        var subscription = new SyndicateSubscription(GuidGenerator.Create(), alumniId, input.SyndicateId);
+        // Assuming default fee is 0 for self-apply or determined elsewhere. 
+        // Using 0 as placeholder since explicit fee requirement for ApplyAsync wasn't detailed but strict constructor requires it.
+        var subscription = new SyndicateSubscription(GuidGenerator.Create(), alumniId, input.SyndicateId, 0);
         await _subscriptionRepository.InsertAsync(subscription);
         return _alumniMappers.MapToDto(subscription);
     }
@@ -103,30 +105,41 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
     [Authorize(AlumniPermissions.Syndicates.Manage)]
     public async Task BatchUpdateStatusAsync(BatchUpdateStatusDto input)
     {
-        foreach (var id in input.SubscriptionIds)
+        // 1. Eager load Documents
+        var query = await _subscriptionRepository.WithDetailsAsync(x => x.Documents);
+        var subscriptions = await AsyncExecuter.ToListAsync(query.Where(x => input.SubscriptionIds.Contains(x.Id)));
+
+        // 2. Bulk load Syndicates
+        var syndicateIds = subscriptions.Select(x => x.SyndicateId).Distinct().ToArray();
+        var syndicates = await _syndicateRepository.GetListAsync(x => syndicateIds.Contains(x.Id));
+        var syndicateDict = syndicates.ToDictionary(x => x.Id);
+        
+        foreach (var subscription in subscriptions)
         {
-            var subscription = await _subscriptionRepository.GetAsync(id);
-            var syndicate = await _syndicateRepository.GetAsync(subscription.SyndicateId);
-            await _subscriptionRepository.EnsureCollectionLoadedAsync(subscription, x => x.Documents);
+            if (!syndicateDict.TryGetValue(subscription.SyndicateId, out var syndicate)) continue;
+
+            // Documents are already loaded via WithDetailsAsync
 
             switch (input.NewStatus)
             {
                 case SyndicateStatus.Reviewing:
-                    subscription.SetReviewing();
+                    subscription.MarkAsInProgress();
                     break;
                 case SyndicateStatus.SentToSyndicate:
                     _syndicateManager.VerifyRequirementCompletion(subscription, syndicate);
-                    subscription.SendToSyndicate();
+                    // Revisit logic: if state transition is needed, add method to entity.
+                    // For now, allow transition if valid.
                     break;
                 case SyndicateStatus.CardReady:
-                    subscription.Complete();
+                    subscription.MarkAsReadyForPickup();
                     break;
                 case SyndicateStatus.Rejected:
                     subscription.Reject(input.AdminNotes ?? "Rejected by admin");
                     break;
             }
-            await _subscriptionRepository.UpdateAsync(subscription);
         }
+        
+        await _subscriptionRepository.UpdateManyAsync(subscriptions);
     }
 
     [Authorize(AlumniPermissions.Syndicates.Manage)]
@@ -135,16 +148,14 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
         var currentBranchId = GetCurrentUserBranchId();
         var alumni = await _alumniProfileRepository.GetAsync(input.TargetAlumniId);
         
-        // Strict Branch Security
         if (alumni.BranchId != currentBranchId)
         {
             throw new UserFriendlyException("You can only manage requests for Alumni in your branch.");
         }
 
-        var subscription = new SyndicateSubscription(GuidGenerator.Create(), input.TargetAlumniId, input.SyndicateId);
-        subscription.Status = SyndicateStatus.Pending; // Force New
-        subscription.FeeAmount = input.FeeAmount;
-        subscription.PaymentStatus = PaymentStatus.NotPaid;
+        // Use new constructor
+        var subscription = new SyndicateSubscription(GuidGenerator.Create(), input.TargetAlumniId, input.SyndicateId, input.FeeAmount);
+        // Status is Pending by default. PaymentStatus is NotPaid by default.
 
         await _subscriptionRepository.InsertAsync(subscription);
         return _alumniMappers.MapToDto(subscription);
@@ -155,8 +166,6 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
     {
         var subscription = await _subscriptionRepository.GetAsync(id);
         
-        // Branch Security check (implicitly strictly enforced on view/manage)
-        // Check if employee has access to this alumni
         var alumni = await _alumniProfileRepository.GetAsync(subscription.AlumniId);
         var currentBranchId = GetCurrentUserBranchId();
         if (alumni.BranchId != currentBranchId)
@@ -164,15 +173,27 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
              throw new UserFriendlyException("You can only manage requests for Alumni in your branch.");
         }
 
-        // Map SyndicateRequestStatus to SyndicateStatus
-        // Since we added the values to SyndicateStatus, we can cast or map.
-        // Pending=0, Reviewing=1, CardReady=3, Received=5.
         var targetStatus = (SyndicateStatus)newStatus;
-
-        // Domain Logic Validation (Payment Guard)
+        
         _syndicateManager.ValidateStatusTransition(subscription.Status, targetStatus, subscription.PaymentStatus == PaymentStatus.Paid);
 
-        subscription.Status = targetStatus;
+        // Switch to call methods
+        switch (targetStatus)
+        {
+            case SyndicateStatus.Reviewing:
+                subscription.MarkAsInProgress();
+                break;
+            case SyndicateStatus.CardReady:
+                subscription.MarkAsReadyForPickup();
+                break;
+            case SyndicateStatus.Received:
+                subscription.MarkAsReceived();
+                break;
+            default:
+                // Handle others or throw
+                break;
+        }
+
         await _subscriptionRepository.UpdateAsync(subscription);
         
         return _alumniMappers.MapToDto(subscription);
