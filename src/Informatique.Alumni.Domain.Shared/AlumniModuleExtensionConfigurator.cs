@@ -39,18 +39,48 @@ public static class AlumniModuleExtensionConfigurator
     private static void ConfigureExtraProperties()
     {
         ObjectExtensionManager.Instance.Modules()
-           .ConfigureIdentity(identity =>
-           {
-               identity.ConfigureUser(user =>
-               {
-                   user.AddOrUpdateProperty<Guid?>(
-                       "CollegeId",
-                       property =>
-                       {
-                           // You can add validation rules or UI configurations here
-                       }
-                   );
-               });
-           });
+            .ConfigureIdentity(identity =>
+            {
+                identity.ConfigureUser(user =>
+                {
+                    user.AddOrUpdateProperty<string>(
+                        "NameAr",
+                        property =>
+                        {
+                            property.Attributes.Add(new RequiredAttribute());
+                            property.Attributes.Add(new MaxLengthAttribute(100));
+                        }
+                    );
+                    user.AddOrUpdateProperty<string>(
+                        "NameEn",
+                        property =>
+                        {
+                            property.Attributes.Add(new RequiredAttribute());
+                            property.Attributes.Add(new MaxLengthAttribute(100));
+                        }
+                    );
+                    user.AddOrUpdateProperty<Guid>(
+                        "BranchId",
+                        property =>
+                        {
+                            property.Attributes.Add(new RequiredAttribute());
+                        }
+                    );
+                    user.AddOrUpdateProperty<string>(
+                        "ProfileImage",
+                        property =>
+                        {
+                            // Optional
+                        }
+                    );
+                    user.AddOrUpdateProperty<Guid?>(
+                        "CollegeId",
+                        property =>
+                        {
+                            // You can add validation rules or UI configurations here
+                        }
+                    );
+                });
+            });
     }
 }

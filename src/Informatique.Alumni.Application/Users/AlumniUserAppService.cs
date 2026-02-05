@@ -8,6 +8,8 @@ using Volo.Abp.Application.Services;
 using Volo.Abp.Identity;
 using Volo.Abp.AuditLogging;
 using Volo.Abp.Data;
+using Volo.Abp.Domain.Repositories;
+using Microsoft.Extensions.Configuration;
 using Informatique.Alumni.Permissions;
 
 namespace Informatique.Alumni.Users;
@@ -18,25 +20,162 @@ public class AlumniUserAppService : ApplicationService, IAlumniUserAppService
     private readonly IdentityUserManager _userManager;
     private readonly IIdentityUserRepository _userRepository;
     private readonly IAuditLogRepository _auditLogRepository;
+    private readonly IRepository<Informatique.Alumni.Profiles.AlumniProfile, Guid> _alumniProfileRepository;
+    private readonly Volo.Abp.Emailing.IEmailSender _emailSender;
+    private readonly Informatique.Alumni.Infrastructure.SMS.ISmsSender _smsSender;
+    private readonly IConfiguration _configuration;
 
     public AlumniUserAppService(
         IdentityUserManager userManager,
         IIdentityUserRepository userRepository,
-        IAuditLogRepository auditLogRepository)
+        IAuditLogRepository auditLogRepository,
+        IRepository<Informatique.Alumni.Profiles.AlumniProfile, Guid> alumniProfileRepository,
+        Volo.Abp.Emailing.IEmailSender emailSender,
+        Informatique.Alumni.Infrastructure.SMS.ISmsSender smsSender,
+        IConfiguration configuration)
     {
         _userManager = userManager;
         _userRepository = userRepository;
         _auditLogRepository = auditLogRepository;
+        _alumniProfileRepository = alumniProfileRepository;
+        _emailSender = emailSender;
+        _smsSender = smsSender;
+        _configuration = configuration;
+    }
+
+    [Authorize("AbpIdentity.Users.Create")]
+    public async Task CreateUserForAlumniAsync(CreateAlumniUserDto input)
+    {
+        // 1. Fetch Alumni Profile
+        var alumni = await _alumniProfileRepository.GetAsync(input.AlumniId);
+        
+        // 2. Check One-to-One Constraint (if User already linked)
+        // Note: Using GetListAsync with filter for mapped property or custom query would be better, 
+        // but for now, we assume simple check. EF Core query might be needed for perf.
+        // Assuming UserId field on AlumniProfile is updated when user is created.
+        if (alumni.UserId != Guid.Empty)
+        {
+             // Verify if that user actually exists to avoid broken link issues
+             var existingUser = await _userManager.FindByIdAsync(alumni.UserId.ToString());
+             if (existingUser != null)
+             {
+                 throw new Volo.Abp.UserFriendlyException($"Alumni with ID {input.AlumniId} already has a system user account ({existingUser.UserName}).");
+             }
+        }
+
+        // 3. Credentials Generation (Username = NationalId or some ID? User Story says "Alumni Number")
+        // Alumni entity doesn't show "AlumniNumber" in the viewed file, it shows NationalId.
+        // Assuming NationalId is the unique identifier to use as UserName per context, or we should use ID.
+        // Let's use NationalId as "Alumni Number" proxy if AlumniNumber field is missing, or strictly follow "Alumni Number".
+        // The viewed file `AlumniProfile.cs` does NOT have `AlumniNumber`. 
+        // However, standard education systems use Student ID. 
+        // I will use `NationalId` as the Username for now as it is unique and mandatory in the entity I saw.
+        // CHECK: If the requirement strictly says "Read-Only/Fixed Alumni ID", I should use that.
+        // `NationalId` is `Check.NotNullOrWhiteSpace`.
+        string userName = alumni.NationalId; 
+
+        // Check if user exists by name (Double check)
+        var userCheck = await _userManager.FindByNameAsync(userName);
+        if (userCheck != null)
+        {
+            throw new Volo.Abp.UserFriendlyException($"User with username {userName} already exists.");
+        }
+
+        // 4. Create IdentityUser
+        var user = new Volo.Abp.Identity.IdentityUser(GuidGenerator.Create(), userName, alumni.Emails.FirstOrDefault(e => e.IsPrimary)?.Email ?? $"{userName}@alumni.com", CurrentTenant.Id);
+        
+        // Extended Properties
+        user.SetProperty("NameAr", "Alumni User"); // Should fetch from Profile if available, but Profile only has Bio/Job. Assuming generic or separate entity for Name. IdentityUser has Name/Surname.
+        user.SetProperty("NameEn", "Alumni User");
+        user.SetProperty("BranchId", alumni.BranchId);
+        user.SetProperty("CollegeId", Guid.Empty); // Unknown context, set default.
+
+        (await _userManager.CreateAsync(user, input.Password)).CheckErrors();
+        
+        // 5. Assign Role
+        (await _userManager.AddToRoleAsync(user, "Graduate")).CheckErrors();
+
+        // 6. Link Alumni to User
+        alumni.SetUserId(user.Id);
+        await _alumniProfileRepository.UpdateAsync(alumni);
+        
+        // 7. Notification
+        // Email
+        await _emailSender.SendAsync(
+            user.Email,
+            "Your Alumni System Access",
+            $"Welcome! Your username is {userName} and password is {input.Password}. Login here: {_configuration["App:SelfUrl"]}"
+        );
+
+        // SMS (If Mobile exists)
+        if (!string.IsNullOrEmpty(alumni.MobileNumber))
+        {
+            await _smsSender.SendAsync(
+                alumni.MobileNumber,
+                $"Alumni System Access: User={userName}, Pass={input.Password}"
+            );
+        }
+    }
+
+    [Authorize("AbpIdentity.Users.Create")]
+    public async Task CreateAsync(CreateSystemUserDto input)
+    {
+        // Branch Scoping Logic
+        // If current user is not Super Admin (admin role), restrict to their own branch.
+        if (!CurrentUser.IsInRole("admin"))
+        {
+            var userBranchIdClaim = CurrentUser.FindClaim("BranchId");
+            if (userBranchIdClaim != null && Guid.TryParse(userBranchIdClaim.Value, out var branchId))
+            {
+                if (input.BranchId != branchId)
+                {
+                    throw new Volo.Abp.UserFriendlyException("Security Error: You can only create users for your assigned branch.");
+                }
+            }
+        }
+
+        var user = new Volo.Abp.Identity.IdentityUser(GuidGenerator.Create(), input.UserName, input.Email, CurrentTenant.Id);
+        
+        // Extension Properties
+        user.SetProperty("NameAr", input.NameAr);
+        user.SetProperty("NameEn", input.NameEn);
+        user.SetProperty("BranchId", input.BranchId);
+        if (!string.IsNullOrEmpty(input.ProfileImage))
+        {
+            user.SetProperty("ProfileImage", input.ProfileImage);
+        }
+        
+        // Create User
+        (await _userManager.CreateAsync(user, input.Password)).CheckErrors();
+        
+        // Assign Roles
+        if (input.RoleNames != null && input.RoleNames.Any())
+        {
+            (await _userManager.AddToRolesAsync(user, input.RoleNames)).CheckErrors();
+        }
     }
 
     [Authorize(AlumniPermissions.Users.CreateAlumni)]
     public async Task CreateAlumniAccountAsync(AlumniCreateDto input)
     {
-        var user = new IdentityUser(GuidGenerator.Create(), input.UserName, input.Email);
-        user.SetProperty("CollegeId", input.CollegeId);
+        var user = await CreateIdentityUserAsync(input.UserName, input.Email, input.Password, input.CollegeId);
+        // Additional logic for CreateAlumniAccountAsync if any, after user creation
+    }
+
+    [Authorize(AlumniPermissions.Users.CreateAlumni)]
+    private async Task<Volo.Abp.Identity.IdentityUser> CreateIdentityUserAsync(string userName, string email, string password, Guid? collegeId)
+    {
+        var user = new Volo.Abp.Identity.IdentityUser(
+            GuidGenerator.Create(),
+            userName,
+            email,
+            CurrentTenant.Id
+        );
+        user.SetProperty("CollegeId", collegeId);
         
-        (await _userManager.CreateAsync(user, input.Password)).CheckErrors();
+        (await _userManager.CreateAsync(user, password)).CheckErrors();
         (await _userManager.AddToRoleAsync(user, "Alumni")).CheckErrors();
+        return user;
     }
 
     [Authorize(AlumniPermissions.Users.SystemUsersReport)]

@@ -13,6 +13,7 @@ using Volo.Abp.Domain.Repositories;
 using Informatique.Alumni.Membership;
 using Informatique.Alumni.Profiles;
 using Volo.Abp;
+using Volo.Abp.Content;
 using Volo.Abp.Users;
 
 namespace Informatique.Alumni.Gallery;
@@ -72,8 +73,8 @@ public class GalleryAppService : AlumniAppService, IGalleryAppService
             CreationTime = album.CreationTime,
             Images = album.MediaItems.Select(m => new GalleryImageDto 
             {
-                OriginalUrl = $"/api/app/gallery/image?blobName={m.Url}",
-                ThumbnailUrl = m.MediaType == GalleryMediaType.Photo ? $"/api/app/gallery/image?blobName=thumb_{m.Url}" : "",
+                OriginalUrl = m.Url.StartsWith("http") ? m.Url : $"/api/app/gallery/image?blobName={m.Url}",
+                ThumbnailUrl = m.Url.StartsWith("http") ? m.Url : (m.MediaType == GalleryMediaType.Photo ? $"/api/app/gallery/image?blobName=thumb_{m.Url}" : ""),
                 FileName = m.FileName
             }).ToList()
         };
@@ -107,10 +108,13 @@ public class GalleryAppService : AlumniAppService, IGalleryAppService
         {
             foreach (var item in album.MediaItems)
             {
-                await _blobContainer.DeleteAsync(item.Url);
-                if (item.MediaType == GalleryMediaType.Photo)
+                if (!item.Url.StartsWith("http"))
                 {
-                    await _blobContainer.DeleteAsync($"thumb_{item.Url}");
+                    await _blobContainer.DeleteAsync(item.Url);
+                    if (item.MediaType == GalleryMediaType.Photo)
+                    {
+                        await _blobContainer.DeleteAsync($"thumb_{item.Url}");
+                    }
                 }
             }
             
@@ -154,9 +158,19 @@ public class GalleryAppService : AlumniAppService, IGalleryAppService
         await _albumRepository.UpdateAsync(album);
     }
 
-    public async Task<byte[]> GetImageAsync(string blobName)
+    [AllowAnonymous]
+    public async Task<IRemoteStreamContent> GetImageAsync(string blobName)
     {
-        return await _blobContainer.GetAllBytesAsync(blobName);
+        var stream = await _blobContainer.GetAsync(blobName);
+        var contentType = "application/octet-stream";
+        var extension = Path.GetExtension(blobName).ToLowerInvariant();
+        
+        if (extension == ".jpg" || extension == ".jpeg") contentType = "image/jpeg";
+        else if (extension == ".png") contentType = "image/png";
+        else if (extension == ".gif") contentType = "image/gif";
+        else if (extension == ".webp") contentType = "image/webp";
+
+        return new RemoteStreamContent(stream, blobName, contentType);
     }
 
     public async Task<PagedResultDto<GalleryAlbumListDto>> GetAlbumsAsync(GalleryFilterDto input)
@@ -196,7 +210,9 @@ public class GalleryAppService : AlumniAppService, IGalleryAppService
             Title = x.Name,
             CreationTime = x.CreationTime,
             CoverImageUrl = x.MediaItems.Any(m => m.MediaType == GalleryMediaType.Photo)
-                ? $"/api/app/gallery/image?blobName=thumb_{x.MediaItems.First(m => m.MediaType == GalleryMediaType.Photo).Url}" 
+                ? (x.MediaItems.First(m => m.MediaType == GalleryMediaType.Photo).Url.StartsWith("http") 
+                    ? x.MediaItems.First(m => m.MediaType == GalleryMediaType.Photo).Url 
+                    : $"/api/app/gallery/image?blobName=thumb_{x.MediaItems.First(m => m.MediaType == GalleryMediaType.Photo).Url}")
                 : string.Empty
         }).ToList();
 
@@ -223,7 +239,8 @@ public class GalleryAppService : AlumniAppService, IGalleryAppService
             Description = album.Description ?? string.Empty,
             MediaItems = album.MediaItems.Select(item => new MediaItemDto
             {
-                Url = $"/api/app/gallery/image?blobName={item.Url}",
+                Id = item.Id,
+                Url = item.Url.StartsWith("http") ? item.Url : $"/api/app/gallery/image?blobName={item.Url}",
                 Type = item.MediaType.ToString()
             }).ToList()
         };

@@ -12,7 +12,7 @@ public interface ICareerAppService : IApplicationService
     Task<CareerServiceDto> CreateServiceAsync(CreateCareerServiceDto input);
     Task<CareerServiceDto> UpdateServiceAsync(Guid id, CreateCareerServiceDto input);
     Task DeleteServiceAsync(Guid id);
-    Task<CareerServiceDto> GetServiceAsync(Guid id);
+    Task<CareerServiceDto> GetAsync(Guid id);
     
     // Subscription Methods
     Task<AlumniCareerSubscriptionDto> SubscribeAsync(Guid serviceId, Guid timeslotId, CareerPaymentMethod paymentMethod);

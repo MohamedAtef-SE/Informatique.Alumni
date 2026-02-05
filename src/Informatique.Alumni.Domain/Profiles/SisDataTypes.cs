@@ -1,25 +1,33 @@
 using System;
 using System.Collections.Generic;
+using Volo.Abp.Domain.Entities;
+using Volo.Abp.Domain.Entities.Auditing;
 
 namespace Informatique.Alumni.Profiles;
 
 /// <summary>
 /// Domain model for Legacy SIS Transcript Data.
-/// Used by Domain Services (AlumniManager) to process academic history.
+/// Persisted in SQL to simulate Real-World integration.
 /// </summary>
-public class SisQualification
+public class SisQualification : FullAuditedEntity<Guid>
 {
-    public string QualificationId { get; set; } = string.Empty;
+    public string QualificationId { get; set; } = string.Empty; // Legacy ID
     public string DegreeName { get; set; } = string.Empty;
     public string Major { get; set; } = string.Empty;
     public string College { get; set; } = string.Empty;
     public int GraduationYear { get; set; }
     public decimal CumulativeGPA { get; set; }
+    public Guid StudentId { get; set; } // Link to our User/Alumni
+    
     public List<SisSemester> Semesters { get; set; } = new();
+
+    public SisQualification() { }
+    public SisQualification(Guid id) : base(id) { }
 }
 
-public class SisSemester
+public class SisSemester : Entity<Guid>
 {
+    public Guid QualificationId { get; set; }
     public string SemesterCode { get; set; } = string.Empty;
     public string SemesterName { get; set; } = string.Empty;
     public int Year { get; set; }
@@ -27,20 +35,27 @@ public class SisSemester
     public decimal SemesterGPA { get; set; }
     public int TotalCredits { get; set; }
     public List<SisCourse> Courses { get; set; } = new();
+
+    public SisSemester() { }
+    public SisSemester(Guid id) : base(id) { }
 }
 
-public class SisCourse
+public class SisCourse : Entity<Guid>
 {
+    public Guid SemesterId { get; set; }
     public string CourseCode { get; set; } = string.Empty;
     public string CourseName { get; set; } = string.Empty;
     public int Credits { get; set; }
     public string Grade { get; set; } = string.Empty;
     public decimal GradePoint { get; set; }
     public string InstructorName { get; set; } = string.Empty;
+
+    public SisCourse() { }
+    public SisCourse(Guid id) : base(id) { }
 }
 
 // Expected Graduates Types
-public class SisExpectedGraduate
+public class SisExpectedGraduate : FullAuditedEntity<Guid>
 {
     public string StudentId { get; set; } = string.Empty;
     public string NameAr { get; set; } = string.Empty;
@@ -56,6 +71,9 @@ public class SisExpectedGraduate
     public string? Address { get; set; }
     public DateTime BirthDate { get; set; }
     public string NationalId { get; set; } = string.Empty;
+
+    public SisExpectedGraduate() { }
+    public SisExpectedGraduate(Guid id) : base(id) { }
 }
 
 public class SisExpectedGraduateFilter

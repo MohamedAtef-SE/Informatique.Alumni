@@ -41,21 +41,14 @@ public class BenefitsAppService : AlumniAppService, IBenefitsAppService
     {
         var count = await _grantRepository.GetCountAsync();
         var query = await _grantRepository.GetQueryableAsync();
-        // Updated sorting field or properties handled by Mapper
         var list = await AsyncExecuter.ToListAsync(query.OrderBy(input.Sorting ?? "CreationTime desc").PageBy(input.SkipCount, input.MaxResultCount));
         
-        // Manual mapping or AutoMapper?
-        // _alumniMappers.MapToDtos likely expects matching properties. 
-        // Need to ensure Mapper is updated or MapToDtos handles it.
-        // Assuming AutoMapper profiles are generic or mapping by property name which matches DTO.
-        
-        return new PagedResultDto<AcademicGrantDto>(count, ObjectMapper.Map<List<AcademicGrant>, List<AcademicGrantDto>>(list));
+        return new PagedResultDto<AcademicGrantDto>(count, _alumniMappers.MapToDtos(list));
     }
 
     [Authorize(AlumniPermissions.Benefits.Manage)]
     public async Task<AcademicGrantDto> CreateGrantAsync(CreateUpdateAcademicGrantDto input)
     {
-        // Use Manager for Creation (Validation logic)
         var grant = await _grantManager.CreateAsync(
             input.NameAr,
             input.NameEn,
@@ -63,7 +56,7 @@ public class BenefitsAppService : AlumniAppService, IBenefitsAppService
             input.Percentage
         );
         
-        return ObjectMapper.Map<AcademicGrant, AcademicGrantDto>(grant);
+        return _alumniMappers.MapToDto(grant);
     }
 
     [Authorize(AlumniPermissions.Benefits.Manage)]
@@ -71,17 +64,12 @@ public class BenefitsAppService : AlumniAppService, IBenefitsAppService
     {
         var grant = await _grantRepository.GetAsync(id);
         
-        // Manual Update or Manager Update?
-        // Updating properties via Entity Methods.
         grant.SetName(input.NameAr, input.NameEn);
         grant.SetType(input.Type);
         grant.SetPercentage(input.Percentage);
         
-        // Note: Missing "Uniqueness check on Update" here if strict.
-        // Assuming Admin handles care or I should implement it.
-        
         await _grantRepository.UpdateAsync(grant);
-        return ObjectMapper.Map<AcademicGrant, AcademicGrantDto>(grant);
+        return _alumniMappers.MapToDto(grant);
     }
 
     [Authorize(AlumniPermissions.Benefits.Manage)]
@@ -96,13 +84,12 @@ public class BenefitsAppService : AlumniAppService, IBenefitsAppService
         var count = await _discountRepository.GetCountAsync();
         var query = await _discountRepository.GetQueryableAsync();
         var list = await AsyncExecuter.ToListAsync(query.OrderBy(input.Sorting ?? "CreationTime desc").PageBy(input.SkipCount, input.MaxResultCount));
-        return new PagedResultDto<CommercialDiscountDto>(count, ObjectMapper.Map<List<CommercialDiscount>, List<CommercialDiscountDto>>(list));
+        return new PagedResultDto<CommercialDiscountDto>(count, _alumniMappers.MapToDtos(list));
     }
 
     [Authorize(AlumniPermissions.Benefits.Manage)]
     public async Task<CommercialDiscountDto> CreateDiscountAsync(CreateUpdateCommercialDiscountDto input)
     {
-        // Legacy Logic kept as is for CommercialDiscount
         var discount = new CommercialDiscount(
             GuidGenerator.Create(),
             input.CategoryId,
@@ -114,19 +101,16 @@ public class BenefitsAppService : AlumniAppService, IBenefitsAppService
             input.ValidUntil
         );
         await _discountRepository.InsertAsync(discount);
-        return ObjectMapper.Map<CommercialDiscount, CommercialDiscountDto>(discount);
+        return _alumniMappers.MapToDto(discount);
     }
 
     [Authorize(AlumniPermissions.Benefits.Manage)]
     public async Task<CommercialDiscountDto> UpdateDiscountAsync(Guid id, CreateUpdateCommercialDiscountDto input)
     {
         var discount = await _discountRepository.GetAsync(id);
-        // Assuming simple mapping or manual update matching existing code style
-        // Using ObjectMapper for simplicity or manual
-        // Previous code used custom Mapper? I replaced it with ObjectMapper.
         discount.UpdateInfo(input.ProviderName, input.Title, input.Description, input.DiscountPercentage, input.PromoCode, input.ValidUntil);
         await _discountRepository.UpdateAsync(discount);
-        return ObjectMapper.Map<CommercialDiscount, CommercialDiscountDto>(discount);
+        return _alumniMappers.MapToDto(discount);
     }
 
     [Authorize(AlumniPermissions.Benefits.Manage)]

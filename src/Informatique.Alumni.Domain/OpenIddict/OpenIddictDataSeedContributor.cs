@@ -68,7 +68,7 @@ public class OpenIddictDataSeedContributor : OpenIddictDataSeedContributorBase, 
                 name: consoleAndAngularClientId!,
                 type: OpenIddictConstants.ClientTypes.Public,
                 consentType: OpenIddictConstants.ConsentTypes.Implicit,
-                displayName: "Console Test / Angular Application",
+                displayName: "Alumni Portal",
                 secret: null,
                 grantTypes: new List<string> {
                     OpenIddictConstants.GrantTypes.AuthorizationCode,
@@ -79,8 +79,15 @@ public class OpenIddictDataSeedContributor : OpenIddictDataSeedContributorBase, 
                     "Impersonation"
                 },
                 scopes: commonScopes,
-                redirectUris: new List<string> { consoleAndAngularClientRootUrl },
-                postLogoutRedirectUris: new List<string> { consoleAndAngularClientRootUrl },
+                redirectUris: new List<string> { 
+                    consoleAndAngularClientRootUrl!,
+                    $"{consoleAndAngularClientRootUrl}/auth/callback"
+                },
+                postLogoutRedirectUris: new List<string> { 
+                    consoleAndAngularClientRootUrl!,
+                    $"{consoleAndAngularClientRootUrl}/auth/login",
+                    $"{consoleAndAngularClientRootUrl}/auth/logout-callback"
+                },
                 clientUri: consoleAndAngularClientRootUrl,
                 logoUri: "/images/clients/angular.svg"
             );

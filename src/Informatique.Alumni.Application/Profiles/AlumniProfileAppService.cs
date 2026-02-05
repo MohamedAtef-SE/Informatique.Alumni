@@ -4,12 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Informatique.Alumni.Permissions;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
 
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Entities;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Users;
+using Volo.Abp.BlobStoring;
 
 namespace Informatique.Alumni.Profiles;
 
@@ -19,15 +21,18 @@ public class AlumniProfileAppService : AlumniAppService, IAlumniProfileAppServic
     private readonly IRepository<AlumniProfile, Guid> _profileRepository;
     private readonly IStudentSystemIntegrationService _studentSystemIntegration;
     private readonly AlumniApplicationMappers _alumniMappers;
+    private readonly IBlobContainer<ProfilePictureContainer> _blobContainer;
 
     public AlumniProfileAppService(
         IRepository<AlumniProfile, Guid> profileRepository,
         IStudentSystemIntegrationService studentSystemIntegration,
-        AlumniApplicationMappers alumniMappers)
+        AlumniApplicationMappers alumniMappers,
+        IBlobContainer<ProfilePictureContainer> blobContainer)
     {
         _profileRepository = profileRepository;
         _studentSystemIntegration = studentSystemIntegration;
         _alumniMappers = alumniMappers;
+        _blobContainer = blobContainer;
     }
 
     public async Task<AlumniProfileDto> GetMineAsync()
@@ -243,9 +248,14 @@ public class AlumniProfileAppService : AlumniAppService, IAlumniProfileAppServic
         {
             // Editable Fields
             Address = profile.Address,
+            City = profile.City,
+            Country = profile.Country,
             Bio = profile.Bio,
             JobTitle = profile.JobTitle,
+            Company = profile.Company,
             PhotoUrl = profile.PhotoUrl,
+            FacebookUrl = profile.FacebookUrl,
+            LinkedinUrl = profile.LinkedinUrl,
             
             // Contacts
             Emails = profile.Emails.Select(e => new ContactEmailDto { Id = e.Id, Email = e.Email, IsPrimary = e.IsPrimary }).ToList(),
@@ -290,6 +300,10 @@ public class AlumniProfileAppService : AlumniAppService, IAlumniProfileAppServic
         // Fill other Read-Only fields from Profile/User if SIS doesn't provide them yet
         // dto.NameEn = ... (Fetched from IdentityUser or SIS)
         
+        // Fill other Read-Only fields from Profile/User if SIS doesn't provide them yet
+        // dto.NameEn = ... (Fetched from IdentityUser or SIS)
+        dto.ViewCount = profile.ViewCount;
+        
         return dto;
     }
 
@@ -302,8 +316,12 @@ public class AlumniProfileAppService : AlumniAppService, IAlumniProfileAppServic
         var profile = await GetOrCreateProfileAsync(CurrentUser.GetId());
 
         // 1. Update Basic Editable Fields
-        profile.UpdateAddress(input.Address);
+        Logger.LogInformation("UpdateMyProfileAsync: Updating Profile for User {UserId}. Company: {Company}, Facebook: {Facebook}", CurrentUser.GetId(), input.Company, input.FacebookUrl);
+        
+        profile.UpdateAddress(input.Address, input.City, input.Country);
         profile.UpdateBasicInfo(profile.MobileNumber, input.Bio, input.JobTitle);
+        profile.UpdateProfessionalInfo(input.Company, input.JobTitle);
+        profile.UpdateSocialLinks(input.FacebookUrl, input.LinkedinUrl);
 
         // 2. Update Contacts (Sync Collections)
         
@@ -390,4 +408,91 @@ public class AlumniProfileAppService : AlumniAppService, IAlumniProfileAppServic
         
         return await GetMyProfileAsync(); // Return updated view
     }
+
+    /// <summary>
+    /// Upload profile photo to blob storage.
+    /// </summary>
+    public async Task<string> UploadPhotoAsync(Microsoft.AspNetCore.Http.IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            throw new UserFriendlyException("No file provided.");
+        }
+
+        // Validate file type
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+        var extension = System.IO.Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (!allowedExtensions.Contains(extension))
+        {
+            throw new UserFriendlyException($"Invalid file type. Allowed types: {string.Join(", ", allowedExtensions)}");
+        }
+
+        // Validate file size (max 5MB)
+        const int maxSize = 5 * 1024 * 1024;
+        if (file.Length > maxSize)
+        {
+            throw new UserFriendlyException("File size exceeds 5MB limit.");
+        }
+
+        var profile = await GetOrCreateProfileAsync(CurrentUser.GetId());
+        
+        // Generate blob name with folder structure
+        var blobName = $"{profile.Id}/{Guid.NewGuid()}{extension}";
+        
+        // Upload to blob storage
+        using var stream = file.OpenReadStream();
+        await _blobContainer.SaveAsync(blobName, stream, overrideExisting: true);
+        
+        // Generate URL path
+        // IMPORTANT: The route must match the GetPhotoAsync [HttpGet] template
+        var photoUrl = $"/api/app/alumni-profile/photo/{blobName}";
+        
+        // Update profile with new photo URL
+        profile.SetPhotoUrl(photoUrl);
+        await _profileRepository.UpdateAsync(profile);
+        
+        return photoUrl;
+    }
+
+    /// <summary>
+    /// Serve profile photo.
+    /// Route matches the generated URL: /api/app/alumni-profile/photo/{*name}
+    /// [AllowAnonymous] enables basic <img> tags to load without Bearer tokens.
+    /// </summary>
+    [Microsoft.AspNetCore.Mvc.HttpGet("photo/{*name}")]
+    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+    public async Task<Volo.Abp.Content.IRemoteStreamContent> GetPhotoAsync(string name)
+    {
+        Logger.LogInformation($"[DEBUG] GetPhotoAsync called with name: '{name}'");
+
+        if (string.IsNullOrEmpty(name))
+        {
+             throw new UserFriendlyException("Photo name not provided.");
+        }
+
+        var exists = await _blobContainer.ExistsAsync(name);
+        Logger.LogInformation($"[DEBUG] Blob exists: {exists} for name: '{name}'");
+
+        if (!exists)
+        {
+             Logger.LogWarning($"[DEBUG] Blob NOT FOUND in container: '{name}'");
+             throw new UserFriendlyException($"Photo '{name}' not found.");
+        }
+
+        var stream = await _blobContainer.GetAsync(name);
+        // Deduce content type from extension or default
+        var contentType = "application/octet-stream";
+        var extension = System.IO.Path.GetExtension(name)?.ToLowerInvariant();
+        switch (extension)
+        {
+            case ".jpg":
+            case ".jpeg": contentType = "image/jpeg"; break;
+            case ".png": contentType = "image/png"; break;
+            case ".gif": contentType = "image/gif"; break;
+            case ".webp": contentType = "image/webp"; break;
+        }
+
+        return new Volo.Abp.Content.RemoteStreamContent(stream, name, contentType);
+    }
 }
+

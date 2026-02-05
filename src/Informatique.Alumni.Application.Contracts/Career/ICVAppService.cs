@@ -9,8 +9,9 @@ namespace Informatique.Alumni.Career;
 public interface ICVAppService : IApplicationService
 {
     Task<CurriculumVitaeDto> GetMyCvAsync();
-    Task<CurriculumVitaeDto> UpdateCvAsync(CurriculumVitaeDto input);
+    Task<CurriculumVitaeDto> UpdateMyCvAsync(CurriculumVitaeDto input);
     Task<byte[]> DownloadCvPdfAsync(Guid cvId);
+    Task<bool> HasCvAsync();
 }
 
 public interface IJobAppService : IApplicationService

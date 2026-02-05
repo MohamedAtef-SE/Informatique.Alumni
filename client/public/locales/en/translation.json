@@ -1,0 +1,375 @@
+{
+    "app": {
+        "title": "Alumni Portal",
+        "welcome": "Welcome Back"
+    },
+    "nav": {
+        "home": "Home",
+        "profile": "My Profile",
+        "events": "Events",
+        "directory": "Directory",
+        "career": "Career",
+        "services": "Services",
+        "gallery": "Gallery",
+        "magazine": "Magazine",
+        "sign_out": "Sign Out"
+    },
+    "common": {
+        "loading": "Loading...",
+        "error": "Something went wrong",
+        "retry": "Retry",
+        "save": "Save",
+        "saving": "Saving...",
+        "cancel": "Cancel",
+        "back": "Back",
+        "view_all": "View All",
+        "read_more": "Read More",
+        "currency": "EGP",
+        "add": "Add",
+        "edit": "Edit",
+        "present": "Present"
+    },
+    "events": {
+        "title": "Events & Trips",
+        "subtitle": "Join exclusive alumni reunions, professional networking events, and leisure trips.",
+        "tabs": {
+            "events": "Events",
+            "trips": "Trips"
+        },
+        "free_entry": "Free Entry",
+        "details_btn": "Event Details",
+        "no_events": "No upcoming events found.",
+        "trip_details_btn": "View Trip Details",
+        "no_trips": "No active trips found.",
+        "days": "DAYS"
+    },
+    "event_detail": {
+        "back_btn": "Back to Events",
+        "not_found": "Event not found.",
+        "status": {
+            "open": "Open for Registration",
+            "closed": "Draft / Closed"
+        },
+        "register_btn": "Register Now",
+        "register_processing": "Processing...",
+        "register_success": "Successfully registered!",
+        "register_error": "Registration failed.",
+        "registered": "You are registered!",
+        "status_label": "Status",
+        "about_title": "About the Event",
+        "agenda_title": "Agenda",
+        "download_pdf": "Download PDF",
+        "agenda_empty": "Agenda to be announced.",
+        "companies_title": "Participating Companies"
+    },
+    "career": {
+        "title": "Career Development",
+        "subtitle": "Workshops, training sessions, and career counseling to boost your professional journey.",
+        "tabs": {
+            "workshops": "Workshops",
+            "jobs": "Job Board",
+            "guidance": "Guidance"
+        },
+        "free": "Free",
+        "paid_event": "Paid Event",
+        "free_event": "Free Event",
+        "view_details": "View Details",
+        "no_services": "No active career services available.",
+        "jobs": {
+            "title": "Job Board",
+            "apply": "Apply Now",
+            "apply_soon": "Application feature coming soon!",
+            "empty": "No jobs posted yet."
+        },
+        "guidance": {
+            "my_sessions": "My Sessions",
+            "no_sessions": "No active sessions. Book one now!",
+            "book_title": "Book a Session",
+            "advisor_label": "Advisor",
+            "advisor_placeholder": "Select an Advisor...",
+            "date_label": "Date & Time",
+            "topic_label": "Topic",
+            "topic_placeholder": "What would you like to discuss?",
+            "select_advisor_error": "Please select an advisor first.",
+            "request_btn": "Request Session",
+            "requesting": "Requesting...",
+            "success": "Request sent successfully!",
+            "error": "Failed to book session. Please check your inputs.",
+            "status": {
+                "pending": "Pending",
+                "approved": "Approved",
+                "rejected": "Rejected"
+            }
+        },
+        "detail": {
+            "back_btn": "Back to Career Services",
+            "not_found": "Service not found.",
+            "subscribe_success": "Successfully subscribed! Please pay at the office.",
+            "subscribe_error": "Failed to subscribe. Please try again.",
+            "view_map": "View Location on Map",
+            "sessions_title": "Available Sessions",
+            "no_sessions": "No sessions scheduled yet.",
+            "seats_taken": "Seats Taken",
+            "confirm_btn": "Confirm Registration",
+            "processing": "Processing..."
+        },
+        "cv": {
+            "title": "My Curriculum Vitae",
+            "subtitle": "Keep your professional profile up to date to apply for jobs.",
+            "saved": "CV Saved Successfully",
+            "error": "Failed to save CV",
+            "summary_label": "Professional Summary",
+            "summary_placeholder": "Briefly describe your professional background...",
+            "opentowork": "Open to Opportunities",
+            "opentowork_desc": "Recruiters can see that you are looking for a job.",
+            "auto_save_note": "Remember to save your changes.",
+            "experience": "Experience",
+            "no_experience": "No work experience added yet. Click 'Add' to add your first experience.",
+            "company": "Company",
+            "position": "Job Title / Position",
+            "start_date": "Start Date",
+            "end_date": "End Date",
+            "description": "Description",
+            "education": "Education",
+            "no_education": "No education records added yet.",
+            "institution": "Institution",
+            "degree": "Degree"
+        }
+    },
+    "services": {
+        "title": "Services & Benefits",
+        "subtitle": "Stay updated, enjoy perks, and manage your membership.",
+        "tabs": {
+            "news": "News",
+            "benefits": "Benefits",
+            "membership": "Membership",
+            "certificates": "Certificates",
+            "syndicates": "Syndicates",
+            "health": "Health"
+        },
+        "news": {
+            "empty": "No news updates available."
+        },
+        "benefits": {
+            "grants_title": "Academic Grants",
+            "discounts_title": "Commercial Discounts"
+        },
+        "membership": {
+            "card_title": "Alumni Association",
+            "card_subtitle": "Membership Card",
+            "photo_placeholder": "Photo",
+            "name_label": "Name",
+            "id_label": "ID Number",
+            "degree_label": "Degree",
+            "renew_btn": "Renew Membership",
+            "lost_btn": "Report Lost Card"
+        },
+        "certificates": {
+            "my_certificates": "My Certificates",
+            "request_new": "Request New",
+            "modal_title": "Request Certificate",
+            "type_label": "Certificate Type",
+            "select_type": "Select Type...",
+            "language_label": "Language",
+            "lang_en": "English",
+            "lang_ar": "Arabic",
+            "delivery_label": "Delivery Method",
+            "pickup": "Office Pickup",
+            "home_delivery": "Home Delivery",
+            "branch_label": "Pickup Branch",
+            "select_branch": "Select Branch...",
+            "address_label": "Delivery Address",
+            "address_placeholder": "Enter full delivery address...",
+            "submitting": "Submitting...",
+            "submit": "Submit Request",
+            "cancel": "Cancel",
+            "no_requests": "No active certificate requests.",
+            "click_to_start": "Click \"Request New\" to start.",
+            "success": "Certificate requested successfully!",
+            "missing_info": "Missing Information",
+            "select_type_error": "Please select a certificate type.",
+            "select_branch_error": "Please select a branch for pickup.",
+            "enter_address_error": "Please enter a delivery address.",
+            "error_generic": "Failed to submit request. Please try again.",
+            "error_membership_title": "Active Membership Required",
+            "error_membership_msg": "You cannot request a certificate because your Alumni Association membership has expired or is inactive.\n\nPlease go to the 'Membership' tab to renew your subscription.",
+            "error_address_title": "Missing Delivery Address",
+            "error_address_msg": "Please provide a valid home address for delivery.",
+            "error_branch_title": "Missing Branch",
+            "error_branch_msg": "Please select a branch for pickup.",
+            "status": {
+                "pending": "Pending",
+                "ready": "Ready",
+                "rejected": "Rejected"
+            }
+        },
+        "syndicates": {
+            "title": "Syndicate Membership",
+            "description": "Official Engineering Syndicate membership support is available for graduates of accredited faculties.",
+            "status_label": "Application Status",
+            "apply_btn": "Apply for Membership"
+        },
+        "health": {
+            "title": "Medical Network",
+            "discount": "Discount",
+            "off": "Off"
+        }
+    },
+    "gallery": {
+        "title": "Photo Gallery",
+        "album_photos": "Album Photos",
+        "subtitle": "Memories from our events and trips.",
+        "error_loading": "Failed to load albums. Please try again.",
+        "photos_count": "Photos",
+        "no_albums": "No albums found.",
+        "error_photos": "Failed to load photos. Please try again.",
+        "no_photos": "No photos in this album."
+    },
+    "magazine": {
+        "title": "Alumni Magazine",
+        "subtitle": "Read our monthly issues and stay connected.",
+        "download_error": "Failed to download issue.",
+        "published": "Published",
+        "download_pdf": "Download PDF",
+        "no_issues": "No magazine issues found."
+    },
+    "home": {
+        "hero": {
+            "welcome": "Welcome Home,",
+            "alumni": "Alumni",
+            "subtitle": "Reconnect with your alma mater, expand your professional network, and access exclusive lifelong benefits.",
+            "find_classmates": "Find Classmates",
+            "browse_events": "Browse Events"
+        },
+        "features": {
+            "services": {
+                "title": "Services & Benefits",
+                "desc": "Request certificates, exclusive discounts, and syndicate support."
+            },
+            "career": {
+                "title": "Career Center",
+                "desc": "Job board, mentorship programs, and career counseling."
+            },
+            "gallery": {
+                "title": "Community Gallery",
+                "desc": "Relive memories from graduation and past events."
+            },
+            "explore": "Explore"
+        },
+        "about": {
+            "title_prefix": "Our",
+            "title_suffix": "Alumni",
+            "description": "With thousands of alumni spread out across Egypt and beyond, our university boasts a diverse and globally minded community of graduates. These alumni are making their mark in a wide range of fields, from business and finance to technology, arts, politics, and more."
+        },
+        "stats": {
+            "title_prefix": "Continuing the Legacy of",
+            "title_suffix": "Excellence",
+            "subtitle": "Our alumni continue to achieve remarkable success across the globe",
+            "employed": "Of alumni are employed within the first year",
+            "global": "Alumni across the globe",
+            "donations": "Of donations are given by alumni",
+            "countries": "Countries where alumni live"
+        },
+        "notable": {
+            "title_prefix": "Notable",
+            "title_suffix": "Alumni",
+            "more_btn": "More Notable Alumni",
+            "view_profile": "View Profile",
+            "class_of": "Class of"
+        },
+        "stories": {
+            "title_prefix": "Alumni",
+            "title_suffix": "Success Stories"
+        },
+        "latest_news": {
+            "title": "Latest News",
+            "view_all": "View All News"
+        },
+        "upcoming_events": {
+            "title": "Upcoming Events",
+            "see_all": "See all events",
+            "free": "Free Entry"
+        },
+        "footer": {
+            "copyright": "© {{year}} Alumni Portal. All rights reserved.",
+            "tagline": "Excellence Through Connection"
+        }
+    },
+    "auth": {
+        "login": {
+            "welcome": "Welcome Back",
+            "subtitle": "Access the Alumni Portal to manage your profile, connect with others, and view events.",
+            "btn_signin": "Sign In with Alumni ID",
+            "no_account": "Don't have an account?",
+            "claim_account": "Claim Account"
+        },
+        "register": {
+            "title": "Claim Your Account",
+            "subtitle": "If you are a graduate and haven't received your credentials yet, please contact alumni support.",
+            "contact_support": "Contact Support",
+            "has_account": "Already have an account?",
+            "login": "Sign In"
+        }
+    },
+    "directory": {
+        "title": "Alumni Directory",
+        "subtitle": "Connect with {{count}} graduates from our community.",
+        "search_placeholder": "Search by name, major, or company...",
+        "error": "Failed to load alumni directory. Please try again.",
+        "no_results": "No alumni found matching your criteria.",
+        "pagination": {
+            "previous": "Previous",
+            "next": "Next",
+            "page": "Page {{page}}"
+        }
+    },
+    "profile": {
+        "not_found": "Profile not found.",
+        "vip": "VIP",
+        "default_job_title": "Alumni Member",
+        "class_of": "Class of {{year}}",
+        "message_btn": "Message",
+        "about": "About",
+        "no_bio": "No biography available.",
+        "contact": "Contact",
+        "protected_email": "Protected Email",
+        "email_hidden": "Email hidden",
+        "education": "Education",
+        "semester": {
+            "fall": "Fall",
+            "spring": "Spring"
+        }
+    },
+    "my_profile": {
+        "title": "My Profile",
+        "subtitle": "Manage your public presence and personal information",
+        "toast": {
+            "update_success": "Profile updated successfully!",
+            "update_error": "Failed to update profile.",
+            "photo_success": "Profile photo updated!",
+            "photo_error": "Failed to upload photo."
+        },
+        "actions": {
+            "edit": "Edit Profile",
+            "cancel": "Cancel",
+            "save": "Save Changes",
+            "saving": "Saving..."
+        },
+        "crop_photo": "Crop Profile Photo",
+        "sections": {
+            "professional": "Professional Information",
+            "location_socials": "Location & Socials"
+        },
+        "form": {
+            "job_title": "Job Title",
+            "company": "Company",
+            "bio": "Bio",
+            "bio_placeholder": "Write a short professional bio...",
+            "no_bio": "No bio provided yet.",
+            "city": "City",
+            "country": "Country",
+            "linkedin": "LinkedIn",
+            "facebook": "Facebook"
+        }
+    }
+}

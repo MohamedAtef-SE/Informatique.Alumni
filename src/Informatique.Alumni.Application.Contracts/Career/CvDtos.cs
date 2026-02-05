@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Volo.Abp.Application.Dtos;
+using System.ComponentModel.DataAnnotations;
 
 namespace Informatique.Alumni.Career;
 
@@ -27,8 +28,8 @@ public class CurriculumVitaeDto : FullAuditedEntityDto<Guid>
     public List<CvPracticalTrainingDto> PracticalTrainings { get; set; } = new();
 }
 
-public class CvEducationDto : EntityDto<Guid> { public string Institution { get; set; } = string.Empty; public string Degree { get; set; } = string.Empty; public DateTime StartDate { get; set; } public DateTime? EndDate { get; set; } }
-public class CvExperienceDto : EntityDto<Guid> { public string Company { get; set; } = string.Empty; public string Position { get; set; } = string.Empty; public DateTime StartDate { get; set; } public DateTime? EndDate { get; set; } public string? Description { get; set; } }
+public class CvEducationDto : EntityDto<Guid> { [Required] public string Institution { get; set; } = string.Empty; [Required] public string Degree { get; set; } = string.Empty; [Required] public DateTime StartDate { get; set; } public DateTime? EndDate { get; set; } }
+public class CvExperienceDto : EntityDto<Guid> { [Required] public string Company { get; set; } = string.Empty; [Required] public string Position { get; set; } = string.Empty; [Required] public DateTime StartDate { get; set; } public DateTime? EndDate { get; set; } public string? Description { get; set; } }
 public class CvSkillDto : EntityDto<Guid> { public string Name { get; set; } = string.Empty; public string? ProficiencyLevel { get; set; } }
 public class CvLanguageDto : EntityDto<Guid> { public string Name { get; set; } = string.Empty; public string? FluencyLevel { get; set; } }
 public class CvCertificationDto : EntityDto<Guid> { public string Name { get; set; } = string.Empty; public string Issuer { get; set; } = string.Empty; public DateTime? Date { get; set; } }

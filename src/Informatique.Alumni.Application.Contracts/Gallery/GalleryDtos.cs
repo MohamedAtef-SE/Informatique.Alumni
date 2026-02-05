@@ -47,6 +47,7 @@ public class GalleryAlbumDetailDto : AuditedEntityDto<Guid>
 
 public class MediaItemDto
 {
+    public Guid Id { get; set; }
     public string Url { get; set; } = string.Empty;
     public string Type { get; set; } = "Photo"; // Default to Photo
 }

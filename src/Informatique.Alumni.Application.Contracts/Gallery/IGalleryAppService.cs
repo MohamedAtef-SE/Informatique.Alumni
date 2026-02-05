@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 
+using Volo.Abp.Content;
+
 namespace Informatique.Alumni.Gallery;
 
 public interface IGalleryAppService : IApplicationService
@@ -14,7 +16,7 @@ public interface IGalleryAppService : IApplicationService
     Task DeleteAlbumAsync(Guid id);
     
     Task UploadImagesAsync(UploadGalleryImagesDto input);
-    Task<byte[]> GetImageAsync(string blobName);
+    Task<IRemoteStreamContent> GetImageAsync(string blobName);
 
     // Graduate Portal Methods
     Task<PagedResultDto<GalleryAlbumListDto>> GetAlbumsAsync(GalleryFilterDto input);

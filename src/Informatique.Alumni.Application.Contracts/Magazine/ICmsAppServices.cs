@@ -13,7 +13,7 @@ public interface IMagazineAppService : IApplicationService
     
     // Graduate Portal Methods
     Task<PagedResultDto<MagazineListDto>> GetListAsync(GetMagazinesInput input);
-    Task<System.IO.Stream> DownloadAsync(Guid id);
+    Task<Volo.Abp.Content.IRemoteStreamContent> DownloadAsync(Guid id);
 }
 
 public interface IBlogAppService : IApplicationService

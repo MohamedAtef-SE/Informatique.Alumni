@@ -5,6 +5,7 @@ using Informatique.Alumni.Permissions;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
+using Volo.Abp.Domain.Entities;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Users;
 
@@ -50,7 +51,7 @@ public class CvAppService : AlumniAppService, ICVAppService
     }
 
     [Authorize(AlumniPermissions.Careers.CvManage)]
-    public async Task<CurriculumVitaeDto> UpdateCvAsync(CurriculumVitaeDto input)
+    public async Task<CurriculumVitaeDto> UpdateMyCvAsync(CurriculumVitaeDto input)
     {
         var alumniId = CurrentUser.Id ?? throw new UnauthorizedAccessException();
         var cv = await _cvRepository.FirstOrDefaultAsync(x => x.AlumniId == alumniId);
@@ -58,8 +59,50 @@ public class CvAppService : AlumniAppService, ICVAppService
 
         await LoadAllCollectionsAsync(cv);
         
-        // Manual mapping or clear and re-add for children
-        _alumniMappers.MapToEntity(input, cv);
+        // Manual mapping to avoid Mapperly recursion/instantiation issues causing 500 errors
+        cv.Summary = input.Summary;
+        cv.IsLookingForJob = input.IsLookingForJob;
+        
+        // Handle Experiences (Full Replacement Strategy)
+        cv.Experiences.Clear();
+        if (input.Experiences != null)
+        {
+            foreach (var expDto in input.Experiences)
+            {
+               var experience = new CvExperience
+               {
+                   Company = expDto.Company,
+                   Position = expDto.Position,
+                   StartDate = expDto.StartDate,
+                   EndDate = expDto.EndDate,
+                   Description = expDto.Description,
+                   CurriculumVitaeId = cv.Id
+               };
+               EntityHelper.TrySetId(experience, () => GuidGenerator.Create());
+               cv.Experiences.Add(experience);
+            }
+        }
+
+        // Handle Educations (Full Replacement Strategy)
+        cv.Educations.Clear();
+        if (input.Educations != null)
+        {
+            foreach (var eduDto in input.Educations)
+            {
+               var education = new CvEducation
+               {
+                   Institution = eduDto.Institution,
+                   Degree = eduDto.Degree,
+                   StartDate = eduDto.StartDate,
+                   EndDate = eduDto.EndDate,
+                   CurriculumVitaeId = cv.Id
+               };
+               EntityHelper.TrySetId(education, () => GuidGenerator.Create());
+               cv.Educations.Add(education);
+            }
+        }
+
+        // _alumniMappers.MapToEntity(input, cv); // DISABLED causing 500 error
         
         await _cvRepository.UpdateAsync(cv);
         return _alumniMappers.MapToDto(cv);
@@ -78,6 +121,13 @@ public class CvAppService : AlumniAppService, ICVAppService
 
         var dto = _alumniMappers.MapToDto(cv);
         return await _pdfGenerator.GeneratePdfAsync(dto);
+    }
+
+    [Authorize(AlumniPermissions.Careers.CvManage)]
+    public async Task<bool> HasCvAsync()
+    {
+        var alumniId = CurrentUser.Id ?? throw new UnauthorizedAccessException();
+        return await _cvRepository.AnyAsync(x => x.AlumniId == alumniId);
     }
 
     private async Task LoadAllCollectionsAsync(CurriculumVitae cv)

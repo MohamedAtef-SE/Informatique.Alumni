@@ -4,8 +4,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
+using Volo.Abp.Authorization;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.EventBus.Local;
+using Volo.Abp.Identity;
 using Informatique.Alumni.Permissions;
 using Informatique.Alumni.Profiles;
 using System.Collections.Generic;
@@ -17,6 +19,7 @@ public class AdvisingAppService : AlumniAppService, IGuidanceAppService
 {
     private readonly IRepository<AdvisingRequest, Guid> _repository;
     private readonly IRepository<AlumniProfile, Guid> _alumniProfileRepository;
+    private readonly IIdentityUserRepository _userRepository;
     private readonly ILocalEventBus _localEventBus;
     private readonly AlumniApplicationMappers _alumniMappers;
     private readonly AdvisingManager _advisingManager;
@@ -24,12 +27,14 @@ public class AdvisingAppService : AlumniAppService, IGuidanceAppService
     public AdvisingAppService(
         IRepository<AdvisingRequest, Guid> repository,
         IRepository<AlumniProfile, Guid> alumniProfileRepository,
+        IIdentityUserRepository userRepository,
         ILocalEventBus localEventBus,
         AlumniApplicationMappers alumniMappers,
         AdvisingManager advisingManager)
     {
         _repository = repository;
         _alumniProfileRepository = alumniProfileRepository;
+        _userRepository = userRepository;
         _localEventBus = localEventBus;
         _alumniMappers = alumniMappers;
         _advisingManager = advisingManager;
@@ -80,6 +85,7 @@ public class AdvisingAppService : AlumniAppService, IGuidanceAppService
     }
 
     // [New] Create Request Endpoint
+    [Authorize(AlumniPermissions.Guidance.BookSession)]
     public async Task<AdvisingRequestDto> CreateRequestAsync(CreateAdvisingRequestDto input)
     {
         var request = await _advisingManager.CreateRequestAsync(
@@ -93,6 +99,110 @@ public class AdvisingAppService : AlumniAppService, IGuidanceAppService
         );
 
         return _alumniMappers.MapToDto(request);
+    }
+
+    public async Task<List<AdvisorDto>> GetAvailableAdvisorsAsync()
+    {
+        // Return VIP members as Advisors
+        var allProfiles = await _alumniProfileRepository.GetListAsync();
+        var profiles = allProfiles.Where(p => p.IsVip).Take(10).ToList();
+        
+        if (!profiles.Any()) return new List<AdvisorDto>();
+        
+        // Get user IDs to fetch names
+        var userIds = profiles.Select(p => p.UserId).ToList();
+        
+        // IIdentityUserRepository uses different signature - get all and filter in memory
+        var allUsers = await _userRepository.GetListAsync();
+        var users = allUsers.Where(u => userIds.Contains(u.Id)).ToList();
+        
+        var advisors = new List<AdvisorDto>();
+        
+        foreach (var p in profiles)
+        {
+            var user = users.FirstOrDefault(u => u.Id == p.UserId);
+            var displayName = user?.ExtraProperties.GetValueOrDefault("Name")?.ToString() 
+                              ?? user?.Name 
+                              ?? $"{user?.Surname}, {user?.Name}".Trim(' ', ',')
+                              ?? user?.UserName 
+                              ?? "Advisor";
+            
+            advisors.Add(new AdvisorDto
+            {
+                Id = p.Id,
+                Name = displayName,
+                JobTitle = p.JobTitle,
+                PhotoUrl = p.PhotoUrl
+            });
+        }
+        
+        return advisors;
+    }
+
+    public async Task<PagedResultDto<AdvisingRequestDto>> GetMyRequestsAsync(PagedAndSortedResultRequestDto input)
+    {
+         var userId = CurrentUser.Id;
+         if (!userId.HasValue) throw new AbpAuthorizationException("Must be logged in.");
+
+         // [Fix] Lookup Profile ID first, because AdvisingRequest.AlumniId refers to ProfileId
+         var profile = await _alumniProfileRepository.FirstOrDefaultAsync(x => x.UserId == userId.Value);
+         if (profile == null)
+         {
+             // If no profile, user cannot have requests
+             return new PagedResultDto<AdvisingRequestDto>(0, new List<AdvisingRequestDto>());
+         }
+
+         var query = await _repository.GetQueryableAsync();
+         query = query.Where(x => x.AlumniId == profile.Id);
+         
+         var totalCount = await AsyncExecuter.CountAsync(query);
+         
+         var items = await AsyncExecuter.ToListAsync(
+            query.OrderByDescending(x => x.CreationTime)
+                 .PageBy(input.SkipCount, input.MaxResultCount)
+         );
+         
+         var dtos = _alumniMappers.MapToDtos(items);
+
+         // [Enhancement] Populate Advisor Details
+         if (dtos.Any())
+         {
+             var advisorIds = dtos.Select(d => d.AdvisorId).Distinct().ToList();
+             var advisorProfiles = await _alumniProfileRepository.GetListAsync(p => advisorIds.Contains(p.Id));
+             var advisorUserIds = advisorProfiles.Select(p => p.UserId).ToList();
+             
+             // [Fix] Fix Lambda error by fetching users individually (safe fallback) or via compatible method
+             var advisorUsers = new List<IdentityUser>();
+             foreach (var uid in advisorUserIds)
+             {
+                 var u = await _userRepository.GetAsync(uid);
+                 if (u != null) advisorUsers.Add(u);
+             }
+
+             foreach (var dto in dtos)
+             {
+                 var advisorProfile = advisorProfiles.FirstOrDefault(p => p.Id == dto.AdvisorId);
+                 if (advisorProfile != null)
+                 {
+                     var user = advisorUsers.FirstOrDefault(u => u.Id == advisorProfile.UserId);
+                     var name = user?.ExtraProperties.GetValueOrDefault("Name")?.ToString() 
+                               ?? user?.Name 
+                               ?? $"{user?.Surname}, {user?.Name}".Trim(' ', ',')
+                               ?? user?.UserName 
+                               ?? "Advisor";
+                     
+                     dto.AdvisorName = name;
+                     dto.AdvisorJobTitle = advisorProfile.JobTitle;
+                     dto.Location = "Online (Google Meet)"; // Hardcoded for now
+                 }
+                 else
+                 {
+                     dto.AdvisorName = "Unknown Advisor";
+                 }
+             }
+         }
+
+         return new PagedResultDto<AdvisingRequestDto>(totalCount, dtos);
     }
 
     [Authorize(AlumniPermissions.Guidance.ManageRequests)]

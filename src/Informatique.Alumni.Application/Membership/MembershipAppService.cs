@@ -26,6 +26,7 @@ public class MembershipAppService : AlumniAppService, IMembershipAppService
     private readonly AlumniApplicationMappers _alumniMappers;
     private readonly IRepository<AlumniProfile, Guid> _profileRepository;
     private readonly IBlobContainer<AlumniBlobContainer> _blobContainer;
+    private readonly Volo.Abp.Identity.IIdentityUserRepository _identityUserRepository;
 
     public MembershipAppService(
         IRepository<SubscriptionFee, Guid> feeRepository,
@@ -34,7 +35,8 @@ public class MembershipAppService : AlumniAppService, IMembershipAppService
         MembershipManager membershipManager,
         AlumniApplicationMappers alumniMappers,
         IRepository<AlumniProfile, Guid> profileRepository,
-        IBlobContainer<AlumniBlobContainer> blobContainer)
+        IBlobContainer<AlumniBlobContainer> blobContainer,
+        Volo.Abp.Identity.IIdentityUserRepository identityUserRepository)
     {
         _feeRepository = feeRepository;
         _requestRepository = requestRepository;
@@ -43,7 +45,56 @@ public class MembershipAppService : AlumniAppService, IMembershipAppService
         _alumniMappers = alumniMappers;
         _profileRepository = profileRepository;
         _blobContainer = blobContainer;
+        _identityUserRepository = identityUserRepository;
     }
+
+    // ... (existing methods) ...
+
+    [Authorize(AlumniPermissions.Membership.Process)]
+    public async Task<CardPrintDto> GetCardDataAsync(Guid id)
+    {
+        var data = await _membershipManager.GetCardDataAsync(id);
+        return await MapCardDataAsync(id, data.Request, data.Profile, data.Education);
+    }
+
+    [Authorize]
+    public async Task<CardPrintDto> GetMyCardAsync()
+    {
+        var userId = CurrentUser.GetId();
+        var profile = await _profileRepository.FirstOrDefaultAsync(x => x.UserId == userId);
+        if (profile == null) return null;
+
+        var query = await _requestRepository.GetQueryableAsync();
+        var request = await AsyncExecuter.FirstOrDefaultAsync(
+            query.Where(x => x.AlumniId == profile.Id)
+                 .OrderByDescending(x => x.CreationTime)
+        );
+
+        if (request == null) return null;
+
+        var data = await _membershipManager.GetCardDataAsync(request.Id);
+        return await MapCardDataAsync(request.Id, data.Request, data.Profile, data.Education);
+    }
+
+    private async Task<CardPrintDto> MapCardDataAsync(Guid requestId, AssociationRequest request, AlumniProfile profile, Education? education)
+    {
+        var user = await _identityUserRepository.FindAsync(profile.UserId);
+        var alumniName = user != null ? $"{user.Name} {user.Surname}" : "Alumni Member";
+
+        return new CardPrintDto
+        {
+            RequestId = requestId,
+            AlumniName = alumniName,
+            AlumniNationalId = profile.NationalId,
+            AlumniPhotoUrl = request.PersonalPhotoBlobName ?? profile.PhotoUrl ?? string.Empty,
+            Degree = education?.Degree ?? "N/A",
+            CollegeName = education?.CollegeId?.ToString() ?? "N/A",
+            MajorName = education?.MajorId?.ToString() ?? "N/A",
+            GradYear = education?.GraduationYear ?? 0
+        };
+        // Mapped
+    }
+
 
     [Authorize(AlumniPermissions.Membership.ManageFees)]
     public async Task<SubscriptionFeeDto> CreateSubscriptionFeeAsync(CreateSubscriptionFeeDto input)
@@ -311,30 +362,7 @@ public class MembershipAppService : AlumniAppService, IMembershipAppService
 
         request.ChangeStatus(input.Status, input.Note, GuidGenerator.Create());
         
-        await _requestRepository.UpdateAsync(request);
-    }
-
-    [Authorize(AlumniPermissions.Membership.Process)]
-    public async Task<CardPrintDto> GetCardDataAsync(Guid id)
-    {
-        var data = await _membershipManager.GetCardDataAsync(id);
-        var request = data.Request;
-        var profile = data.Profile;
-        var education = data.Education;
-
-        if (profile == null) throw new UserFriendlyException("Profile not found");
-        
-        // Map to DTO
-        return new CardPrintDto
-        {
-            RequestId = id,
-            AlumniName = "Alumni Name", // Needs User lookup or Profile property if available. Assuming Profile has linked User.
-            AlumniNationalId = profile.NationalId,
-            AlumniPhotoUrl = request.PersonalPhotoBlobName ?? profile.PhotoUrl ?? string.Empty,
-            Degree = education?.Degree ?? "N/A",
-            CollegeName = education?.CollegeId?.ToString() ?? "N/A", // Simplified for Phase 3
-            MajorName = education?.MajorId?.ToString() ?? "N/A",
-            GradYear = education?.GraduationYear ?? 0
-        };
     }
 }
+
+

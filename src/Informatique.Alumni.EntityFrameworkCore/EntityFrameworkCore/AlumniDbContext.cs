@@ -86,6 +86,7 @@ public class AlumniDbContext :
     public DbSet<MedicalOffer> MedicalOffers { get; set; }
 
     // Magazine & Blog
+    public DbSet<Informatique.Alumni.Magazine.Magazine> Magazines { get; set; } 
     public DbSet<MagazineIssue> MagazineIssues { get; set; }
     public DbSet<BlogPost> BlogPosts { get; set; }
     public DbSet<PostComment> PostComments { get; set; }
@@ -97,9 +98,11 @@ public class AlumniDbContext :
     // Benefits
     public DbSet<AcademicGrant> AcademicGrants { get; set; }
     public DbSet<CommercialDiscount> CommercialDiscounts { get; set; }
+    public DbSet<DiscountCategory> DiscountCategories { get; set; }
     
     // Career
     public DbSet<CareerService> CareerServices { get; set; }
+    public DbSet<CareerServiceType> CareerServiceTypes { get; set; }
     public DbSet<CareerServiceTimeslot> CareerServiceTimeslots { get; set; }
     public DbSet<AlumniCareerSubscription> AlumniCareerSubscriptions { get; set; }
     
@@ -155,6 +158,12 @@ public class AlumniDbContext :
     public DbSet<DeliveryProvider> DeliveryProviders { get; set; }
     public DbSet<ShipmentRequest> ShipmentRequests { get; set; }
     public DbSet<CommunicationLog> CommunicationLogs { get; set; }
+
+    // Legacy SIS Simulation
+    public DbSet<SisQualification> SisQualifications { get; set; }
+    public DbSet<SisSemester> SisSemesters { get; set; }
+    public DbSet<SisCourse> SisCourses { get; set; }
+    public DbSet<SisExpectedGraduate> SisExpectedGraduates { get; set; }
 
 
     #region Entities from the modules
@@ -365,6 +374,14 @@ public class AlumniDbContext :
         });
 
         // Magazine & Blog
+        builder.Entity<Informatique.Alumni.Magazine.Magazine>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "Magazines", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Title).IsRequired().HasMaxLength(MagazineConsts.MaxTitleLength);
+            b.Property(x => x.FileBlobName).HasMaxLength(256);
+        });
+
         builder.Entity<MagazineIssue>(b =>
         {
             b.ToTable(AlumniConsts.DbTablePrefix + "MagazineIssues", AlumniConsts.DbSchema);
@@ -416,6 +433,14 @@ public class AlumniDbContext :
             b.Property(x => x.NameEn).IsRequired().HasMaxLength(128);
             b.Property(x => x.Code).IsRequired().HasMaxLength(128);
             b.Property(x => x.Description).HasMaxLength(CareerConsts.MaxDescriptionLength);
+        });
+
+        builder.Entity<CareerServiceType>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "CareerServiceTypes", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.NameAr).IsRequired().HasMaxLength(128);
+            b.Property(x => x.NameEn).IsRequired().HasMaxLength(128);
         });
 
         builder.Entity<AlumniCareerSubscription>(b =>
@@ -575,6 +600,15 @@ public class AlumniDbContext :
             b.Property(x => x.PromoCode).HasMaxLength(BenefitConsts.MaxPromoCodeLength);
         });
 
+        builder.Entity<DiscountCategory>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "DiscountCategories", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.NameAr).IsRequired().HasMaxLength(BenefitConsts.MaxTitleLength);
+            b.Property(x => x.NameEn).IsRequired().HasMaxLength(BenefitConsts.MaxTitleLength);
+            b.Property(x => x.LogoUrl).HasMaxLength(256);
+        });
+
         // builder.Entity<AcademicGrant>().HasQueryFilter(x => x.ValidUntil > DateTime.Now);
         builder.Entity<CommercialDiscount>().HasQueryFilter(x => x.ValidUntil > DateTime.Now);
 
@@ -667,6 +701,35 @@ public class AlumniDbContext :
             b.HasIndex(x => x.SenderId);
             b.HasIndex(x => x.RecipientId);
             b.HasIndex(x => x.CreationTime);
+        });
+
+        // Legacy SIS Simulation
+        builder.Entity<SisQualification>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "SisQualifications", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.HasMany(x => x.Semesters).WithOne().HasForeignKey(x => x.QualificationId).IsRequired();
+            b.HasIndex(x => x.StudentId);
+        });
+
+        builder.Entity<SisSemester>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "SisSemesters", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.HasMany(x => x.Courses).WithOne().HasForeignKey(x => x.SemesterId).IsRequired();
+        });
+
+        builder.Entity<SisCourse>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "SisCourses", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+        });
+
+        builder.Entity<SisExpectedGraduate>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "SisExpectedGraduates", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.HasIndex(x => x.StudentId);
         });
     }
 

@@ -10,7 +10,8 @@ using Informatique.Alumni.Permissions;
 
 namespace Informatique.Alumni.Branches;
 
-[Authorize(AlumniPermissions.Branches.Default)]
+// [Authorize(AlumniPermissions.Branches.Default)] // Removed to allow shared access
+// CRUD policies are enforced by properties below
 public class BranchAppService : 
     CrudAppService<Branch, BranchDto, Guid, PagedAndSortedResultRequestDto, CreateUpdateBranchDto>,
     IBranchAppService
@@ -34,10 +35,11 @@ public class BranchAppService :
         _alumniMappers = alumniMappers;
     }
 
+    [Authorize]
     public async Task<List<BranchDto>> GetAcademicStructureAsync()
     {
         return await _academicStructureCache.GetOrAddAsync(
-            "AcademicStructure",
+            "AcademicStructure_v2",
             async () =>
             {
                 var branches = await Repository.GetListAsync();

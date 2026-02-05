@@ -52,16 +52,30 @@ public class AlumniDomainModule : AbpModule
 
         Configure<Microsoft.AspNetCore.Identity.IdentityOptions>(options =>
         {
+            // Password settings
             options.Password.RequiredLength = 8;
             options.Password.RequireDigit = true;
             options.Password.RequireLowercase = true;
             options.Password.RequireUppercase = true;
             options.Password.RequireNonAlphanumeric = true;
+
+            // Lockout settings
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+            options.Lockout.MaxFailedAccessAttempts = 5;
+            options.Lockout.AllowedForNewUsers = true;
         });
 
         Configure<Volo.Abp.BlobStoring.AbpBlobStoringOptions>(options =>
         {
             options.Containers.Configure<Informatique.Alumni.Gallery.GalleryBlobContainer>(container =>
+            {
+                container.UseFileSystem(fileSystem =>
+                {
+                    fileSystem.BasePath = "D:\\AlumniBlobs";
+                });
+            });
+
+            options.Containers.Configure<Informatique.Alumni.Profiles.ProfilePictureContainer>(container =>
             {
                 container.UseFileSystem(fileSystem =>
                 {

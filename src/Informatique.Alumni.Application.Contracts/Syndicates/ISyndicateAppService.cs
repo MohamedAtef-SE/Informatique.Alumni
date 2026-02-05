@@ -13,6 +13,7 @@ public interface ISyndicateAppService : IApplicationService
     
     Task<SyndicateSubscriptionDto> ApplyAsync(ApplySyndicateDto input);
     Task<SyndicateSubscriptionDto> GetMySubscriptionAsync(Guid syndicateId);
+    Task<List<SyndicateSubscriptionDto>> GetMyApplicationsAsync();
     
     Task UploadDocumentAsync(Guid subscriptionId, UploadSyndicateDocDto input);
     

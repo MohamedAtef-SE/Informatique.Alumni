@@ -23,6 +23,7 @@ using Volo.Abp.Account;
 using Volo.Abp.Account.Web;
 using Volo.Abp.AspNetCore.MultiTenancy;
 using Volo.Abp.AspNetCore.Mvc;
+using Volo.Abp.AspNetCore.Mvc.AntiForgery;
 using Volo.Abp.Autofac;
 using Volo.Abp.Localization;
 using Volo.Abp.Modularity;
@@ -63,6 +64,16 @@ public class AlumniHttpApiHostModule : AbpModule
 
         PreConfigure<OpenIddictBuilder>(builder =>
         {
+            builder.AddServer(options =>
+            {
+                options.UseAspNetCore().EnableAuthorizationEndpointPassthrough()
+                                       .EnableTokenEndpointPassthrough()
+                                       .EnableStatusCodePagesIntegration();
+
+                options.SetAuthorizationEndpointUris("/connect/authorize")
+                       .SetTokenEndpointUris("/connect/token");
+            });
+
             builder.AddValidation(options =>
             {
                 options.AddAudiences("Alumni");
@@ -96,6 +107,11 @@ public class AlumniHttpApiHostModule : AbpModule
             Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII = true;
             Microsoft.IdentityModel.Logging.IdentityModelEventSource.LogCompleteSecurityArtifact = true;
         }
+
+        Configure<AbpAntiForgeryOptions>(options =>
+        {
+            options.AutoValidate = false; // Disable global CSRF check for SPA/Mobile clients
+        });
 
         if (!configuration.GetValue<bool>("AuthServer:RequireHttpsMetadata"))
         {
@@ -187,6 +203,7 @@ public class AlumniHttpApiHostModule : AbpModule
         });
     }
 
+
     private static void ConfigureSwagger(ServiceConfigurationContext context, IConfiguration configuration)
     {
         context.Services.AddAbpSwaggerGenWithOidc(
@@ -241,6 +258,8 @@ public class AlumniHttpApiHostModule : AbpModule
         {
             app.UseDeveloperExceptionPage();
         }
+        
+        // Auto-Seed removed per user request
 
         app.UseAbpRequestLocalization();
 
