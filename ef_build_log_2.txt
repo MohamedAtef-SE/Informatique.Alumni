@@ -1,0 +1,13 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Informatique.Alumni.Domain.Shared -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain.Shared\bin\Debug\net10.0\Informatique.Alumni.Domain.Shared.dll
+  Informatique.Alumni.Domain -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\bin\Debug\net10.0\Informatique.Alumni.Domain.dll
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\EntityFrameworkCore\AlumniDbContext.cs(89,18): error CS0118: 'Magazine' is a namespace but is used like a type [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj]
+
+Build FAILED.
+
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\EntityFrameworkCore\AlumniDbContext.cs(89,18): error CS0118: 'Magazine' is a namespace but is used like a type [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj]
+    0 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:03.83

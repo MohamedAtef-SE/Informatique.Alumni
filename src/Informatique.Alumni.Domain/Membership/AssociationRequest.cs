@@ -121,4 +121,9 @@ public class AssociationRequest : FullAuditedAggregateRoot<Guid>
         Status = MembershipRequestStatus.Rejected;
         RejectionReason = reason;
     }
+
+    public void ExtendValidity(DateTime newEndDate)
+    {
+        ValidityEndDate = newEndDate;
+    }
 }

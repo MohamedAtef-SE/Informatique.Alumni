@@ -82,7 +82,7 @@ public class AlumniUserAppService : ApplicationService, IAlumniUserAppService
         }
 
         // 4. Create IdentityUser
-        var user = new IdentityUser(GuidGenerator.Create(), userName, alumni.Emails.FirstOrDefault(e => e.IsPrimary)?.Email ?? $"{userName}@alumni.com", CurrentTenant.Id);
+        var user = new Volo.Abp.Identity.IdentityUser(GuidGenerator.Create(), userName, alumni.Emails.FirstOrDefault(e => e.IsPrimary)?.Email ?? $"{userName}@alumni.com", CurrentTenant.Id);
         
         // Extended Properties
         user.SetProperty("NameAr", "Alumni User"); // Should fetch from Profile if available, but Profile only has Bio/Job. Assuming generic or separate entity for Name. IdentityUser has Name/Surname.
@@ -134,7 +134,7 @@ public class AlumniUserAppService : ApplicationService, IAlumniUserAppService
             }
         }
 
-        var user = new IdentityUser(GuidGenerator.Create(), input.UserName, input.Email, CurrentTenant.Id);
+        var user = new Volo.Abp.Identity.IdentityUser(GuidGenerator.Create(), input.UserName, input.Email, CurrentTenant.Id);
         
         // Extension Properties
         user.SetProperty("NameAr", input.NameAr);
@@ -158,11 +158,24 @@ public class AlumniUserAppService : ApplicationService, IAlumniUserAppService
     [Authorize(AlumniPermissions.Users.CreateAlumni)]
     public async Task CreateAlumniAccountAsync(AlumniCreateDto input)
     {
-        var user = new IdentityUser(GuidGenerator.Create(), input.UserName, input.Email);
-        user.SetProperty("CollegeId", input.CollegeId);
+        var user = await CreateIdentityUserAsync(input.UserName, input.Email, input.Password, input.CollegeId);
+        // Additional logic for CreateAlumniAccountAsync if any, after user creation
+    }
+
+    [Authorize(AlumniPermissions.Users.CreateAlumni)]
+    private async Task<Volo.Abp.Identity.IdentityUser> CreateIdentityUserAsync(string userName, string email, string password, Guid? collegeId)
+    {
+        var user = new Volo.Abp.Identity.IdentityUser(
+            GuidGenerator.Create(),
+            userName,
+            email,
+            CurrentTenant.Id
+        );
+        user.SetProperty("CollegeId", collegeId);
         
-        (await _userManager.CreateAsync(user, input.Password)).CheckErrors();
+        (await _userManager.CreateAsync(user, password)).CheckErrors();
         (await _userManager.AddToRoleAsync(user, "Alumni")).CheckErrors();
+        return user;
     }
 
     [Authorize(AlumniPermissions.Users.SystemUsersReport)]

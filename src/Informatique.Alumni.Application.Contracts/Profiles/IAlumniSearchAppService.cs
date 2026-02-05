@@ -20,7 +20,7 @@ public interface IAlumniSearchAppService : IApplicationService
     /// Get detailed profile of an alumni.
     /// Shows all qualifications (history).
     /// </summary>
-    Task<AlumniProfileDetailDto> GetProfileAsync(Guid id);
+    Task<AlumniProfileDetailDto> GetAsync(Guid id);
     
     /// <summary>
     /// Update alumni personal photo (Employee Exception).

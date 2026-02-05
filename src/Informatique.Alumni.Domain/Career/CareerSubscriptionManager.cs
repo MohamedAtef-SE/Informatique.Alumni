@@ -34,18 +34,21 @@ public class CareerSubscriptionManager : DomainService
         _guidGenerator = guidGenerator;
     }
 
-    public async Task<AlumniCareerSubscription> SubscribeAsync(Guid serviceId, Guid alumniId, Guid timeslotId, CareerPaymentMethod paymentMethod)
+    public async Task<AlumniCareerSubscription> SubscribeAsync(Guid serviceId, Guid userId, Guid timeslotId, CareerPaymentMethod paymentMethod)
     {
-        // 1. Membership Gating
-        if (!await _membershipManager.IsActiveAsync(alumniId))
+        // 1. Get profile by UserId first
+        var profile = await _profileRepository.GetAsync(p => p.UserId == userId);
+        var profileId = profile.Id;
+
+        // 2. Membership Gating (uses ProfileId, not UserId)
+        if (!await _membershipManager.IsActiveAsync(profileId))
         {
             throw new BusinessException("Career:MembershipNotActive");
         }
 
-        // 2. Load Data
+        // 3. Load Data
         var service = await _serviceRepository.GetAsync(serviceId);
         var timeslot = await _timeslotRepository.GetAsync(timeslotId);
-        var profile = await _profileRepository.GetAsync(p => p.UserId == alumniId || p.Id == alumniId);
         
         // 3. Deadline Check
         if (DateTime.Now > service.LastSubscriptionDate)
@@ -64,8 +67,15 @@ public class CareerSubscriptionManager : DomainService
             throw new BusinessException("Career:TimeslotFull");
         }
 
-        // 5. Time Overlap Check
-        var existingSubs = await _subscriptionRepository.GetListAsync(s => s.AlumniId == alumniId && s.PaymentStatus != CareerPaymentStatus.Cancelled);
+        // 5. Time Overlap & Single Subscription Check
+        var existingSubs = await _subscriptionRepository.GetListAsync(s => s.AlumniId == profileId && s.PaymentStatus != CareerPaymentStatus.Cancelled);
+        
+        // Check if already subscribed to THIS service (Rule: One active session per service)
+        if (existingSubs.Any(s => s.CareerServiceId == serviceId))
+        {
+             throw new BusinessException("Career:AlreadySubscribedToService");
+        }
+
         foreach (var sub in existingSubs)
         {
             var subTimeslot = await _timeslotRepository.GetAsync(sub.TimeslotId);
@@ -82,7 +92,7 @@ public class CareerSubscriptionManager : DomainService
         }
 
         // 6. Create Subscription
-        var subscription = new AlumniCareerSubscription(_guidGenerator.Create(), serviceId, alumniId);
+        var subscription = new AlumniCareerSubscription(_guidGenerator.Create(), serviceId, profileId);
 
         // 7. Payment Logic
         decimal amountToPay = service.HasFees ? service.FeeAmount : 0;
@@ -102,8 +112,8 @@ public class CareerSubscriptionManager : DomainService
             }
             else
             {
-                // Gateway
-                subscription.SetFinancialDetails(timeslotId, CareerPaymentMethod.Gateway, amountToPay);
+                // Cash or Gateway - requires separate payment processing
+                subscription.SetFinancialDetails(timeslotId, paymentMethod, amountToPay);
             }
         }
         else

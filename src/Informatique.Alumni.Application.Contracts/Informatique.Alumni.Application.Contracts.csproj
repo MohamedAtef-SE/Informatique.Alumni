@@ -11,6 +11,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Informatique.Alumni.Domain.Shared\Informatique.Alumni.Domain.Shared.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="Volo.Abp.PermissionManagement.Application.Contracts" Version="10.0.1" />

@@ -116,6 +116,7 @@ public class AlumniProfileDetailDto
     // Local Extensions
     public bool IsVip { get; set; }
     public bool ShowInDirectory { get; set; }
+    public int ViewCount { get; set; }
     
     // Photo (Editable Exception)
     public string? PhotoUrl { get; set; }

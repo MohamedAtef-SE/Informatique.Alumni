@@ -79,14 +79,21 @@ public class AlumniMyProfileDto
     public DateTime? BirthDate { get; set; }
     public decimal OpeningBalance { get; set; } // Financial
 
+    public int ViewCount { get; set; }
+
     // Academic Info (Read-Only List)
     public List<QualificationHistoryDto> AcademicHistory { get; set; } = new();
 
     // --- Editable Data ---
     public string? PhotoUrl { get; set; }
     public string? Address { get; set; }
+    public string? City { get; set; }
+    public string? Country { get; set; }
     public string? Bio { get; set; }
     public string? JobTitle { get; set; }
+    public string? Company { get; set; }
+    public string? FacebookUrl { get; set; }
+    public string? LinkedinUrl { get; set; }
 
     // Contact Collections
     public List<ContactEmailDto> Emails { get; set; } = new();
@@ -102,9 +109,14 @@ public class UpdateMyProfileDto
 {
     // Editable Personal Info
     public string? Address { get; set; }
+    public string? City { get; set; }
+    public string? Country { get; set; }
     public byte[]? ProfilePhoto { get; set; } // Optional upload
-    public string? Bio { get; set; } // Optional
-    public string? JobTitle { get; set; } // Optional
+    public string? Bio { get; set; } 
+    public string? JobTitle { get; set; } 
+    public string? Company { get; set; }
+    public string? FacebookUrl { get; set; }
+    public string? LinkedinUrl { get; set; }
 
     // Contact Collections (Full Replacement Logic or Delta)
     public List<ContactEmailDto> Emails { get; set; } = new();

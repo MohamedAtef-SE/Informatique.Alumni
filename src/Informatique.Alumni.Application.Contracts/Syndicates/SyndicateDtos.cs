@@ -22,6 +22,7 @@ public class SyndicateSubscriptionDto : FullAuditedEntityDto<Guid>
 {
     public Guid AlumniId { get; set; }
     public Guid SyndicateId { get; set; }
+    public string SyndicateName { get; set; } = string.Empty;
     public SyndicateStatus Status { get; set; }
     public decimal FeeAmount { get; set; }
     public PaymentStatus PaymentStatus { get; set; }

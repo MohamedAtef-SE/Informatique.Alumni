@@ -74,6 +74,14 @@ public class AlumniDomainModule : AbpModule
                     fileSystem.BasePath = "D:\\AlumniBlobs";
                 });
             });
+
+            options.Containers.Configure<Informatique.Alumni.Profiles.ProfilePictureContainer>(container =>
+            {
+                container.UseFileSystem(fileSystem =>
+                {
+                    fileSystem.BasePath = "D:\\AlumniBlobs";
+                });
+            });
         });
 
 

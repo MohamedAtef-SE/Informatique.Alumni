@@ -18,4 +18,5 @@ public interface IMembershipAppService : IApplicationService
     Task<PagedResultDto<AssociationRequestDto>> GetListAsync(MembershipRequestFilterDto input);
     Task UpdateStatusAsync(Guid id, UpdateStatusDto input);
     Task<CardPrintDto> GetCardDataAsync(Guid id);
+    Task<CardPrintDto> GetMyCardAsync();
 }

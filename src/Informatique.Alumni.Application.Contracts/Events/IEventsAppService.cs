@@ -28,8 +28,8 @@ public interface IEventsAppService : IApplicationService
     Task<IRemoteStreamContent> GetAgendaPdfAsync(Guid eventId);
 
 
-    // Registration
-    Task<AlumniEventRegistrationDto> RegisterAsync(Guid eventId);
+    // Registration (Register prefix for proper ABP routing: POST /api/app/events/{id}/register)
+    Task<AlumniEventRegistrationDto> RegisterAsync(Guid id);
     Task<List<AlumniEventRegistrationDto>> GetMyRegistrationsAsync();
     
     // Gatekeeping

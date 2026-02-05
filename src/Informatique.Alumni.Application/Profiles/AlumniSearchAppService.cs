@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Informatique.Alumni.Branches;
 using Informatique.Alumni.Permissions;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -47,6 +48,16 @@ public class AlumniSearchAppService : AlumniAppService, IAlumniSearchAppService
     [Authorize(AlumniPermissions.Profiles.Search)] // Assume specific permission exists or use general
     public async Task<PagedResultDto<AlumniListDto>> GetListAsync(AlumniSearchFilterDto input)
     {
+        // 0. Auto-Detect Branch if not specified
+        if (input.BranchId == Guid.Empty && CurrentUser.Id.HasValue)
+        {
+            var userProfile = await _profileRepository.FirstOrDefaultAsync(p => p.UserId == CurrentUser.Id);
+            if (userProfile != null)
+            {
+                input.BranchId = userProfile.BranchId;
+            }
+        }
+
         // 1. Branch Security Scope
         await ValidateBranchScopeAsync(input.BranchId);
 
@@ -143,13 +154,26 @@ public class AlumniSearchAppService : AlumniAppService, IAlumniSearchAppService
 
     /// <summary>
     /// Get Full Profile with All Qualifications.
+    /// ABP Convention: GetAsync(Guid id) generates GET /api/app/alumni-search/{id}
     /// </summary>
-    public async Task<AlumniProfileDetailDto> GetProfileAsync(Guid id)
+    public async Task<AlumniProfileDetailDto> GetAsync(Guid id)
     {
-        var profile = await _profileRepository.GetAsync(id);
+        var profile = await _profileRepository.FindAsync(id);
+        
+        if (profile == null)
+        {
+             throw new UserFriendlyException($"DEBUG: Profile with ID {id} not found in repository. Branch Scope check pending.");
+        }
         
         // Security Check: Ensure user has access to this branch
         await ValidateBranchScopeAsync(profile.BranchId);
+
+        // Increment View Count if viewed by someone else
+        if (profile.UserId != CurrentUser.GetId())
+        {
+            profile.IncrementViewCount();
+            await _profileRepository.UpdateAsync(profile);
+        }
 
         var user = await _userRepository.GetAsync(profile.UserId);
         var educations = await _educationRepository.GetListAsync(e => e.AlumniProfileId == profile.Id);
@@ -162,6 +186,7 @@ public class AlumniSearchAppService : AlumniAppService, IAlumniSearchAppService
             AlumniId = user.UserName,
             IsVip = profile.IsVip,
             PhotoUrl = profile.PhotoUrl,
+            ViewCount = profile.ViewCount,
             WalletBalance = profile.WalletBalance,
             Educations = educations.Select(e => new AlumniEducationDto
             {

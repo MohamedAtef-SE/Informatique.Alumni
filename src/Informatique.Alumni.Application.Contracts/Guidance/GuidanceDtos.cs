@@ -24,6 +24,9 @@ public class AdvisingRequestDto : FullAuditedEntityDto<Guid>
 {
     public Guid AlumniId { get; set; }
     public Guid AdvisorId { get; set; }
+    public string? AdvisorName { get; set; }
+    public string? AdvisorJobTitle { get; set; }
+    public string? Location { get; set; } = "Online (Google Meet)"; // Defaulting for now as per user complaint
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
     public string Subject { get; set; } = string.Empty;

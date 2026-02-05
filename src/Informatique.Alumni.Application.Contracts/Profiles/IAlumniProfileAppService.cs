@@ -22,4 +22,10 @@ public interface IAlumniProfileAppService : IApplicationService
     // Graduate User - My Profile (Phase 1)
     Task<AlumniMyProfileDto> GetMyProfileAsync();
     Task<AlumniMyProfileDto> UpdateMyProfileAsync(UpdateMyProfileDto input);
+    
+    // Photo Upload
+    Task<string> UploadPhotoAsync(Microsoft.AspNetCore.Http.IFormFile file);
+    
+    // Photo Retrieval
+    Task<Volo.Abp.Content.IRemoteStreamContent> GetPhotoAsync(string name);
 }

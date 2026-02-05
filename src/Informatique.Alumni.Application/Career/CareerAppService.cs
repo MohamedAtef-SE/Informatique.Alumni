@@ -52,8 +52,10 @@ public class CareerAppService : ApplicationService, ICareerAppService
     public async Task<PagedResultDto<CareerServiceDto>> GetServicesAsync(PagedAndSortedResultRequestDto input)
     {
         var count = await _serviceRepository.GetCountAsync();
-        var query = await _serviceRepository.GetQueryableAsync();
+        var query = await _serviceRepository.WithDetailsAsync(x => x.Timeslots);
         var sorting = string.IsNullOrWhiteSpace(input.Sorting) ? "CreationTime desc" : input.Sorting;
+        
+        // Fix: Sort before Paging
         var list = await AsyncExecuter.ToListAsync(query.OrderBy(sorting).PageBy(input.SkipCount, input.MaxResultCount));
         
         return new PagedResultDto<CareerServiceDto>(count, _alumniMappers.MapToDtos(list));
@@ -113,9 +115,11 @@ public class CareerAppService : ApplicationService, ICareerAppService
         return _alumniMappers.MapToDto(service);
     }
 
-    public async Task<CareerServiceDto> GetServiceAsync(Guid id)
+    public async Task<CareerServiceDto> GetAsync(Guid id)
     {
-        var service = await _serviceRepository.GetAsync(id);
+        var query = await _serviceRepository.WithDetailsAsync(x => x.Timeslots);
+        var service = await AsyncExecuter.FirstOrDefaultAsync(query.Where(x => x.Id == id))
+            ?? throw new Volo.Abp.Domain.Entities.EntityNotFoundException(typeof(CareerService), id);
         return _alumniMappers.MapToDto(service);
     }
 

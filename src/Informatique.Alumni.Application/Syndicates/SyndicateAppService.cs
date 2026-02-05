@@ -84,6 +84,32 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
     }
 
     [Authorize(AlumniPermissions.Syndicates.Apply)]
+    public async Task<List<SyndicateSubscriptionDto>> GetMyApplicationsAsync()
+    {
+        var alumniId = CurrentUser.GetId();
+        var query = await _subscriptionRepository.WithDetailsAsync(x => x.Documents);
+        var subList = await AsyncExecuter.ToListAsync(query.Where(x => x.AlumniId == alumniId));
+        var dtos = _alumniMappers.MapToDtos(subList);
+
+        if (dtos.Any())
+        {
+            var syndicateIds = dtos.Select(x => x.SyndicateId).Distinct().ToArray();
+            var syndicates = await _syndicateRepository.GetListAsync(x => syndicateIds.Contains(x.Id));
+            var syndicateDict = syndicates.ToDictionary(x => x.Id, x => x.Name);
+
+            foreach (var dto in dtos)
+            {
+                if (syndicateDict.TryGetValue(dto.SyndicateId, out var name))
+                {
+                    dto.SyndicateName = name;
+                }
+            }
+        }
+
+        return dtos;
+    }
+
+    [Authorize(AlumniPermissions.Syndicates.Apply)]
     public async Task UploadDocumentAsync(Guid subscriptionId, UploadSyndicateDocDto input)
     {
         var subscription = await _subscriptionRepository.GetAsync(subscriptionId);

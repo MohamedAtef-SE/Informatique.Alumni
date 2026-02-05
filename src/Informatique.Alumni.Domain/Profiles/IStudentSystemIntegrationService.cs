@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Volo.Abp.DependencyInjection;
 
 namespace Informatique.Alumni.Profiles;
 
@@ -7,7 +8,7 @@ namespace Informatique.Alumni.Profiles;
 /// Domain interface for Legacy Student Information System (SIS) integration.
 /// Simplified interface to avoid DTO dependencies in Domain layer.
 /// </summary>
-public interface IStudentSystemIntegrationService
+public interface IStudentSystemIntegrationService : ITransientDependency
 {
     /// <summary>
     /// Fetch complete academic transcript from Legacy SIS.

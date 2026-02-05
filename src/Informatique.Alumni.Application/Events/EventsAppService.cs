@@ -10,6 +10,7 @@ using Volo.Abp.Application.Dtos;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Users;
 using Informatique.Alumni.Profiles;
+using Informatique.Alumni.Membership;
 using Informatique.Alumni.Branches;
 using Volo.Abp.Identity;
 using Volo.Abp.BackgroundJobs;
@@ -18,6 +19,7 @@ using System.IO;
 using Volo.Abp.BlobStoring;
 using Volo.Abp.Content;
 using Volo.Abp.Domain.Entities;
+
 
 namespace Informatique.Alumni.Events;
 
@@ -38,6 +40,7 @@ public class EventsAppService : AlumniAppService, IEventsAppService
     private readonly IRepository<Education, Guid> _educationRepository;
     private readonly IRepository<College, Guid> _collegeRepository;
     private readonly IRepository<Major, Guid> _majorRepository;
+    private readonly MembershipGuard _membershipGuard;
 
     public EventsAppService(
         IRepository<AssociationEvent, Guid> eventRepository,
@@ -51,7 +54,8 @@ public class EventsAppService : AlumniAppService, IEventsAppService
         IRepository<Branch, Guid> branchRepository,
         IRepository<Education, Guid> educationRepository,
         IRepository<College, Guid> collegeRepository,
-        IRepository<Major, Guid> majorRepository)
+        IRepository<Major, Guid> majorRepository,
+        MembershipGuard membershipGuard)
     {
         _eventRepository = eventRepository;
         _registrationRepository = registrationRepository;
@@ -65,6 +69,7 @@ public class EventsAppService : AlumniAppService, IEventsAppService
         _educationRepository = educationRepository;
         _collegeRepository = collegeRepository;
         _majorRepository = majorRepository;
+        _membershipGuard = membershipGuard;
     }
 
     // ==================== EVENT BROWSING & SEARCH ====================
@@ -127,7 +132,19 @@ public class EventsAppService : AlumniAppService, IEventsAppService
         var totalCount = await AsyncExecuter.CountAsync(query);
 
         // 5. Apply sorting and paging
+        // Map frontend sorting field names to anonymous type property paths
         var sorting = input.Sorting ?? "Event.LastSubscriptionDate DESC";
+        
+        // Handle common frontend sorting field names
+        if (!string.IsNullOrWhiteSpace(input.Sorting))
+        {
+            sorting = input.Sorting
+                .Replace("lastSubscriptionDate", "Event.LastSubscriptionDate", StringComparison.OrdinalIgnoreCase)
+                .Replace("nameEn", "Event.NameEn", StringComparison.OrdinalIgnoreCase)
+                .Replace("nameAr", "Event.NameAr", StringComparison.OrdinalIgnoreCase)
+                .Replace("code", "Event.Code", StringComparison.OrdinalIgnoreCase);
+        }
+        
         query = query.OrderBy(sorting)
                      .Skip(input.SkipCount)
                      .Take(input.MaxResultCount);
@@ -450,19 +467,22 @@ public class EventsAppService : AlumniAppService, IEventsAppService
     */
 
     [Authorize(AlumniPermissions.Events.Register)]
-    public async Task<AlumniEventRegistrationDto> RegisterAsync(Guid eventId)
+    public async Task<AlumniEventRegistrationDto> RegisterAsync(Guid id)
     {
-        var @event = await _eventRepository.GetAsync(eventId);
+        // Business Rule: Active membership required for event registration
+        await _membershipGuard.CheckAsync();
+        
+        var @event = await _eventRepository.GetAsync(id);
         var alumniId = CurrentUser.GetId();
         
         // Prevent double registration
-        if (await _registrationRepository.AnyAsync(x => x.AlumniId == alumniId && x.EventId == eventId))
+        if (await _registrationRepository.AnyAsync(x => x.AlumniId == alumniId && x.EventId == id))
         {
             throw new UserFriendlyException("You are already registered for this event.");
         }
 
         // Use domain method to check if registration is allowed
-        var currentCount = await _registrationRepository.CountAsync(x => x.EventId == eventId && x.Status != RegistrationStatus.Cancelled);
+        var currentCount = await _registrationRepository.CountAsync(x => x.EventId == id && x.Status != RegistrationStatus.Cancelled);
         
         // Refactor: Capacity check needs to be against specific timeslot or total capacity?
         // Assuming Total Capacity for now if Timeslots exist
@@ -475,7 +495,7 @@ public class EventsAppService : AlumniAppService, IEventsAppService
         }
 
         var ticketCode = GuidGenerator.Create().ToString("N").ToUpper();
-        var registration = new AlumniEventRegistration(GuidGenerator.Create(), alumniId, eventId, ticketCode);
+        var registration = new AlumniEventRegistration(GuidGenerator.Create(), alumniId, id, ticketCode);
         
         await _registrationRepository.InsertAsync(registration);
         

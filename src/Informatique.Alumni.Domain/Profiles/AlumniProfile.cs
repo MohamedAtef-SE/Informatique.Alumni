@@ -19,6 +19,8 @@ public class AlumniProfile : FullAuditedAggregateRoot<Guid>
     public Guid BranchId { get; private set; } // For "Branch Scoping" security
     public string? PhotoUrl { get; private set; } // For "Personal Photo" update
     public Guid? NationalityId { get; private set; }
+
+    public int ViewCount { get; private set; } = 0;
     
     // Note: Educations collection handles degrees
     
@@ -86,6 +88,11 @@ public class AlumniProfile : FullAuditedAggregateRoot<Guid>
         WalletBalance += amount;
     }
 
+    public void IncrementViewCount()
+    {
+        ViewCount++;
+    }
+
     public void UpdateBasicInfo(string mobileNumber, string? bio = null, string? jobTitle = null)
     {
         MobileNumber = Check.NotNullOrWhiteSpace(mobileNumber, nameof(mobileNumber), ProfileConsts.MaxMobileLength);
@@ -133,10 +140,29 @@ public class AlumniProfile : FullAuditedAggregateRoot<Guid>
     }
 
     public string? Address { get; private set; } // Editable Address
+    public string? City { get; private set; }
+    public string? Country { get; private set; }
+    public string? Company { get; private set; }
+    public string? FacebookUrl { get; private set; }
+    public string? LinkedinUrl { get; private set; }
 
-    public void UpdateAddress(string? address)
+    public void UpdateAddress(string? address, string? city = null, string? country = null)
     {
         Address = address;
+        if (city != null) City = city;
+        if (country != null) Country = country;
+    }
+
+    public void UpdateProfessionalInfo(string? company, string? jobTitle)
+    {
+        if (company != null) Company = company;
+        if (jobTitle != null) JobTitle = Check.Length(jobTitle, nameof(jobTitle), ProfileConsts.MaxJobTitleLength);
+    }
+
+    public void UpdateSocialLinks(string? facebookUrl, string? linkedinUrl)
+    {
+        FacebookUrl = facebookUrl;
+        LinkedinUrl = linkedinUrl;
     }
     
     public void SetVip(bool isVip)

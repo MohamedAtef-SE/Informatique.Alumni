@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Application.Dtos;
 
@@ -12,4 +13,5 @@ public interface ICertificateDefinitionAppService :
         CreateCertificateDefinitionDto, 
         UpdateCertificateDefinitionDto>
 {
+    Task<ListResultDto<CertificateDefinitionDto>> GetAvailableAsync();
 }

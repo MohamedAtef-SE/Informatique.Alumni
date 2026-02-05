@@ -91,4 +91,15 @@ public class CertificateDefinitionAppService : ApplicationService, ICertificateD
     {
         await _definitionManager.DeleteAsync(id);
     }
+    /// <summary>
+    /// Public/Alumni endpoint to get available certificate definitions for connection.
+    /// </summary>
+    [Authorize]
+    public async Task<ListResultDto<CertificateDefinitionDto>> GetAvailableAsync()
+    {
+        var entities = await _repository.GetListAsync();
+        // Optional: Filter by active/available if such a property exists
+        var dtos = _mappers.MapToDtos(entities);
+        return new ListResultDto<CertificateDefinitionDto>(dtos);
+    }
 }

@@ -1,0 +1,28 @@
+CreateAsync Called with: {"Items":[{"CertificateDefinitionId":"33f38c18-ff20-fc41-dc49-3a1f0f5b9d06","QualificationId":null,"Language":1}],"DeliveryMethod":2,"TargetBranchId":null,"DeliveryAddress":"Madinaty","UserNotes":""}
+CreateAsync Failed at 1/28/2026 5:14:04 AM:
+Input: {"Items":[{"CertificateDefinitionId":"33f38c18-ff20-fc41-dc49-3a1f0f5b9d06","QualificationId":null,"Language":1}],"DeliveryMethod":2,"TargetBranchId":null,"DeliveryAddress":"Madinaty","UserNotes":""}
+Error: Exception of type 'Volo.Abp.BusinessException' was thrown.
+Stack:    at Informatique.Alumni.Certificates.CertificateManager.CreateRequestAsync(Guid requestId, Guid alumniId, List`1 items, DeliveryMethod deliveryMethod, Nullable`1 targetBranchId, String deliveryAddress, String userNotes) in D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Certificates\CertificateManager.cs:line 51
+   at Informatique.Alumni.Certificates.CertificateRequestAppService.CreateAsync(CreateCertificateRequestDto input) in D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Certificates\CertificateRequestAppService.cs:line 248
+
+CreateAsync Called with: {"Items":[{"CertificateDefinitionId":"43768c04-dd8a-f02c-4ec1-3a1f0f5b9d05","QualificationId":null,"Language":2}],"DeliveryMethod":1,"TargetBranchId":"bd1ac6e0-6385-9fc3-8b52-3a1f12e90f99","DeliveryAddress":null,"UserNotes":""}
+CreateAsync Failed at 1/28/2026 5:19:40 AM:
+Input: {"Items":[{"CertificateDefinitionId":"43768c04-dd8a-f02c-4ec1-3a1f0f5b9d05","QualificationId":null,"Language":2}],"DeliveryMethod":1,"TargetBranchId":"bd1ac6e0-6385-9fc3-8b52-3a1f12e90f99","DeliveryAddress":null,"UserNotes":""}
+Error: Exception of type 'Volo.Abp.BusinessException' was thrown.
+Stack:    at Informatique.Alumni.Certificates.CertificateManager.CreateRequestAsync(Guid requestId, Guid alumniId, List`1 items, DeliveryMethod deliveryMethod, Nullable`1 targetBranchId, String deliveryAddress, String userNotes) in D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Certificates\CertificateManager.cs:line 51
+   at Informatique.Alumni.Certificates.CertificateRequestAppService.CreateAsync(CreateCertificateRequestDto input) in D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Certificates\CertificateRequestAppService.cs:line 248
+
+CreateAsync Called with: {"Items":[{"CertificateDefinitionId":"43768c04-dd8a-f02c-4ec1-3a1f0f5b9d05","QualificationId":null,"Language":2}],"DeliveryMethod":2,"TargetBranchId":null,"DeliveryAddress":"Madinaty","UserNotes":""}
+CreateAsync Failed at 1/28/2026 5:23:20 AM:
+Input: {"Items":[{"CertificateDefinitionId":"43768c04-dd8a-f02c-4ec1-3a1f0f5b9d05","QualificationId":null,"Language":2}],"DeliveryMethod":2,"TargetBranchId":null,"DeliveryAddress":"Madinaty","UserNotes":""}
+Error: Exception of type 'Volo.Abp.BusinessException' was thrown.
+Stack:    at Informatique.Alumni.Certificates.CertificateManager.CreateRequestAsync(Guid requestId, Guid alumniId, List`1 items, DeliveryMethod deliveryMethod, Nullable`1 targetBranchId, String deliveryAddress, String userNotes) in D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Certificates\CertificateManager.cs:line 51
+   at Informatique.Alumni.Certificates.CertificateRequestAppService.CreateAsync(CreateCertificateRequestDto input) in D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Certificates\CertificateRequestAppService.cs:line 248
+
+CreateAsync Called with: {"Items":[{"CertificateDefinitionId":"43768c04-dd8a-f02c-4ec1-3a1f0f5b9d05","QualificationId":null,"Language":1}],"DeliveryMethod":1,"TargetBranchId":"bd1ac6e0-6385-9fc3-8b52-3a1f12e90f99","DeliveryAddress":null,"UserNotes":""}
+CreateAsync Failed at 1/28/2026 5:28:19 AM:
+Input: {"Items":[{"CertificateDefinitionId":"43768c04-dd8a-f02c-4ec1-3a1f0f5b9d05","QualificationId":null,"Language":1}],"DeliveryMethod":1,"TargetBranchId":"bd1ac6e0-6385-9fc3-8b52-3a1f12e90f99","DeliveryAddress":null,"UserNotes":""}
+Error: Exception of type 'Volo.Abp.BusinessException' was thrown.
+Stack:    at Informatique.Alumni.Certificates.CertificateManager.CreateRequestAsync(Guid requestId, Guid alumniId, List`1 items, DeliveryMethod deliveryMethod, Nullable`1 targetBranchId, String deliveryAddress, String userNotes) in D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Certificates\CertificateManager.cs:line 51
+   at Informatique.Alumni.Certificates.CertificateRequestAppService.CreateAsync(CreateCertificateRequestDto input) in D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Certificates\CertificateRequestAppService.cs:line 248
+

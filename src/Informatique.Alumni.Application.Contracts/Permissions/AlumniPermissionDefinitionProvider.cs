@@ -35,6 +35,8 @@ public class AlumniPermissionDefinitionProvider : PermissionDefinitionProvider
         var profilePermission = myGroup.AddPermission(AlumniPermissions.Profiles.Default, L("Permission:Profiles"));
         profilePermission.AddChild(AlumniPermissions.Profiles.Manage, L("Permission:ManageProfiles"));
         profilePermission.AddChild(AlumniPermissions.Profiles.ViewAll, L("Permission:ViewAllProfiles"));
+        profilePermission.AddChild(AlumniPermissions.Profiles.Search, L("Permission:SearchProfiles"));
+        profilePermission.AddChild(AlumniPermissions.Profiles.Edit, L("Permission:EditProfile"));
 
         var directoryPermission = myGroup.AddPermission(AlumniPermissions.Directory.Default, L("Permission:Directory"));
         directoryPermission.AddChild(AlumniPermissions.Directory.Search, L("Permission:SearchDirectory"));
@@ -87,6 +89,7 @@ public class AlumniPermissionDefinitionProvider : PermissionDefinitionProvider
 
         var careersPermission = myGroup.AddPermission(AlumniPermissions.Careers.Default, L("Permission:Careers"));
         careersPermission.AddChild(AlumniPermissions.Careers.JobManage, L("Permission:ManageJobs"));
+        careersPermission.AddChild(AlumniPermissions.Careers.JobApply, L("Permission:ApplyForJobs"));
         careersPermission.AddChild(AlumniPermissions.Careers.CvAudit, L("Permission:AuditCVs"));
         careersPermission.AddChild(AlumniPermissions.Careers.CvManage, L("Permission:ManageOwnCV"));
 
