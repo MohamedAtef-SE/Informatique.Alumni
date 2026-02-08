@@ -130,6 +130,11 @@
         "semester": {
             "fall": "الخريف",
             "spring": "الربيع"
+        },
+        "tabs": {
+            "about": "عن الخريج",
+            "experience": "الخبرات",
+            "education": "التعليم"
         }
     },
     "my_profile": {
@@ -161,7 +166,9 @@
             "city": "المدينة",
             "country": "الدولة",
             "linkedin": "LinkedIn",
-            "facebook": "Facebook"
+            "facebook": "Facebook",
+            "emails": "البريد الإلكتروني",
+            "mobiles": "أرقام الهاتف"
         }
     },
     "events": {

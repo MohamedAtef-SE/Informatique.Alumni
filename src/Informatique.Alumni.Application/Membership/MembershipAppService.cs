@@ -73,26 +73,64 @@ public class MembershipAppService : AlumniAppService, IMembershipAppService
         if (request == null) return null;
 
         var data = await _membershipManager.GetCardDataAsync(request.Id);
+
         return await MapCardDataAsync(request.Id, data.Request, data.Profile, data.Education);
     }
 
     private async Task<CardPrintDto> MapCardDataAsync(Guid requestId, AssociationRequest request, AlumniProfile profile, Education? education)
     {
         var user = await _identityUserRepository.FindAsync(profile.UserId);
-        var alumniName = user != null ? $"{user.Name} {user.Surname}" : "Alumni Member";
+        
+        // Build name with fallback: Name+Surname -> UserName -> Email prefix -> Default
+        string alumniName = "Alumni Member";
+        if (user != null)
+        {
+            if (!string.IsNullOrWhiteSpace(user.Name) || !string.IsNullOrWhiteSpace(user.Surname))
+            {
+                alumniName = $"{user.Name} {user.Surname}".Trim();
+            }
+            else if (!string.IsNullOrWhiteSpace(user.UserName))
+            {
+                // Use username as display name
+                alumniName = user.UserName.Replace("_", " ").Replace(".", " ");
+                // Capitalize first letters
+                alumniName = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(alumniName);
+            }
+            else if (!string.IsNullOrWhiteSpace(user.Email))
+            {
+                alumniName = user.Email.Split('@')[0];
+            }
+
+        }
+        
+        var photoUrl = request.PersonalPhotoBlobName ?? profile.PhotoUrl;
+        
+        // Fix for legacy URLs (migrating from /api/app/alumni-profile/photo/ to /api/profile-photo/)
+        if (!string.IsNullOrEmpty(photoUrl) && photoUrl.Contains("/api/app/alumni-profile/photo/"))
+        {
+             photoUrl = photoUrl.Replace("/api/app/alumni-profile/photo/", "/api/profile-photo/");
+        }
+
+        if (!string.IsNullOrEmpty(photoUrl) && 
+            !photoUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) && 
+            !photoUrl.StartsWith("/"))
+        {
+            // Assuming we have an endpoint to serve profile photos by blob name
+            // Adjust the path if necessary based on your API
+            photoUrl = $"/api/profile-photo/{photoUrl}";
+        }
 
         return new CardPrintDto
         {
             RequestId = requestId,
             AlumniName = alumniName,
             AlumniNationalId = profile.NationalId,
-            AlumniPhotoUrl = request.PersonalPhotoBlobName ?? profile.PhotoUrl ?? string.Empty,
+            AlumniPhotoUrl = photoUrl ?? string.Empty,
             Degree = education?.Degree ?? "N/A",
-            CollegeName = education?.CollegeId?.ToString() ?? "N/A",
-            MajorName = education?.MajorId?.ToString() ?? "N/A",
+            CollegeName = education?.InstitutionName ?? "N/A",
+            MajorName = education?.Degree ?? "N/A", // Fallback to Degree if MajorId unavailable
             GradYear = education?.GraduationYear ?? 0
         };
-        // Mapped
     }
 
 

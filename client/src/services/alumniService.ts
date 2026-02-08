@@ -46,6 +46,8 @@ export const alumniService = {
     // Helper to resolve photo URL
     getPhotoUrl: (path?: string) => {
         if (!path) return undefined;
+        if (path.startsWith('http') || path.startsWith('https')) return path;
+
         // Use the same BASE_URL fallback as the api module
         const baseUrl = import.meta.env.VITE_API_URL || 'https://localhost:44386';
         return `${baseUrl}${path}`;

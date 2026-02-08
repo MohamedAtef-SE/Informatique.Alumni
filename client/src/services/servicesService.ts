@@ -6,8 +6,18 @@ import type { AssociationRequestDto, CardPrintDto } from '../types/membership';
 
 export const servicesAppService = {
     // News
-    getPosts: async () => {
-        const response = await api.get<PagedResultDto<BlogPostDto>>('/api/app/blog/posts');
+    getPosts: async (input?: {
+        category?: string;
+        keyword?: string;
+        minDate?: string;
+        maxDate?: string;
+        isFeatured?: boolean;
+        tag?: string;
+        skipCount?: number;
+        maxResultCount?: number;
+        sorting?: string;
+    }) => {
+        const response = await api.get<PagedResultDto<BlogPostDto>>('/api/app/blog', { params: input });
         return response.data;
     },
     getPost: async (id: string) => {

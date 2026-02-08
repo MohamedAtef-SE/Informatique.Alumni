@@ -81,9 +81,10 @@ You are the Lead Architect. Your mandate is to enforce **Domain-Driven Design (D
 * **Local State**: `useState` / `useReducer` for isolated component logic.
 
 ### 🎨 UI & Motion (The "Motion" Requirement)
-* **Component Library**: **MUI v7 (Material UI)**.
-    * Use `<Grid2>` for layouts.
-    * Use `sx` prop sparingly; prefer styled components for reusability.
+* **Component Library**: **MUI v7 (Material UI)** OR **Tailwind CSS + Radix UI (Shadcn/UI)**.
+    * *Preferred:* Tailwind + Radix for modern, lightweight implementations.
+    * *MUI:* Use `<Grid2>` if using MUI.
+    * *Tailwind:* Use `clsx` and `tailwind-merge` for class management.
 * **Animations**: **Framer Motion**.
     * *Mandatory:* Use `<AnimatePresence>` for page transitions and explicit exit animations for Modals/Drawers.
     * *Micro-interactions:* Buttons should have `whileHover` and `whileTap` scales.

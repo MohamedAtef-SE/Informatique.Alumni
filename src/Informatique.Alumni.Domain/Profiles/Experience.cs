@@ -15,13 +15,15 @@ public class Experience : Entity<Guid>
 
     private Experience() { }
 
-    public Experience(Guid id, Guid profileId, string company, string title, DateTime start)
+    public Experience(Guid id, Guid profileId, string company, string title, DateTime start, DateTime? endDate = null, string? description = null)
         : base(id)
     {
         AlumniProfileId = profileId;
         CompanyName = Check.NotNullOrWhiteSpace(company, nameof(company), ProfileConsts.MaxPlaceLength);
         JobTitle = Check.NotNullOrWhiteSpace(title, nameof(title), ProfileConsts.MaxJobTitleLength);
         StartDate = start;
+        EndDate = endDate;
+        Description = description;
     }
 
     public void Update(string company, string title, DateTime start, DateTime? endDate = null, string? description = null)

@@ -1,38 +1,52 @@
 using System.Threading.Tasks;
-using Informatique.Alumni.Profiles;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc;
-using Volo.Abp.Content;
+using Volo.Abp.BlobStoring;
+using Informatique.Alumni.Profiles;
 
-namespace Informatique.Alumni.Controllers;
-
-/// <summary>
-/// Dedicated controller for profile photo serving.
-/// ABP conventional controllers don't correctly pick up catch-all route parameters on app service methods.
-/// </summary>
-[Route("api/app/alumni-profile")]
-public class ProfilePhotoController : AbpController
+namespace Informatique.Alumni.Controllers
 {
-    private readonly IAlumniProfileAppService _profileAppService;
-
-    public ProfilePhotoController(IAlumniProfileAppService profileAppService)
+    [Route("api/profile-photo")]
+    public class ProfilePhotoController : AbpController
     {
-        _profileAppService = profileAppService;
-    }
+        private readonly IBlobContainer<ProfilePictureContainer> _blobContainer;
 
-    /// <summary>
-    /// Serve profile photo.
-    /// Route: GET /api/app/alumni-profile/photo/{profileId}/{fileName}
-    /// [AllowAnonymous] enables basic <img> tags to load without Bearer tokens.
-    /// </summary>
-    [HttpGet("photo/{profileId}/{fileName}")]
-    [AllowAnonymous]
-    public async Task<IActionResult> GetPhoto(string profileId, string fileName)
-    {
-        var blobName = $"{profileId}/{fileName}";
-        var content = await _profileAppService.GetPhotoAsync(blobName);
-        
-        return File(content.GetStream(), content.ContentType ?? "application/octet-stream", content.FileName);
+        public ProfilePhotoController(IBlobContainer<ProfilePictureContainer> blobContainer)
+        {
+            _blobContainer = blobContainer;
+        }
+
+        [HttpGet]
+        [Route("{*name}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAsync(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                return NotFound();
+            }
+
+            var exists = await _blobContainer.ExistsAsync(name);
+            if (!exists)
+            {
+                return NotFound();
+            }
+
+            var stream = await _blobContainer.GetAsync(name);
+            
+            var contentType = "application/octet-stream";
+            var extension = System.IO.Path.GetExtension(name)?.ToLowerInvariant();
+            switch (extension)
+            {
+                case ".jpg":
+                case ".jpeg": contentType = "image/jpeg"; break;
+                case ".png": contentType = "image/png"; break;
+                case ".gif": contentType = "image/gif"; break;
+                case ".webp": contentType = "image/webp"; break;
+            }
+
+            return File(stream, contentType);
+        }
     }
 }

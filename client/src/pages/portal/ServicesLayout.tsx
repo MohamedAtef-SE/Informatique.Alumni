@@ -2,27 +2,45 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { servicesAppService } from '../../services/servicesService';
-import { Newspaper, CreditCard, Award, Gift, QrCode, FileBadge, Building2, HeartPulse, Plus, X } from 'lucide-react';
+import { alumniService } from '../../services/alumniService';
+import { Newspaper, CreditCard, Award, Gift, QrCode, FileBadge, Building2, HeartPulse, Plus } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuth } from 'react-oidc-context';
 import ErrorModal from '../../components/common/ErrorModal';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 
+import FeaturedNews from '../../components/portal/news/FeaturedNews';
+import NewsCard from '../../components/portal/news/NewsCard';
+import ArticleView from '../../components/portal/news/ArticleView';
+
 const ServicesLayout = () => {
     const [activeTab, setActiveTab] = useState<'news' | 'benefits' | 'membership' | 'certificates' | 'syndicates' | 'health'>('news');
     const [selectedNewsId, setSelectedNewsId] = useState<string | null>(null);
     const auth = useAuth();
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
 
     // Queries
-    const newsQuery = useQuery({ queryKey: ['news'], queryFn: servicesAppService.getPosts, enabled: activeTab === 'news' });
+    const newsQuery = useQuery({ queryKey: ['news'], queryFn: () => servicesAppService.getPosts(), enabled: activeTab === 'news' });
+    const featuredNewsQuery = useQuery({ queryKey: ['news-featured'], queryFn: () => servicesAppService.getPosts({ isFeatured: true, maxResultCount: 1 }), enabled: activeTab === 'news' });
     const grantsQuery = useQuery({ queryKey: ['grants'], queryFn: servicesAppService.getGrants, enabled: activeTab === 'benefits' });
     const discountsQuery = useQuery({ queryKey: ['discounts'], queryFn: servicesAppService.getDiscounts, enabled: activeTab === 'benefits' });
-    const cardQuery = useQuery({ queryKey: ['card'], queryFn: servicesAppService.getCard, enabled: activeTab === 'membership' && !!auth.user });
+    const cardQuery = useQuery({ queryKey: ['my-card'], queryFn: servicesAppService.getCard, enabled: activeTab === 'membership' });
+
+    // Membership Action States
+    const [showRenewModal, setShowRenewModal] = useState(false);
+    const [showLostModal, setShowLostModal] = useState(false);
+
+    // ... other queries
+
+    const featuredPost = featuredNewsQuery.data?.items?.[0];
+    const newsItems = newsQuery.data?.items || [];
+    // Filter out featured post from regular list if it exists to avoid duplication
+    const regularNews = featuredPost ? newsItems.filter(p => p.id !== featuredPost.id) : newsItems;
 
     return (
         <div className="space-y-8 animate-fade-in">
+            {/* ... Header & Tabs ... */}
             <div>
                 <h1 className="text-3xl font-heading font-bold text-[var(--color-text-primary)]">{t('services.title')}</h1>
                 <p className="text-[var(--color-text-secondary)] mt-1">{t('services.subtitle')}</p>
@@ -56,25 +74,31 @@ const ServicesLayout = () => {
             {/* Content */}
             <div className="min-h-[400px]">
                 {activeTab === 'news' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-slide-up">
-                        {newsQuery.data?.items.map(post => (
-                            <Card
-                                key={post.id}
-                                variant="default"
-                                onClick={() => setSelectedNewsId(post.id)}
-                                className="cursor-pointer group hover:border-[var(--color-accent)]/50 border-[var(--color-border)] hover:shadow-lg transition-all"
-                            >
-                                <CardContent className="p-6">
-                                    <h3 className="text-xl font-bold text-[var(--color-text-primary)] mb-2 group-hover:text-[var(--color-accent)] transition-colors">{post.title}</h3>
-                                    <p className="text-sm text-[var(--color-text-secondary)] line-clamp-3 leading-relaxed">{post.content}</p>
-                                    <div className="mt-4 pt-4 border-t border-[var(--color-border)] flex justify-between text-xs text-[var(--color-text-muted)] group-hover:border-[var(--color-accent)]/20">
-                                        <span>{new Date(post.creationTime || '').toLocaleDateString(i18n.language)}</span>
-                                        <span className="text-[var(--color-accent)] font-medium">{post.category}</span>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))}
-                        {newsQuery.data?.items.length === 0 && (
+                    <div className="animate-slide-up space-y-12">
+                        {/* Featured News Hero */}
+                        {featuredPost && (
+                            <FeaturedNews
+                                post={featuredPost}
+                                onClick={() => setSelectedNewsId(featuredPost.id)}
+                            />
+                        )}
+
+                        {/* Recent News Grid */}
+                        <div>
+                            {featuredPost && <h3 className="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Recent News</h3>}
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {regularNews.map(post => (
+                                    <NewsCard
+                                        key={post.id}
+                                        post={post}
+                                        onClick={() => setSelectedNewsId(post.id)}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+
+                        {newsItems.length === 0 && !featuredNewsQuery.isLoading && (
                             <div className="col-span-full py-20 text-center text-[var(--color-text-muted)] bg-slate-50 rounded-xl border border-dashed border-[var(--color-border)]">
                                 {t('services.news.empty')}
                             </div>
@@ -82,9 +106,9 @@ const ServicesLayout = () => {
                     </div>
                 )}
 
-                {/* News Modal */}
+                {/* Article View Modal */}
                 {activeTab === 'news' && selectedNewsId && (
-                    <NewsModal id={selectedNewsId} onClose={() => setSelectedNewsId(null)} />
+                    <ArticleView id={selectedNewsId} onClose={() => setSelectedNewsId(null)} />
                 )}
 
                 {activeTab === 'benefits' && (
@@ -149,9 +173,26 @@ const ServicesLayout = () => {
                                 </div>
 
                                 <div className="flex items-end gap-4">
-                                    <div className="w-20 h-20 bg-slate-200 rounded-lg overflow-hidden border-2 border-white/30 shadow-inner">
-                                        {/* Photo Placeholder */}
-                                        <div className="w-full h-full bg-slate-300 flex items-center justify-center text-xs text-slate-500 font-medium">{t('services.membership.photo_placeholder')}</div>
+                                    <div className="w-20 h-20 bg-slate-200 rounded-lg overflow-hidden border-2 border-white/30 shadow-inner relative">
+                                        {cardQuery.data?.alumniPhotoUrl ? (
+                                            <img
+                                                src={alumniService.getPhotoUrl(cardQuery.data.alumniPhotoUrl)}
+                                                alt="Member"
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    // Fallback if image fails to load
+                                                    e.currentTarget.style.display = 'none';
+                                                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                                }}
+                                            />
+                                        ) : null}
+                                        {/* Photo Placeholder / Fallback */}
+                                        <div className={clsx(
+                                            "w-full h-full bg-slate-300 flex items-center justify-center text-xs text-slate-500 font-medium absolute inset-0",
+                                            cardQuery.data?.alumniPhotoUrl ? "hidden" : ""
+                                        )}>
+                                            {t('services.membership.photo_placeholder')}
+                                        </div>
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-xs text-blue-200 mb-0.5">{t('services.membership.name_label')}</p>
@@ -161,9 +202,19 @@ const ServicesLayout = () => {
                                                 <p className="text-[10px] text-blue-200">{t('services.membership.id_label')}</p>
                                                 <p className="text-sm text-white font-mono">{cardQuery.data?.alumniNationalId || 'PENDING'}</p>
                                             </div>
-                                            <div className="text-right">
-                                                <p className="text-[10px] text-blue-200">{t('services.membership.degree_label')}</p>
-                                                <p className="text-sm text-white font-mono">{cardQuery.data?.degree || 'N/A'}</p>
+                                            <div className="text-right flex flex-col items-end gap-1">
+                                                <div>
+                                                    <p className="text-[10px] text-blue-200 uppercase tracking-wider">{t('services.membership.degree_label')}</p>
+                                                    <p className="text-sm text-white font-mono font-bold leading-tight">{cardQuery.data?.degree || 'N/A'}</p>
+                                                </div>
+                                                <div className="mt-1">
+                                                    <p className="text-[9px] text-blue-200 uppercase tracking-wider">{t('services.membership.college_label', 'College')}</p>
+                                                    <p className="text-xs text-white/90 font-mono leading-tight truncate max-w-[140px]" title={cardQuery.data?.collegeName}>{cardQuery.data?.collegeName || 'N/A'}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-[9px] text-blue-200 uppercase tracking-wider">{t('services.membership.year_label', 'Class Of')}</p>
+                                                    <p className="text-xs text-white/90 font-mono leading-tight">{cardQuery.data?.gradYear || 'N/A'}</p>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -172,9 +223,49 @@ const ServicesLayout = () => {
                         </div>
 
                         <div className="mt-8 text-center space-y-4">
-                            <Button className="w-full shadow-lg shadow-blue-500/20 py-6 text-lg">{t('services.membership.renew_btn')}</Button>
-                            <button className="px-4 py-2 w-full rounded-lg hover:bg-slate-100 text-[var(--color-text-secondary)] text-sm transition-colors">{t('services.membership.lost_btn')}</button>
+                            <Button onClick={() => setShowRenewModal(true)} className="w-full shadow-lg shadow-blue-500/20 py-6 text-lg">{t('services.membership.renew_btn')}</Button>
+                            <button onClick={() => setShowLostModal(true)} className="px-4 py-2 w-full rounded-lg hover:bg-slate-100 text-[var(--color-text-secondary)] text-sm transition-colors">{t('services.membership.lost_btn')}</button>
                         </div>
+
+                        {/* Renew Membership Modal */}
+                        {showRenewModal && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+                                <div className="bg-white border border-[var(--color-border)] rounded-xl p-6 w-full max-w-md space-y-4 shadow-2xl">
+                                    <h3 className="text-xl font-bold text-[var(--color-text-primary)]">{t('services.membership.renew_title', 'Renew Your Membership')}</h3>
+                                    <p className="text-[var(--color-text-secondary)]">
+                                        {t('services.membership.renew_desc', 'To renew your alumni membership, please visit your nearest branch office or contact us at support@alumni.edu to complete the renewal process and payment.')}
+                                    </p>
+                                    <div className="flex gap-3 pt-4">
+                                        <button
+                                            onClick={() => setShowRenewModal(false)}
+                                            className="flex-1 px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-[var(--color-text-secondary)] transition-colors font-medium"
+                                        >
+                                            {t('common.close', 'Close')}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Report Lost Card Modal */}
+                        {showLostModal && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+                                <div className="bg-white border border-[var(--color-border)] rounded-xl p-6 w-full max-w-md space-y-4 shadow-2xl">
+                                    <h3 className="text-xl font-bold text-[var(--color-text-primary)]">{t('services.membership.lost_title', 'Report Lost Card')}</h3>
+                                    <p className="text-[var(--color-text-secondary)]">
+                                        {t('services.membership.lost_desc', 'If you have lost your membership card, please visit the nearest branch office with a valid ID to request a replacement. A small fee may apply.')}
+                                    </p>
+                                    <div className="flex gap-3 pt-4">
+                                        <button
+                                            onClick={() => setShowLostModal(false)}
+                                            className="flex-1 px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-[var(--color-text-secondary)] transition-colors font-medium"
+                                        >
+                                            {t('common.close', 'Close')}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -505,47 +596,6 @@ const HealthSection = () => {
     );
 };
 
-const NewsModal = ({ id, onClose }: { id: string; onClose: () => void }) => {
-    const { data: post, isLoading } = useQuery({
-        queryKey: ['news', id],
-        queryFn: () => servicesAppService.getPost(id)
-    });
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-            <div className="bg-white w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col shadow-2xl relative rounded-2xl border border-[var(--color-border)]">
-                <button
-                    onClick={onClose}
-                    className="absolute top-4 right-4 p-2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-slate-100 rounded-full transition-colors z-10"
-                >
-                    <X className="w-6 h-6" />
-                </button>
-
-                {isLoading ? (
-                    <div className="flex-1 flex items-center justify-center p-20">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-accent)]"></div>
-                    </div>
-                ) : post ? (
-                    <div className="overflow-y-auto custom-scrollbar">
-                        <div className="p-8">
-                            <div className="flex items-center gap-3 text-sm text-[var(--color-text-secondary)] mb-4">
-                                <span className="text-[var(--color-accent)] font-bold px-2 py-1 rounded bg-[var(--color-accent-light)]/20">{post.category}</span>
-                                <span>{new Date(post.creationTime || Date.now()).toLocaleDateString()}</span>
-                            </div>
-                            <h2 className="text-3xl font-heading font-bold text-[var(--color-text-primary)] mb-6 leading-tight">{post.title}</h2>
-                            <div className="prose max-w-none text-[var(--color-text-secondary)]">
-                                {/* Simple whitespace handling or dangerous HTML if trusted */}
-                                <div dangerouslySetInnerHTML={{ __html: post.content }} />
-                            </div>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="p-10 text-center text-[var(--color-error)]">Failed to load article.</div>
-                )}
-            </div>
-            <div className="absolute inset-0 -z-10" onClick={onClose}></div>
-        </div>
-    );
-};
 
 export default ServicesLayout;

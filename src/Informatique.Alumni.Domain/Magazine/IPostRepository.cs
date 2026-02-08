@@ -14,6 +14,8 @@ public interface IPostRepository : IRepository<BlogPost, Guid>
         DateTime? minDate = null,
         DateTime? maxDate = null,
         bool? isPublished = null,
+        bool? isFeatured = null,
+        string? tag = null,
         int skipCount = 0,
         int maxResultCount = int.MaxValue,
         string? sorting = null,
@@ -26,6 +28,8 @@ public interface IPostRepository : IRepository<BlogPost, Guid>
         DateTime? minDate = null,
         DateTime? maxDate = null,
         bool? isPublished = null,
+        bool? isFeatured = null,
+        string? tag = null,
         CancellationToken cancellationToken = default
     );
 }

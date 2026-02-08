@@ -36,11 +36,16 @@ public class SqlStudentSystemIntegrationService : ApplicationService, IStudentSy
         
         if (Guid.TryParse(studentId, out var alumniId))
         {
-            var queryable = await _qualificationRepository.WithDetailsAsync(x => x.Semesters, x => x.Semesters.Select(s => s.Courses));
-            var qualifications = await AsyncExecuter.ToListAsync(queryable.Where(x => x.StudentId == alumniId));
-            return qualifications;
+            Console.WriteLine($"[SqlStudentSystemIntegrationService] Querying for StudentId: {alumniId}");
+            var queryable = await _qualificationRepository.GetQueryableAsync();
+            var query = queryable.Where(x => x.StudentId == alumniId);
+                
+            var results = await AsyncExecuter.ToListAsync(query);
+            Console.WriteLine($"[SqlStudentSystemIntegrationService] Found {results.Count} qualifications.");
+            return results;
         }
         
+        Console.WriteLine($"[SqlStudentSystemIntegrationService] Failed to parse studentId: {studentId}");
         return new List<SisQualification>();
     }
 

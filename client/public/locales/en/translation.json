@@ -338,6 +338,11 @@
         "semester": {
             "fall": "Fall",
             "spring": "Spring"
+        },
+        "tabs": {
+            "about": "About",
+            "experience": "Experience",
+            "education": "Education"
         }
     },
     "my_profile": {
@@ -369,7 +374,9 @@
             "city": "City",
             "country": "Country",
             "linkedin": "LinkedIn",
-            "facebook": "Facebook"
+            "facebook": "Facebook",
+            "emails": "Emails",
+            "mobiles": "Mobile Numbers"
         }
     }
 }

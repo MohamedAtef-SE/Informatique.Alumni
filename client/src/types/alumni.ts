@@ -111,6 +111,15 @@ export interface AlumniMyProfileDto {
     phones: ContactPhoneDto[];
 }
 
+export interface ExperienceDto {
+    id: string;
+    companyName: string;
+    jobTitle: string;
+    startDate: string;
+    endDate?: string;
+    description?: string;
+}
+
 export interface AlumniProfileDetailDto {
     id: string;
     userId: string;
@@ -121,6 +130,7 @@ export interface AlumniProfileDetailDto {
     gender?: string;
     nationality?: string;
     educations: AlumniEducationDto[];
+    experiences: ExperienceDto[];
     address?: string;
     city?: string;
     country?: string;
@@ -136,6 +146,9 @@ export interface AlumniProfileDetailDto {
     phoneNumber?: string;
     facebookUrl?: string;
     linkedinUrl?: string;
+    emails: ContactEmailDto[];
+    mobiles: ContactMobileDto[];
+    phones: ContactPhoneDto[];
 }
 
 export interface UpdateAlumniProfileDto {

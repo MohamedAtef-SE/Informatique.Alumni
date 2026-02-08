@@ -71,7 +71,17 @@ public class CurriculumVitae : FullAuditedAggregateRoot<Guid>
 
 // 14 Child Entities
 public class CvEducation : Entity<Guid> { public Guid CurriculumVitaeId { get; set; } public string Institution { get; set; } = string.Empty; public string Degree { get; set; } = string.Empty; public DateTime StartDate { get; set; } public DateTime? EndDate { get; set; } }
-public class CvExperience : Entity<Guid> { public Guid CurriculumVitaeId { get; set; } public string Company { get; set; } = string.Empty; public string Position { get; set; } = string.Empty; public DateTime StartDate { get; set; } public DateTime? EndDate { get; set; } public string? Description { get; set; } }
+public class CvExperience : Entity<Guid> 
+{ 
+    public Guid CurriculumVitaeId { get; set; } 
+    public string Company { get; set; } = string.Empty; 
+    public string Position { get; set; } = string.Empty; 
+    public DateTime StartDate { get; set; } 
+    public DateTime? EndDate { get; set; } 
+    public string? Description { get; set; } 
+    public CvExperience() { }
+    public CvExperience(Guid id) : base(id) { }
+}
 public class CvSkill : Entity<Guid> { public Guid CurriculumVitaeId { get; set; } public string Name { get; set; } = string.Empty; public string? ProficiencyLevel { get; set; } }
 public class CvLanguage : Entity<Guid> { public Guid CurriculumVitaeId { get; set; } public string Name { get; set; } = string.Empty; public string? FluencyLevel { get; set; } }
 public class CvCertification : Entity<Guid> { public Guid CurriculumVitaeId { get; set; } public string Name { get; set; } = string.Empty; public string Issuer { get; set; } = string.Empty; public DateTime? Date { get; set; } }

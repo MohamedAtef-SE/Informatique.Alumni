@@ -130,22 +130,37 @@ public class AlumniSearchAppService : AlumniAppService, IAlumniSearchAppService
             var educations = await _educationRepository.GetListAsync(e => e.AlumniProfileId == profile.Id);
             var latestEd = educations.OrderByDescending(e => e.GraduationYear).ThenByDescending(e => e.GraduationSemester).FirstOrDefault();
 
-            var dto = new AlumniListDto
-            {
-                Id = profile.Id,
-                UserId = profile.UserId,
-                Name = user?.Name ?? "Unknown",
-                AlumniId = user?.UserName ?? "", // Assumption: AlumniId is Username
-                IsVip = profile.IsVip,
-                PhotoUrl = profile.PhotoUrl,
-                PrimaryEmail = user?.Email, // Or fetch from profile.Emails
-                // Academic Info (Latest)
-                GraduationYear = latestEd?.GraduationYear ?? 0,
-                GraduationSemester = latestEd?.GraduationSemester ?? 0,
-                College = latestEd?.CollegeId?.ToString() ?? latestEd?.InstitutionName ?? "", 
-                Major = latestEd?.MajorId?.ToString() ?? latestEd?.Degree ?? "",
-                GPA = 0 // GPA not on Education yet?
-            };
+                // Resolve College Name
+                var collegeName = "";
+                if (latestEd != null)
+                {
+                    if (latestEd.CollegeId.HasValue)
+                    {
+                        var collegeBranch = await _branchRepository.FindAsync(latestEd.CollegeId.Value);
+                        collegeName = collegeBranch?.Name ?? "";
+                    }
+                    else
+                    {
+                        collegeName = latestEd.InstitutionName;
+                    }
+                }
+
+                var dto = new AlumniListDto
+                {
+                    Id = profile.Id,
+                    UserId = profile.UserId,
+                    Name = user?.Name ?? "Unknown",
+                    AlumniId = user?.UserName ?? "", // Assumption: AlumniId is Username
+                    IsVip = profile.IsVip,
+                    PhotoUrl = profile.PhotoUrl,
+                    PrimaryEmail = user?.Email, // Or fetch from profile.Emails
+                    // Academic Info (Latest)
+                    GraduationYear = latestEd?.GraduationYear ?? 0,
+                    GraduationSemester = latestEd?.GraduationSemester ?? 0,
+                    College = collegeName, 
+                    Major = latestEd?.MajorId?.ToString() ?? latestEd?.Degree ?? "",
+                    GPA = 0 // GPA not on Education yet?
+                };
             dtos.Add(dto);
         }
 
@@ -158,7 +173,15 @@ public class AlumniSearchAppService : AlumniAppService, IAlumniSearchAppService
     /// </summary>
     public async Task<AlumniProfileDetailDto> GetAsync(Guid id)
     {
-        var profile = await _profileRepository.FindAsync(id);
+        // Eager load collections
+        var queryable = await _profileRepository.WithDetailsAsync(
+            p => p.Experiences,
+            p => p.Emails,
+            p => p.Mobiles,
+            p => p.Phones
+        );
+        
+        var profile = await AsyncExecuter.FirstOrDefaultAsync(queryable.Where(p => p.Id == id));
         
         if (profile == null)
         {
@@ -178,26 +201,77 @@ public class AlumniSearchAppService : AlumniAppService, IAlumniSearchAppService
         var user = await _userRepository.GetAsync(profile.UserId);
         var educations = await _educationRepository.GetListAsync(e => e.AlumniProfileId == profile.Id);
 
-        return new AlumniProfileDetailDto
+        var educationDtos = new List<AlumniEducationDto>();
+        foreach (var e in educations)
         {
-            Id = profile.Id,
-            UserId = profile.UserId,
-            Name = user.Name,
-            AlumniId = user.UserName,
-            IsVip = profile.IsVip,
-            PhotoUrl = profile.PhotoUrl,
-            ViewCount = profile.ViewCount,
-            WalletBalance = profile.WalletBalance,
-            Educations = educations.Select(e => new AlumniEducationDto
+            var collegeName = e.InstitutionName;
+            if (e.CollegeId.HasValue)
+            {
+                var b = await _branchRepository.FindAsync(e.CollegeId.Value);
+                if (b != null) collegeName = b.Name;
+            }
+
+            educationDtos.Add(new AlumniEducationDto
             {
                 Id = e.Id,
                 InstitutionName = e.InstitutionName,
                 Degree = e.Degree,
                 GraduationYear = e.GraduationYear,
                 GraduationSemester = e.GraduationSemester,
-                College = e.CollegeId?.ToString(),
+                College = collegeName,
                 Major = e.MajorId?.ToString()
-            }).ToList()
+            });
+        }
+
+
+
+        // Merge Primary Email
+        var emailDtos = profile.Emails.Select(x => new ContactEmailDto { Id = x.Id, Email = x.Email, IsPrimary = x.IsPrimary }).ToList();
+        if (!string.IsNullOrEmpty(user.Email) && !emailDtos.Any(e => e.Email.Equals(user.Email, StringComparison.OrdinalIgnoreCase)))
+        {
+            emailDtos.Insert(0, new ContactEmailDto { Id = Guid.NewGuid(), Email = user.Email, IsPrimary = true });
+        }
+
+        // Merge Primary Mobile
+        var mobileDtos = profile.Mobiles.Select(x => new ContactMobileDto { Id = x.Id, MobileNumber = x.MobileNumber, IsPrimary = x.IsPrimary }).ToList();
+        if (!string.IsNullOrEmpty(profile.MobileNumber) && !mobileDtos.Any(m => m.MobileNumber == profile.MobileNumber))
+        {
+            mobileDtos.Insert(0, new ContactMobileDto { Id = Guid.NewGuid(), MobileNumber = profile.MobileNumber, IsPrimary = true });
+        }
+
+        return new AlumniProfileDetailDto
+        {
+            Id = profile.Id,
+            UserId = profile.UserId,
+            Name = $"{user.Name} {user.Surname}",
+            PhotoUrl = profile.PhotoUrl,
+            IsVip = profile.IsVip,
+            ViewCount = profile.ViewCount,
+            WalletBalance = profile.WalletBalance,
+            
+            // Mapped Fields
+            Bio = profile.Bio,
+            JobTitle = profile.JobTitle,
+            Company = profile.Company,
+            City = profile.City,
+            Country = profile.Country,
+            Address = profile.Address,
+            
+            // Collections
+            Educations = educationDtos,
+            Experiences = profile.Experiences.Select(x => new ExperienceDto
+            {
+                Id = x.Id,
+                CompanyName = x.CompanyName,
+                JobTitle = x.JobTitle,
+                StartDate = x.StartDate,
+                EndDate = x.EndDate,
+                Description = x.Description ?? ""
+            }).ToList(),
+
+            Emails = emailDtos,
+            Mobiles = mobileDtos,
+            Phones = profile.Phones.Select(x => new ContactPhoneDto { Id = x.Id, PhoneNumber = x.PhoneNumber, Label = x.Label }).ToList()
         };
     }
 

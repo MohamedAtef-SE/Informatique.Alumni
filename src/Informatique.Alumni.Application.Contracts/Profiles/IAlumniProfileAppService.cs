@@ -27,5 +27,5 @@ public interface IAlumniProfileAppService : IApplicationService
     Task<string> UploadPhotoAsync(Microsoft.AspNetCore.Http.IFormFile file);
     
     // Photo Retrieval
-    Task<Volo.Abp.Content.IRemoteStreamContent> GetPhotoAsync(string name);
+
 }

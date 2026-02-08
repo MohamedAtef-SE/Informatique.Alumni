@@ -253,7 +253,11 @@ public class AlumniProfileAppService : AlumniAppService, IAlumniProfileAppServic
             Bio = profile.Bio,
             JobTitle = profile.JobTitle,
             Company = profile.Company,
-            PhotoUrl = profile.PhotoUrl,
+
+            PhotoUrl = !string.IsNullOrEmpty(profile.PhotoUrl) && profile.PhotoUrl.Contains("/api/app/alumni-profile/photo/") 
+                ? profile.PhotoUrl.Replace("/api/app/alumni-profile/photo/", "/api/profile-photo/") 
+                : profile.PhotoUrl,
+
             FacebookUrl = profile.FacebookUrl,
             LinkedinUrl = profile.LinkedinUrl,
             
@@ -273,7 +277,9 @@ public class AlumniProfileAppService : AlumniAppService, IAlumniProfileAppServic
             // We might need another method for Basic Info if not included, but for now we assume we get what we can.
             // Converting existing Academic History retrieval logic:
             
+            Logger.LogInformation($"[AlumniProfileAppService] Fetching SIS data for StudentId: {studentId}");
             var qualifications = await _studentSystemIntegration.GetStudentTranscriptAsync(studentId);
+            Logger.LogInformation($"[AlumniProfileAppService] SIS data fetched. Count: {qualifications.Count}");
             
             if (qualifications.Any())
             {
@@ -292,16 +298,15 @@ public class AlumniProfileAppService : AlumniAppService, IAlumniProfileAppServic
                 }).ToList();
             }
         }
-        catch(Exception)
+        catch(Exception ex)
         {
             // Fail gracefully if SIS is down, show partial data
+            Logger.LogError(ex, "[AlumniProfileAppService] Failed to fetch SIS data.");
         }
 
-        // Fill other Read-Only fields from Profile/User if SIS doesn't provide them yet
-        // dto.NameEn = ... (Fetched from IdentityUser or SIS)
-        
-        // Fill other Read-Only fields from Profile/User if SIS doesn't provide them yet
-        // dto.NameEn = ... (Fetched from IdentityUser or SIS)
+        // Fill Read-Only name fields from ABP CurrentUser
+        dto.NameEn = CurrentUser.Name ?? CurrentUser.UserName ?? "Alumni";
+        dto.NameAr = CurrentUser.SurName ?? dto.NameEn; // Use Surname for Arabic name if set, otherwise fallback
         dto.ViewCount = profile.ViewCount;
         
         return dto;
@@ -370,12 +375,12 @@ public class AlumniProfileAppService : AlumniAppService, IAlumniProfileAppServic
             }
             else
             {
-                // Update logic if Mobile entity supports it (e.g. UpdateNumber)
-                // If not, we might skipped update or implement it. 
-                // Assuming "UpdateMobile" or similar exists, or we replace. 
-                // However, commonly ID implies identity.
-                // For simplified logic:
-                if (mobileDto.IsPrimary) profile.SetPrimaryMobile(mobileDto.Id);
+                var existing = profile.Mobiles.FirstOrDefault(m => m.Id == mobileDto.Id);
+                if (existing != null)
+                {
+                    existing.UpdateNumber(mobileDto.MobileNumber);
+                    if (mobileDto.IsPrimary) profile.SetPrimaryMobile(existing.Id);
+                }
             }
         }
         
@@ -391,17 +396,29 @@ public class AlumniProfileAppService : AlumniAppService, IAlumniProfileAppServic
                  var newPhone = new ContactPhone(GuidGenerator.Create(), profile.Id, phoneDto.PhoneNumber, phoneDto.Label);
                  profile.AddPhone(newPhone);
              }
+             else
+             {
+                 var existing = profile.Phones.FirstOrDefault(p => p.Id == phoneDto.Id);
+                 if (existing != null)
+                 {
+                     existing.UpdatePhone(phoneDto.PhoneNumber, phoneDto.Label);
+                 }
+             }
         }
 
         // 3. Handle Photo (Mock Upload)
         if (input.ProfilePhoto != null && input.ProfilePhoto.Length > 0)
         {
-            // In real impl: Upload to BlobStorage, get URL
-            // var url = await _blobContainer.SaveAsync(input.ProfilePhoto...);
-            // profile.SetPhotoUrl(url);
-            
-            // Placeholder:
-            profile.SetPhotoUrl("https://example.com/uploaded-photo-placeholder.jpg");
+            // In a real implementation with byte[] upload support, we would upload here.
+            // However, the frontend uses the dedicated UploadPhotoAsync endpoint with IFormFile.
+            // So we just ignore this field to prevent overwriting the URL with a placeholder.
+            // If we wanted to support byte[] upload:
+            /*
+            var blobName = $"{profile.Id}/{Guid.NewGuid()}.jpg";
+            await _blobContainer.SaveAsync(blobName, input.ProfilePhoto, overrideExisting: true);
+            var photoUrl = $"/api/profile-photo/{blobName}";
+            profile.SetPhotoUrl(photoUrl);
+            */
         }
 
         await _profileRepository.UpdateAsync(profile);
@@ -445,7 +462,7 @@ public class AlumniProfileAppService : AlumniAppService, IAlumniProfileAppServic
         
         // Generate URL path
         // IMPORTANT: The route must match the GetPhotoAsync [HttpGet] template
-        var photoUrl = $"/api/app/alumni-profile/photo/{blobName}";
+        var photoUrl = $"/api/profile-photo/{blobName}";
         
         // Update profile with new photo URL
         profile.SetPhotoUrl(photoUrl);
@@ -454,45 +471,5 @@ public class AlumniProfileAppService : AlumniAppService, IAlumniProfileAppServic
         return photoUrl;
     }
 
-    /// <summary>
-    /// Serve profile photo.
-    /// Route matches the generated URL: /api/app/alumni-profile/photo/{*name}
-    /// [AllowAnonymous] enables basic <img> tags to load without Bearer tokens.
-    /// </summary>
-    [Microsoft.AspNetCore.Mvc.HttpGet("photo/{*name}")]
-    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
-    public async Task<Volo.Abp.Content.IRemoteStreamContent> GetPhotoAsync(string name)
-    {
-        Logger.LogInformation($"[DEBUG] GetPhotoAsync called with name: '{name}'");
-
-        if (string.IsNullOrEmpty(name))
-        {
-             throw new UserFriendlyException("Photo name not provided.");
-        }
-
-        var exists = await _blobContainer.ExistsAsync(name);
-        Logger.LogInformation($"[DEBUG] Blob exists: {exists} for name: '{name}'");
-
-        if (!exists)
-        {
-             Logger.LogWarning($"[DEBUG] Blob NOT FOUND in container: '{name}'");
-             throw new UserFriendlyException($"Photo '{name}' not found.");
-        }
-
-        var stream = await _blobContainer.GetAsync(name);
-        // Deduce content type from extension or default
-        var contentType = "application/octet-stream";
-        var extension = System.IO.Path.GetExtension(name)?.ToLowerInvariant();
-        switch (extension)
-        {
-            case ".jpg":
-            case ".jpeg": contentType = "image/jpeg"; break;
-            case ".png": contentType = "image/png"; break;
-            case ".gif": contentType = "image/gif"; break;
-            case ".webp": contentType = "image/webp"; break;
-        }
-
-        return new Volo.Abp.Content.RemoteStreamContent(stream, name, contentType);
-    }
 }
 
