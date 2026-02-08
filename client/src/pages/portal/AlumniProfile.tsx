@@ -75,11 +75,30 @@ const AlumniProfile = () => {
                                 <Globe className="w-5 h-5 text-[var(--color-accent)]" /> {t('profile.contact')}
                             </h3>
                             <div className="space-y-3 text-sm">
-                                <div className="flex items-center gap-3 text-[var(--color-text-secondary)]">
-                                    <Mail className="w-4 h-4 text-slate-400" />
-                                    <span>{profile.id ? t('profile.protected_email') : t('profile.email_hidden')}</span>
-                                </div>
-                                {/* Placeholder for real contact logic */}
+                                {profile.emails && profile.emails.length > 0 ? (
+                                    profile.emails.map(email => (
+                                        <div key={email.id} className="flex items-center gap-3 text-[var(--color-text-secondary)]">
+                                            <Mail className="w-4 h-4 text-slate-400" />
+                                            <span>{email.email} {email.isPrimary && <span className="text-xs bg-blue-100 text-blue-800 px-1 rounded">Primary</span>}</span>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="flex items-center gap-3 text-[var(--color-text-secondary)]">
+                                        <Mail className="w-4 h-4 text-slate-400" />
+                                        <span>{profile.id ? t('profile.protected_email') : t('profile.email_hidden')}</span>
+                                    </div>
+                                )}
+
+                                {profile.mobiles && profile.mobiles.length > 0 && (
+                                    <div className="pt-2 border-t border-slate-100 mt-2">
+                                        {profile.mobiles.map(mobile => (
+                                            <div key={mobile.id} className="flex items-center gap-3 text-[var(--color-text-secondary)] mt-1">
+                                                <Globe className="w-4 h-4 text-slate-400" />
+                                                <span>{mobile.mobileNumber}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
@@ -109,7 +128,36 @@ const AlumniProfile = () => {
                         </CardContent>
                     </Card>
 
-                    {/* Experience (Placeholder as backend DTO structure is strict) */}
+                    {/* Experience */}
+                    <Card variant="default">
+                        <CardContent className="p-6">
+                            <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-6 flex items-center gap-2">
+                                <Briefcase className="w-5 h-5 text-[var(--color-accent)]" /> {t('profile.experience')}
+                            </h3>
+
+                            {profile.experiences && profile.experiences.length > 0 ? (
+                                <div className="space-y-8 relative before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-[var(--color-border)] rtl:before:right-2 rtl:before:left-auto">
+                                    {profile.experiences.map((exp, idx) => (
+                                        <div key={idx} className="relative pl-8 rtl:pl-0 rtl:pr-8">
+                                            <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-white border-2 border-[var(--color-accent)] shadow-sm rtl:right-0 rtl:left-auto"></div>
+                                            <h4 className="text-base font-semibold text-[var(--color-text-primary)]">{exp.jobTitle}</h4>
+                                            <p className="text-[var(--color-accent)] font-medium">{exp.companyName}</p>
+                                            <div className="flex items-center gap-4 mt-2 text-xs text-[var(--color-text-muted)]">
+                                                <span className="flex items-center gap-1">
+                                                    <Calendar className="w-3 h-3" />
+                                                    {new Date(exp.startDate).toLocaleDateString()} -
+                                                    {exp.endDate ? new Date(exp.endDate).toLocaleDateString() : ' Present'}
+                                                </span>
+                                            </div>
+                                            {exp.description && <p className="mt-2 text-sm text-[var(--color-text-secondary)]">{exp.description}</p>}
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-[var(--color-text-muted)] italic">{t('profile.no_experience')}</p>
+                            )}
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
         </div>

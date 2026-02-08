@@ -106,6 +106,7 @@ public class AlumniProfileDetailDto
     
     // Professional
     public string? JobTitle { get; set; }
+    public string? Company { get; set; } // Added for frontend parity
     public string? Bio { get; set; }
     public List<ExperienceDto> Experiences { get; set; } = new();
     

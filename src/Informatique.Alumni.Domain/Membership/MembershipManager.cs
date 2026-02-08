@@ -214,7 +214,14 @@ public class MembershipManager : DomainService
     {
         var request = await _requestRepository.GetAsync(requestId);
         
-        var profile = await _profileRepository.GetAsync(request.AlumniId);
+        // Include Educations navigation property to access degree data
+        var profileQuery = await _profileRepository.WithDetailsAsync(x => x.Educations);
+        var profile = await AsyncExecuter.FirstOrDefaultAsync(profileQuery.Where(x => x.Id == request.AlumniId));
+        
+        if (profile == null)
+        {
+             throw new Volo.Abp.Domain.Entities.EntityNotFoundException(typeof(Informatique.Alumni.Profiles.AlumniProfile), request.AlumniId);
+        }
         
         // Logic: Latest Qualification (Year Desc, Semester Desc)
         var education = profile.Educations

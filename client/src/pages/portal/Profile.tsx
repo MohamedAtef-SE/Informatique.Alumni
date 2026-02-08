@@ -1,326 +1,250 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { alumniService } from '../../services/alumniService';
-import { useAuth } from 'react-oidc-context';
-import { Mail, Save, Camera, Linkedin, Facebook } from 'lucide-react';
+import { careerService } from '../../services/careerService';
+import { Mail, Phone, MapPin, Globe, Calendar, GraduationCap, Briefcase } from 'lucide-react';
+import ProfileHeader from '../../components/Profile/ProfileHeader';
+import ProfileTabs from '../../components/Profile/ProfileTabs';
+import EditProfileModal from '../../components/Profile/EditProfileModal';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
-import { useDropzone } from 'react-dropzone';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/Dialog';
-import ImageCropper from '../../components/common/ImageCropper';
-import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
-import { cn } from '../../utils/cn';
-import { toast } from 'sonner';
 
 const Profile = () => {
-    const auth = useAuth();
-    const queryClient = useQueryClient();
-    const [isEditing, setIsEditing] = useState(false);
     const { t } = useTranslation();
+    const [activeTab, setActiveTab] = useState('about');
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-    // Form State
-    const [formData, setFormData] = useState({
-        bio: '',
-        jobTitle: '',
-        company: '',
-        city: '',
-        country: '',
-        facebookUrl: '',
-        linkedinUrl: ''
-    });
-
-    const { data: profile } = useQuery({
+    const { data: profile, isLoading } = useQuery({
         queryKey: ['my-profile'],
         queryFn: () => alumniService.getMyProfile(),
     });
 
-    useEffect(() => {
-        if (profile) {
-            setFormData({
-                bio: profile?.bio || '',
-                jobTitle: profile?.jobTitle || '',
-                company: profile?.company || '',
-                city: profile?.city || '',
-                country: profile?.country || '',
-                facebookUrl: profile?.facebookUrl || '',
-                linkedinUrl: profile?.linkedinUrl || ''
-            });
-        }
-    }, [profile]);
-
-    const updateMutation = useMutation({
-        mutationFn: (data: any) => alumniService.updateProfile(data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['my-profile'] });
-            setIsEditing(false);
-            toast.success(t('my_profile.toast.update_success'));
-        },
-        onError: () => {
-            toast.error(t('my_profile.toast.update_error'));
-        }
+    const { data: cvData } = useQuery({
+        queryKey: ['my-cv'],
+        queryFn: () => careerService.getMyCv(),
     });
 
-    const handleSave = () => {
-        updateMutation.mutate(formData);
-    };
+    if (isLoading) {
+        return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
+    }
 
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
-
-    const uploadPhotoMutation = useMutation({
-        mutationFn: (file: Blob) => alumniService.uploadProfilePhoto(file as File),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['my-profile'] });
-            toast.success(t('my_profile.toast.photo_success'));
-            setSelectedFile(null);
-        },
-        onError: () => {
-            toast.error(t('my_profile.toast.photo_error'));
-        }
-    });
-
-    const onDrop = useCallback((acceptedFiles: File[]) => {
-        if (acceptedFiles && acceptedFiles.length > 0) {
-            setSelectedFile(acceptedFiles[0]);
-        }
-    }, []);
-
-    const { getRootProps, getInputProps } = useDropzone({
-        onDrop,
-        accept: {
-            'image/jpeg': [],
-            'image/png': [],
-            'image/webp': []
-        },
-        maxFiles: 1,
-        multiple: false
-    });
-
-    const handleCropComplete = async (croppedBlob: Blob) => {
-        const file = new File([croppedBlob], "profile_photo.jpg", { type: "image/jpeg" });
-        uploadPhotoMutation.mutate(file);
-    };
+    if (!profile) return null;
 
     return (
-        <div className="max-w-5xl mx-auto space-y-8 animate-slide-up">
-            {/* Context Header */}
-            <div className="flex justify-between items-end border-b border-[var(--color-border)] pb-6">
-                <div>
-                    <h1 className="text-4xl font-heading font-bold text-[var(--color-text-primary)]">
-                        {t('my_profile.title')}
-                    </h1>
-                    <p className="text-[var(--color-text-secondary)] mt-2">{t('my_profile.subtitle')}</p>
-                </div>
-                {!isEditing ? (
-                    <Button onClick={() => setIsEditing(true)}>
-                        {t('my_profile.actions.edit')}
-                    </Button>
-                ) : (
-                    <div className="flex gap-3">
-                        <Button variant="ghost" onClick={() => setIsEditing(false)}>
-                            {t('my_profile.actions.cancel')}
-                        </Button>
-                        <Button onClick={handleSave} disabled={updateMutation.isPending}>
-                            {updateMutation.isPending ? t('my_profile.actions.saving') : <><Save className="w-4 h-4 mr-2" /> {t('my_profile.actions.save')}</>}
-                        </Button>
-                    </div>
-                )}
-            </div>
+        <div className="min-h-screen bg-slate-50 pb-20">
+            {/* Header */}
+            <ProfileHeader
+                profile={profile}
+                onEdit={() => setIsEditModalOpen(true)}
+                isOwnProfile={true}
+            />
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                {/* Left Column: Avatar & Quick Info */}
-                <div className="lg:col-span-4 space-y-6">
-                    <Card variant="default" className="overflow-hidden border-t-4 border-t-[var(--color-accent)]">
-                        <CardContent className="pt-8 flex flex-col items-center text-center">
-                            <div className="relative group">
-                                <div className="absolute -inset-1 bg-gradient-to-r from-[var(--color-accent)] to-emerald-400 rounded-full blur opacity-20 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                {/* Tabs */}
+                <ProfileTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
-                                <div
-                                    {...getRootProps()}
-                                    className="w-32 h-32 rounded-full border-4 border-white overflow-hidden relative group cursor-pointer shadow-xl z-10"
-                                >
-                                    <input {...getInputProps()} />
-                                    <img
-                                        src={profile?.photoUrl ? alumniService.getPhotoUrl(profile.photoUrl) : `https://ui-avatars.com/api/?name=${auth.user?.profile.name}`}
-                                        alt="Profile"
-                                        className={cn("w-full h-full object-cover shadow-inner", uploadPhotoMutation.isPending && "opacity-50 blur-sm")}
-                                    />
-                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                        {uploadPhotoMutation.isPending ? (
-                                            <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                        ) : (
-                                            <Camera className="w-8 h-8 text-white" />
-                                        )}
-                                    </div>
-                                </div>
+                {/* Tab Content */}
+                <div className="animate-fade-in">
+                    {activeTab === 'about' && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div className="md:col-span-2 space-y-6">
+                                {/* Bio */}
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>{t('profile.about')}</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">
+                                            {profile.bio || t('profile.no_bio')}
+                                        </p>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Professional Info */}
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>{t('my_profile.sections.professional')}</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="text-sm font-medium text-slate-500">{t('my_profile.form.job_title')}</label>
+                                                <p className="text-slate-900 font-medium">{profile.jobTitle || '-'}</p>
+                                            </div>
+                                            <div>
+                                                <label className="text-sm font-medium text-slate-500">{t('my_profile.form.company')}</label>
+                                                <p className="text-slate-900 font-medium">{profile.company || '-'}</p>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
                             </div>
 
-                            <Dialog open={!!selectedFile} onOpenChange={() => setSelectedFile(null)}>
-                                <DialogContent className="sm:max-w-xl p-0 overflow-hidden bg-white border-[var(--color-border)]">
-                                    <DialogHeader className="p-4 border-b border-[var(--color-border)] bg-slate-50">
-                                        <DialogTitle>{t('my_profile.crop_photo')}</DialogTitle>
-                                    </DialogHeader>
-                                    {selectedFile && (
-                                        <div className="p-4">
-                                            <ImageCropper
-                                                imageSrc={URL.createObjectURL(selectedFile)}
-                                                onCropComplete={handleCropComplete}
-                                                onCancel={() => setSelectedFile(null)}
-                                            />
+                            <div className="space-y-6">
+                                {/* Contact Info */}
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>{t('profile.contact')}</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        {/* Emails */}
+                                        <div className="space-y-2">
+                                            <h4 className="text-sm font-medium text-slate-900 flex items-center gap-2">
+                                                <Mail className="w-4 h-4 text-slate-400" /> {t('my_profile.form.emails')}
+                                            </h4>
+                                            {profile.emails && profile.emails.length > 0 ? (
+                                                <ul className="space-y-1">
+                                                    {profile.emails.map((email: any) => (
+                                                        <li key={email.id} className="text-sm text-slate-600 flex justify-between">
+                                                            <span>{email.email}</span>
+                                                            {email.isPrimary && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Primary</span>}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                <p className="text-sm text-slate-400 italic">No emails listed</p>
+                                            )}
+                                        </div>
+
+                                        {/* Mobiles */}
+                                        <div className="space-y-2 border-t pt-3">
+                                            <h4 className="text-sm font-medium text-slate-900 flex items-center gap-2">
+                                                <Phone className="w-4 h-4 text-slate-400" /> {t('my_profile.form.mobiles')}
+                                            </h4>
+                                            {profile.mobiles && profile.mobiles.length > 0 ? (
+                                                <ul className="space-y-1">
+                                                    {profile.mobiles.map((mobile: any) => (
+                                                        <li key={mobile.id} className="text-sm text-slate-600 flex justify-between">
+                                                            <span>{mobile.mobileNumber}</span>
+                                                            {mobile.isPrimary && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Primary</span>}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                <p className="text-sm text-slate-400 italic">No mobile numbers</p>
+                                            )}
+                                        </div>
+
+                                        {/* Socials */}
+                                        <div className="space-y-2 border-t pt-3">
+                                            <h4 className="text-sm font-medium text-slate-900 flex items-center gap-2">
+                                                <Globe className="w-4 h-4 text-slate-400" /> Socials
+                                            </h4>
+                                            <div className="flex gap-3">
+                                                {profile.linkedinUrl && (
+                                                    <a href={profile.linkedinUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:text-blue-700 text-sm font-medium">LinkedIn</a>
+                                                )}
+                                                {profile.facebookUrl && (
+                                                    <a href={profile.facebookUrl} target="_blank" rel="noreferrer" className="text-blue-800 hover:text-blue-900 text-sm font-medium">Facebook</a>
+                                                )}
+                                                {!profile.linkedinUrl && !profile.facebookUrl && <span className="text-sm text-slate-400 italic">None linked</span>}
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Location */}
+                                <Card>
+                                    <CardContent className="pt-6">
+                                        <div className="flex items-start gap-3">
+                                            <MapPin className="w-5 h-5 text-slate-400 mt-0.5" />
+                                            <div>
+                                                <h4 className="text-sm font-medium text-slate-900">Location</h4>
+                                                <p className="text-sm text-slate-600 mt-1">
+                                                    {[profile.address, profile.city, profile.country].filter(Boolean).join(', ') || 'Not specified'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'education' && (
+                        <div className="space-y-6">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Academic History</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    {profile.academicHistory && profile.academicHistory.length > 0 ? (
+                                        <div className="space-y-8 relative before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+                                            {profile.academicHistory.map((edu: any, idx: number) => (
+                                                <div key={idx} className="relative pl-8">
+                                                    <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-white border-4 border-blue-600"></div>
+                                                    <h4 className="text-lg font-bold text-slate-900">{edu.degreeName}{edu.major ? ` in ${edu.major}` : ''}</h4>
+                                                    <p className="text-blue-600 font-medium">{edu.college}</p>
+                                                    <div className="flex items-center gap-4 mt-2 text-sm text-slate-500">
+                                                        <span className="flex items-center gap-1">
+                                                            <Calendar className="w-4 h-4" /> Class of {edu.graduationYear}
+                                                        </span>
+                                                        {edu.cumulativeGPA && (
+                                                            <span className="flex items-center gap-1">
+                                                                <GraduationCap className="w-4 h-4" /> GPA: {edu.cumulativeGPA}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-slate-500 italic">No academic history found.</p>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
+
+                    {activeTab === 'experience' && (
+                        <div className="space-y-6">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <Briefcase className="w-5 h-5" /> Work Experience
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    {cvData?.experiences && cvData.experiences.length > 0 ? (
+                                        <div className="space-y-8 relative before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+                                            {cvData.experiences.map((exp: any) => (
+                                                <div key={exp.id} className="relative pl-8">
+                                                    <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-white border-4 border-green-600"></div>
+                                                    <h4 className="text-lg font-bold text-slate-900">{exp.position}</h4>
+                                                    <p className="text-green-600 font-medium">{exp.company}</p>
+                                                    <div className="flex items-center gap-4 mt-2 text-sm text-slate-500">
+                                                        <span className="flex items-center gap-1">
+                                                            <Calendar className="w-4 h-4" />
+                                                            {new Date(exp.startDate).toLocaleDateString('en', { month: 'short', year: 'numeric' })}
+                                                            {' - '}
+                                                            {exp.endDate ? new Date(exp.endDate).toLocaleDateString('en', { month: 'short', year: 'numeric' }) : 'Present'}
+                                                        </span>
+                                                    </div>
+                                                    {exp.description && (
+                                                        <p className="mt-2 text-slate-600 text-sm">{exp.description}</p>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8 text-slate-500">
+                                            <Briefcase className="w-12 h-12 mx-auto mb-4 text-slate-300" />
+                                            <p>No work experience added yet.</p>
+                                            <p className="mt-2 text-sm">Add your experience in the <a href="/portal/my-cv" className="text-blue-600 hover:underline">My CV</a> section.</p>
                                         </div>
                                     )}
-                                </DialogContent>
-                            </Dialog>
-
-                            <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mt-6 font-heading">{auth.user?.profile.name}</h2>
-                            <p className="text-[var(--color-accent)] font-semibold mt-1">
-                                {profile?.jobTitle || t('profile.default_job_title')}
-                            </p>
-                            {profile?.company && (
-                                <p className="text-[var(--color-text-secondary)] text-sm mt-1">{profile.company}</p>
-                            )}
-
-                            <div className="w-full h-px bg-[var(--color-border)] my-8" />
-
-                            <div className="w-full space-y-4 text-left">
-                                <div className="flex items-center gap-3 text-[var(--color-text-primary)]">
-                                    <div className="w-8 h-8 rounded-xl bg-[var(--color-accent-light)] flex items-center justify-center text-[var(--color-accent)]">
-                                        <Mail className="w-4 h-4" />
-                                    </div>
-                                    <span className="text-sm font-medium truncate">{auth.user?.profile.email}</span>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Right Column: Detailed Form */}
-                <div className="lg:col-span-8 space-y-6">
-                    <Card variant="default">
-                        <CardHeader>
-                            <CardTitle>{t('my_profile.sections.professional')}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <Input
-                                    label={t('my_profile.form.job_title')}
-                                    value={isEditing ? formData.jobTitle : (profile?.jobTitle || '')}
-                                    readOnly={!isEditing}
-                                    onChange={e => setFormData({ ...formData, jobTitle: e.target.value })}
-                                    className={cn(!isEditing && "border-transparent bg-transparent pl-0 text-[var(--color-text-primary)] font-semibold text-lg")}
-                                />
-                                <Input
-                                    label={t('my_profile.form.company')}
-                                    value={isEditing ? formData.company : (profile?.company || '')}
-                                    readOnly={!isEditing}
-                                    onChange={e => setFormData({ ...formData, company: e.target.value })}
-                                    className={cn(!isEditing && "border-transparent bg-transparent pl-0 text-[var(--color-text-primary)] font-semibold text-lg")}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">{t('my_profile.form.bio')}</label>
-                                {isEditing ? (
-                                    <textarea
-                                        className="w-full bg-slate-50 border border-[var(--color-border)] rounded-xl px-4 py-3 text-[var(--color-text-primary)] focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/20 shadow-inner outline-none min-h-[150px] resize-none transition-all"
-                                        value={formData.bio}
-                                        onChange={e => setFormData({ ...formData, bio: e.target.value })}
-                                        placeholder={t('my_profile.form.bio_placeholder')}
-                                    />
-                                ) : (
-                                    <p className="text-[var(--color-text-secondary)] text-base leading-relaxed p-4 bg-slate-50/50 rounded-xl border border-dashed border-[var(--color-border)]">
-                                        {profile?.bio || t('my_profile.form.no_bio')}
-                                    </p>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card variant="default">
-                        <CardHeader>
-                            <CardTitle>{t('my_profile.sections.location_socials')}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <Input
-                                    label={t('my_profile.form.city')}
-                                    value={isEditing ? formData.city : (profile?.city || '')}
-                                    readOnly={!isEditing}
-                                    onChange={e => setFormData({ ...formData, city: e.target.value })}
-                                    className={cn(!isEditing && "border-transparent bg-transparent pl-0 text-[var(--color-text-primary)] font-medium")}
-                                />
-                                <Input
-                                    label={t('my_profile.form.country')}
-                                    value={isEditing ? formData.country : (profile?.country || '')}
-                                    readOnly={!isEditing}
-                                    onChange={e => setFormData({ ...formData, country: e.target.value })}
-                                    className={cn(!isEditing && "border-transparent bg-transparent pl-0 text-[var(--color-text-primary)] font-medium")}
-                                />
-                            </div>
-
-                            <div className="pt-6 border-t border-[var(--color-border)]">
-                                {isEditing ? (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-bold text-[var(--color-text-secondary)] flex items-center gap-2">
-                                                <Linkedin className="w-4 h-4 text-blue-600" /> {t('my_profile.form.linkedin')}
-                                            </label>
-                                            <Input
-                                                placeholder="https://linkedin.com/in/..."
-                                                value={formData.linkedinUrl}
-                                                onChange={e => setFormData({ ...formData, linkedinUrl: e.target.value })}
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-bold text-[var(--color-text-secondary)] flex items-center gap-2">
-                                                <Facebook className="w-4 h-4 text-blue-800" /> {t('my_profile.form.facebook')}
-                                            </label>
-                                            <Input
-                                                placeholder="https://facebook.com/..."
-                                                value={formData.facebookUrl}
-                                                onChange={e => setFormData({ ...formData, facebookUrl: e.target.value })}
-                                            />
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center gap-4">
-                                        {profile?.linkedinUrl ? (
-                                            <a
-                                                href={profile.linkedinUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="w-12 h-12 rounded-xl bg-blue-50 hover:bg-blue-100 flex items-center justify-center text-blue-600 shadow-sm transition-all duration-200 hover:scale-110 border border-blue-100"
-                                                title="LinkedIn Profile"
-                                            >
-                                                <Linkedin className="w-6 h-6" />
-                                            </a>
-                                        ) : (
-                                            <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-300 border border-[var(--color-border)] border-dashed cursor-not-allowed" title="LinkedIn not connected">
-                                                <Linkedin className="w-6 h-6" />
-                                            </div>
-                                        )}
-                                        {profile?.facebookUrl ? (
-                                            <a
-                                                href={profile.facebookUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="w-12 h-12 rounded-xl bg-blue-100/30 hover:bg-blue-100/50 flex items-center justify-center text-blue-800 shadow-sm transition-all duration-200 hover:scale-110 border border-blue-100"
-                                                title="Facebook Profile"
-                                            >
-                                                <Facebook className="w-6 h-6" />
-                                            </a>
-                                        ) : (
-                                            <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-300 border border-[var(--color-border)] border-dashed cursor-not-allowed" title="Facebook not connected">
-                                                <Facebook className="w-6 h-6" />
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
                 </div>
             </div>
+
+            <EditProfileModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                profile={profile}
+            />
         </div>
     );
 };

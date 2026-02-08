@@ -27,19 +27,22 @@ public class BlogAppService : AlumniAppService, IBlogAppService
     private readonly HtmlSanitizerService _sanitizer;
     private readonly IDistributedCache<CommentRateLimitCacheItem> _commentLimitCache;
     private readonly AlumniApplicationMappers _alumniMappers;
+    private readonly Volo.Abp.Identity.IIdentityUserRepository _userRepository;
 
     public BlogAppService(
         IPostRepository postRepository,
         IRepository<PostComment, Guid> commentRepository,
         HtmlSanitizerService sanitizer,
         IDistributedCache<CommentRateLimitCacheItem> commentLimitCache,
-        AlumniApplicationMappers alumniMappers)
+        AlumniApplicationMappers alumniMappers,
+        Volo.Abp.Identity.IIdentityUserRepository userRepository)
     {
         _postRepository = postRepository;
         _commentRepository = commentRepository;
         _sanitizer = sanitizer;
         _commentLimitCache = commentLimitCache;
         _alumniMappers = alumniMappers;
+        _userRepository = userRepository;
     }
 
     [Authorize(AlumniPermissions.Magazine.ManagePosts)]
@@ -48,10 +51,16 @@ public class BlogAppService : AlumniAppService, IBlogAppService
         var post = new BlogPost(
             GuidGenerator.Create(),
             input.Title,
+            input.Summary,
             _sanitizer.Sanitize(input.Content),
             CurrentUser.GetId(),
-            input.Category
-        ) { IsPublished = input.IsPublished };
+            input.Category,
+            input.Tags
+        )
+        {
+            IsPublished = input.IsPublished,
+            IsFeatured = input.IsFeatured
+        };
 
         await _postRepository.InsertAsync(post);
         return _alumniMappers.MapToDto(post);
@@ -62,26 +71,53 @@ public class BlogAppService : AlumniAppService, IBlogAppService
     {
         var post = await _postRepository.GetAsync(id);
         post.Title = input.Title;
+        post.Summary = input.Summary;
         post.Content = _sanitizer.Sanitize(input.Content);
         post.Category = input.Category;
+        post.Tags = input.Tags;
         post.IsPublished = input.IsPublished;
+        post.IsFeatured = input.IsFeatured;
 
         await _postRepository.UpdateAsync(post);
         return _alumniMappers.MapToDto(post);
     }
 
-    public async Task<BlogPostDto> GetPostAsync(Guid id)
+    [AllowAnonymous]
+    public async Task<BlogPostDto> GetAsync(Guid id)
     {
         var post = await _postRepository.GetAsync(id);
-        return _alumniMappers.MapToDto(post);
+        post.ViewCount++; // Increment view count
+        await _postRepository.UpdateAsync(post); // Save changes
+        
+        var dto = _alumniMappers.MapToDto(post);
+        var author = await _userRepository.FindAsync(post.AuthorId);
+        dto.AuthorName = author != null ? author.Name + " " + author.Surname : "Unknown";
+        
+        return dto;
     }
 
-    public async Task<PagedResultDto<BlogPostDto>> GetPostsAsync(PostSearchInputDto input)
+    [AllowAnonymous]
+    public async Task<PagedResultDto<BlogPostDto>> GetListAsync(PostSearchInputDto input)
     {
-        var count = await _postRepository.GetCountAsync(input.Category, input.Keyword, input.MinDate, input.MaxDate, true);
-        var items = await _postRepository.GetListAsync(input.Category, input.Keyword, input.MinDate, input.MaxDate, true, input.SkipCount, input.MaxResultCount, input.Sorting);
+        var count = await _postRepository.GetCountAsync(input.Category, input.Keyword, input.MinDate, input.MaxDate, true, input.IsFeatured, input.Tag);
+        var items = await _postRepository.GetListAsync(input.Category, input.Keyword, input.MinDate, input.MaxDate, true, input.IsFeatured, input.Tag, input.SkipCount, input.MaxResultCount, input.Sorting);
         
-        return new PagedResultDto<BlogPostDto>(count, _alumniMappers.MapToDtos(items));
+        var dtos = _alumniMappers.MapToDtos(items);
+
+        // Populate Author Names
+        var authorIds = items.Select(x => x.AuthorId).Distinct().ToList();
+        var authors = await _userRepository.GetListByIdsAsync(authorIds);
+        var authorDictionary = authors.ToDictionary(x => x.Id, x => x.Name + " " + x.Surname);
+
+        foreach (var dto in dtos)
+        {
+            if (authorDictionary.TryGetValue(dto.AuthorId, out var authorName))
+            {
+                dto.AuthorName = authorName;
+            }
+        }
+
+        return new PagedResultDto<BlogPostDto>(count, dtos);
     }
 
     [Authorize(AlumniPermissions.Magazine.ManagePosts)]

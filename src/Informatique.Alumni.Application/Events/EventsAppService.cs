@@ -785,7 +785,7 @@ public class EventsAppService : AlumniAppService, IEventsAppService
             Subject = input.Subject,
             Body = input.Body,
             AttachmentBlobNames = attachmentBlobNames,
-            SenderUserId = CurrentUser.Id.Value
+            SenderUserId = CurrentUser.Id ?? Guid.Empty
         };
 
         // 5. Enqueue background job

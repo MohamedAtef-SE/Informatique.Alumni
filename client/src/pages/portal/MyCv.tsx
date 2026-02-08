@@ -21,7 +21,7 @@ const MyCv = () => {
     });
 
     const { control, register, handleSubmit, reset, formState: { isDirty, errors } } = useForm<CvFormData>({
-        resolver: zodResolver(cvSchema),
+        resolver: zodResolver(cvSchema) as any,
         defaultValues: {
             summary: '',
             isLookingForJob: false,
@@ -71,7 +71,7 @@ const MyCv = () => {
                         </p>
                     </div>
                     <Button
-                        onClick={handleSubmit(onSubmit)}
+                        onClick={handleSubmit(onSubmit as any)}
                         disabled={updateMutation.isPending || !isDirty}
                         className="shadow-lg"
                     >

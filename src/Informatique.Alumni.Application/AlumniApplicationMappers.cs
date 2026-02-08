@@ -79,6 +79,7 @@ public partial class AlumniApplicationMappers : ITransientDependency
     public partial List<MagazineIssueDto> MapToDtos(IEnumerable<MagazineIssue> entities);
 
     [MapProperty(nameof(BlogPost.CoverImageBlobName), nameof(BlogPostDto.CoverImageUrl))]
+    [MapperIgnoreTarget(nameof(BlogPostDto.AuthorName))]
     public partial BlogPostDto MapToDto(BlogPost entity);
     public partial List<BlogPostDto> MapToDtos(IEnumerable<BlogPost> entities);
 

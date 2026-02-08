@@ -20,8 +20,8 @@ public interface IBlogAppService : IApplicationService
 {
     Task<BlogPostDto> CreatePostAsync(CreateUpdateBlogPostDto input);
     Task<BlogPostDto> UpdatePostAsync(Guid id, CreateUpdateBlogPostDto input);
-    Task<BlogPostDto> GetPostAsync(Guid id);
-    Task<PagedResultDto<BlogPostDto>> GetPostsAsync(PostSearchInputDto input);
+    Task<BlogPostDto> GetAsync(Guid id);
+    Task<PagedResultDto<BlogPostDto>> GetListAsync(PostSearchInputDto input);
     Task DeletePostAsync(Guid id);
 
     Task<PostCommentDto> AddCommentAsync(Guid postId, CreatePostCommentDto input);
@@ -34,6 +34,8 @@ public class PostSearchInputDto : PagedAndSortedResultRequestDto
 {
     public string? Category { get; set; }
     public string? Keyword { get; set; }
+    public bool? IsFeatured { get; set; }
+    public string? Tag { get; set; }
     public DateTime? MinDate { get; set; }
     public DateTime? MaxDate { get; set; }
 }
