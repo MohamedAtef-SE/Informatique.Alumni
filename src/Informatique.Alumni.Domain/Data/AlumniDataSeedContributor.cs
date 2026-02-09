@@ -3,6 +3,7 @@ using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Identity;
 using Volo.Abp.Domain.Repositories;
+using System.Linq;
 
 namespace Informatique.Alumni.Data;
 
@@ -91,27 +92,61 @@ public class AlumniDataSeedContributor : IDataSeedContributor, ITransientDepende
 
     private async Task SeedBranchesAsync()
     {
-        System.Console.WriteLine("--- FORCING BRANCH SEEDING ---");
-        // if (await _branchRepository.GetCountAsync() > 0)
-        // {
-        //     return;
-        // }
+        System.Console.WriteLine("--- MANAGING BRANCH SEEDING ---");
 
-        var cairoBranch = new Informatique.Alumni.Branches.Branch(
-            _guidGenerator.Create(),
-            "Makram Ebeid (HQ)",
-            "HQ-01",
-            "Nasr City, Cairo"
-        );
+        // 1. Initial Cleanup
+        await DeduplicateBranchesAsync();
 
-        var alexBranch = new Informatique.Alumni.Branches.Branch(
-            _guidGenerator.Create(),
-            "Alexandria Office",
-            "ALX-01",
-            "Smouha, Alexandria"
-        );
+        // 2. Seed missing branches
+        if (!await _branchRepository.AnyAsync(x => x.Name == "Makram Ebeid (HQ)"))
+        {
+            var cairoBranch = new Informatique.Alumni.Branches.Branch(
+                _guidGenerator.Create(),
+                "Makram Ebeid (HQ)",
+                "HQ-01",
+                "Nasr City, Cairo"
+            );
+            await _branchRepository.InsertAsync(cairoBranch);
+            System.Console.WriteLine("--- SEEDED 'Makram Ebeid (HQ)' ---");
+        }
 
-        await _branchRepository.InsertAsync(cairoBranch);
-        await _branchRepository.InsertAsync(alexBranch);
+        if (!await _branchRepository.AnyAsync(x => x.Name == "Alexandria Office"))
+        {
+            var alexBranch = new Informatique.Alumni.Branches.Branch(
+                _guidGenerator.Create(),
+                "Alexandria Office",
+                "ALX-01",
+                "Smouha, Alexandria"
+            );
+            await _branchRepository.InsertAsync(alexBranch);
+             System.Console.WriteLine("--- SEEDED 'Alexandria Office' ---");
+        }
+
+        // 3. Final Cleanup (Safety Net)
+        // Check again to ensure no duplicates were introduced or missed
+        await DeduplicateBranchesAsync();
+    }
+
+    private async Task DeduplicateBranchesAsync()
+    {
+        var allBranches = await _branchRepository.GetListAsync();
+        var duplicates = allBranches
+            .GroupBy(b => b.Name)
+            .Where(g => g.Count() > 1)
+            .ToList();
+
+        if (duplicates.Any())
+        {
+            System.Console.WriteLine($"--- FOUND {duplicates.Count} DUPLICATE BRANCH GROUPS. CLEANING UP... ---");
+            foreach (var group in duplicates)
+            {
+                // Keep the one created first (assuming the first one in the list is the oldest or valid)
+                var toKeep = group.OrderBy(b => b.CreationTime).First();
+                var toDelete = group.Where(b => b.Id != toKeep.Id).ToList();
+
+                await _branchRepository.DeleteManyAsync(toDelete);
+                System.Console.WriteLine($"--- DELETED {toDelete.Count} DUPLICATES OF '{group.Key}' ---");
+            }
+        }
     }
 }

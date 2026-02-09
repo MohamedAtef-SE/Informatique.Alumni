@@ -13,5 +13,5 @@ public interface ICertificateDefinitionAppService :
         CreateCertificateDefinitionDto, 
         UpdateCertificateDefinitionDto>
 {
-    Task<ListResultDto<CertificateDefinitionDto>> GetAvailableAsync();
+    Task<CertificateAvailabilityDto> GetAvailableAsync();
 }

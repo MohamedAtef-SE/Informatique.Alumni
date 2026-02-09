@@ -208,6 +208,20 @@ public class MembershipManager : DomainService
     }
 
     /// <summary>
+    /// Business Logic: STRICT Membership Validity Check (Status + Expiry Date)
+    /// </summary>
+    public async Task<bool> IsMembershipValidAsync(Guid alumniId)
+    {
+        var now = Clock.Now;
+        
+        return await _requestRepository.AnyAsync(x => 
+            x.AlumniId == alumniId && 
+            x.Status == MembershipRequestStatus.Approved && 
+            x.ValidityEndDate >= now
+        );
+    }
+
+    /// <summary>
     /// Business Logic: Retrieve Card Print Data (Last Qualification Rule)
     /// </summary>
     public async Task<(AssociationRequest Request, Informatique.Alumni.Profiles.AlumniProfile Profile, Informatique.Alumni.Profiles.Education? Education)> GetCardDataAsync(Guid requestId)

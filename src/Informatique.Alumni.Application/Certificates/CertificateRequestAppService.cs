@@ -8,6 +8,7 @@ using Informatique.Alumni.Profiles;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
+using Volo.Abp.Domain.Entities;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Users;
 
@@ -20,6 +21,7 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
     private readonly IRepository<CertificateDefinition, Guid> _definitionRepository;
     private readonly IRepository<Branch, Guid> _branchRepository;
     private readonly IRepository<Education, Guid> _educationRepository;
+    private readonly IRepository<AlumniProfile, Guid> _alumniProfileRepository;
     private readonly CertificateManager _certificateManager;
     private readonly AlumniApplicationMappers _alumniMappers;
 
@@ -28,6 +30,7 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
         IRepository<CertificateDefinition, Guid> definitionRepository,
         IRepository<Branch, Guid> branchRepository,
         IRepository<Education, Guid> educationRepository,
+        IRepository<AlumniProfile, Guid> alumniProfileRepository,
         CertificateManager certificateManager,
         AlumniApplicationMappers alumniMappers)
     {
@@ -35,6 +38,7 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
         _definitionRepository = definitionRepository;
         _branchRepository = branchRepository;
         _educationRepository = educationRepository;
+        _alumniProfileRepository = alumniProfileRepository;
         _certificateManager = certificateManager;
         _alumniMappers = alumniMappers;
     }
@@ -42,7 +46,14 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
     [Authorize]
     public async Task<CertificateRequestDto> GetAsync(Guid id)
     {
-        var entity = await _repository.GetAsync(id);
+        var queryable = await _repository.WithDetailsAsync(x => x.Items);
+        var entity = await AsyncExecuter.FirstOrDefaultAsync(queryable, x => x.Id == id);
+        
+        if (entity == null)
+        {
+             throw new EntityNotFoundException(typeof(CertificateRequest), id);
+        }
+
         var dto = _alumniMappers.MapToDto(entity);
         
         // Populate item names
@@ -82,7 +93,7 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
         // If currentUserBranchId is null (SuperAdmin), allow filtering by any branch (use input.BranchId as-is)
 
         // ========== Build Query with Filtering ==========
-        var queryable = await _repository.GetQueryableAsync();
+        var queryable = await _repository.WithDetailsAsync(x => x.Items);
 
         // Branch filter (security-enforced)
         if (effectiveBranchId.HasValue)
@@ -90,12 +101,26 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
             queryable = queryable.Where(x => x.TargetBranchId == effectiveBranchId.Value);
         }
 
-        // Graduation Year filter
+
         if (input.GraduationYear.HasValue)
         {
-            // Note: This requires joining with Education/AlumniProfile
-            // For now, we'll skip complex joins. You can enhance this with Include/Join as needed.
-            // queryable = queryable.Where(x => x.AlumniProfile.GraduationYear == input.GraduationYear);
+            // Business Rule: Filter requests by Alumni's graduation year
+            // Optimization: Get relevant AlumniIds first
+            // Education -> AlumniProfile -> UserId (AlumniId)
+            var educations = await _educationRepository.GetListAsync(x => x.GraduationYear == input.GraduationYear.Value);
+            var profileIds = educations.Select(x => x.AlumniProfileId).Distinct().ToList();
+            
+            if (profileIds.Any())
+            {
+                var profiles = await _alumniProfileRepository.GetListAsync(x => profileIds.Contains(x.Id));
+                var distinctAlumniIds = profiles.Select(x => x.UserId).Distinct().ToList();
+                queryable = queryable.Where(x => distinctAlumniIds.Contains(x.AlumniId));
+            }
+            else
+            {
+                 // No matches found
+                 queryable = queryable.Where(x => false);
+            }
         }
 
         // Delivery Method filter (Office vs Home)

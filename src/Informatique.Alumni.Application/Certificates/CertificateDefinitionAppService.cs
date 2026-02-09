@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Informatique.Alumni.Permissions;
 using Microsoft.AspNetCore.Authorization;
@@ -12,29 +13,33 @@ namespace Informatique.Alumni.Certificates;
 /// Application service for Certificate Definition management.
 /// Uses CertificateDefinitionManager for business rule enforcement.
 /// </summary>
-[Authorize(AlumniPermissions.Certificates.ManageDefinitions)]
 public class CertificateDefinitionAppService : ApplicationService, ICertificateDefinitionAppService
 {
     private readonly IRepository<CertificateDefinition, Guid> _repository;
     private readonly CertificateDefinitionManager _definitionManager;
+    private readonly Informatique.Alumni.Membership.MembershipManager _membershipManager;
     private readonly AlumniApplicationMappers _mappers;
 
     public CertificateDefinitionAppService(
         IRepository<CertificateDefinition, Guid> repository,
         CertificateDefinitionManager definitionManager,
+        Informatique.Alumni.Membership.MembershipManager membershipManager,
         AlumniApplicationMappers mappers)
     {
         _repository = repository;
         _definitionManager = definitionManager;
+        _membershipManager = membershipManager;
         _mappers = mappers;
     }
 
+    [Authorize(AlumniPermissions.Certificates.ManageDefinitions)]
     public async Task<CertificateDefinitionDto> GetAsync(Guid id)
     {
         var entity = await _repository.GetAsync(id);
         return _mappers.MapToDto(entity);
     }
 
+    [Authorize(AlumniPermissions.Certificates.ManageDefinitions)]
     public async Task<PagedResultDto<CertificateDefinitionDto>> GetListAsync(PagedAndSortedResultRequestDto input)
     {
         var totalCount = await _repository.GetCountAsync();
@@ -48,6 +53,7 @@ public class CertificateDefinitionAppService : ApplicationService, ICertificateD
     /// Create certificate definition with scoped uniqueness validation.
     /// Uses domain manager to enforce: Names must be unique per DegreeType.
     /// </summary>
+    [Authorize(AlumniPermissions.Certificates.ManageDefinitions)]
     public async Task<CertificateDefinitionDto> CreateAsync(CreateCertificateDefinitionDto input)
     {
         var entity = await _definitionManager.CreateAsync(
@@ -66,6 +72,7 @@ public class CertificateDefinitionAppService : ApplicationService, ICertificateD
     /// Update certificate definition with scoped uniqueness validation.
     /// Uses domain manager to enforce: Names must be unique per DegreeType (excluding self).
     /// </summary>
+    [Authorize(AlumniPermissions.Certificates.ManageDefinitions)]
     public async Task<CertificateDefinitionDto> UpdateAsync(Guid id, UpdateCertificateDefinitionDto input)
     {
         var entity = await _repository.GetAsync(id);
@@ -87,19 +94,45 @@ public class CertificateDefinitionAppService : ApplicationService, ICertificateD
     /// Delete certificate definition with referential integrity check.
     /// Uses domain manager to prevent deletion if certificate is in use.
     /// </summary>
+    [Authorize(AlumniPermissions.Certificates.ManageDefinitions)]
     public async Task DeleteAsync(Guid id)
     {
         await _definitionManager.DeleteAsync(id);
     }
     /// <summary>
     /// Public/Alumni endpoint to get available certificate definitions for connection.
+    /// Returns eligibility status and list of certificates if eligible.
     /// </summary>
-    [Authorize]
-    public async Task<ListResultDto<CertificateDefinitionDto>> GetAvailableAsync()
+    [Authorize(AlumniPermissions.Certificates.Request)]
+    public async Task<CertificateAvailabilityDto> GetAvailableAsync()
     {
+        var currentUserId = CurrentUser.Id;
+        if (!currentUserId.HasValue)
+        {
+            throw new Volo.Abp.Authorization.AbpAuthorizationException("User must be logged in.");
+        }
+
+        // Check if user has ACTIVE membership
+        var isEligible = await _membershipManager.IsMembershipValidAsync(currentUserId.Value);
+
+        if (!isEligible)
+        {
+            return new CertificateAvailabilityDto
+            {
+                IsEligible = false,
+                IneligibilityReason = "Membership Required or Expired",
+                Items = new List<CertificateDefinitionDto>()
+            };
+        }
+
         var entities = await _repository.GetListAsync();
         // Optional: Filter by active/available if such a property exists
         var dtos = _mappers.MapToDtos(entities);
-        return new ListResultDto<CertificateDefinitionDto>(dtos);
+        
+        return new CertificateAvailabilityDto
+        {
+            IsEligible = true,
+            Items = dtos
+        };
     }
 }

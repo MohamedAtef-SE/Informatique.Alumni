@@ -82,6 +82,14 @@ public class AlumniDomainModule : AbpModule
                     fileSystem.BasePath = "D:\\AlumniBlobs";
                 });
             });
+
+            options.Containers.Configure<Informatique.Alumni.Syndicates.SyndicateBlobContainer>(container =>
+            {
+                container.UseFileSystem(fileSystem =>
+                {
+                    fileSystem.BasePath = @"D:\AlumniBlobs";
+                });
+            });
         });
 
 

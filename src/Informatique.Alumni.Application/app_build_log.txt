@@ -1,0 +1,20 @@
+  Determining projects to restore...
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1902: Package 'HtmlSanitizer' 9.0.889 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-j92c-7v7g-gj3f
+  All projects are up-to-date for restore.
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1902: Package 'HtmlSanitizer' 9.0.889 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-j92c-7v7g-gj3f
+  Informatique.Alumni.Domain.Shared -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain.Shared\bin\Debug\net10.0\Informatique.Alumni.Domain.Shared.dll
+  Informatique.Alumni.Domain -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\bin\Debug\net10.0\Informatique.Alumni.Domain.dll
+  Informatique.Alumni.Application.Contracts -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\bin\Debug\net10.0\Informatique.Alumni.Application.Contracts.dll
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Certificates\CertificateRequestAppService.cs(209,5): error CS0106: The modifier 'public' is not valid for this item [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Certificates\CertificateRequestAppService.cs(219,6): error CS1513: } expected [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+
+Build FAILED.
+
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1902: Package 'HtmlSanitizer' 9.0.889 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-j92c-7v7g-gj3f
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1902: Package 'HtmlSanitizer' 9.0.889 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-j92c-7v7g-gj3f
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Certificates\CertificateRequestAppService.cs(209,5): error CS0106: The modifier 'public' is not valid for this item [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Certificates\CertificateRequestAppService.cs(219,6): error CS1513: } expected [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+    2 Warning(s)
+    2 Error(s)
+
+Time Elapsed 00:00:01.76

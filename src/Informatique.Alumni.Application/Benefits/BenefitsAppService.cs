@@ -36,7 +36,7 @@ public class BenefitsAppService : AlumniAppService, IBenefitsAppService
         _alumniMappers = alumniMappers;
     }
 
-    [Authorize(AlumniPermissions.Benefits.View)]
+    [Authorize]
     public async Task<PagedResultDto<AcademicGrantDto>> GetGrantsAsync(PagedAndSortedResultRequestDto input)
     {
         var count = await _grantRepository.GetCountAsync();
@@ -78,7 +78,7 @@ public class BenefitsAppService : AlumniAppService, IBenefitsAppService
         await _grantRepository.DeleteAsync(id);
     }
 
-    [Authorize(AlumniPermissions.Benefits.View)]
+    [Authorize]
     public async Task<PagedResultDto<CommercialDiscountDto>> GetDiscountsAsync(PagedAndSortedResultRequestDto input)
     {
         var count = await _discountRepository.GetCountAsync();

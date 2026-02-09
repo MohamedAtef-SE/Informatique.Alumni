@@ -152,7 +152,7 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
     private async Task SeedMultipleAlumniAsync()
     {
         // Check if we already have enough users. If total > 25 (admin + dev + real + extras), skip.
-    // if (await _userRepository.GetCountAsync() > 25) return;
+        if (await _userRepository.GetCountAsync() > 25) return;
 
         var random = new Random();
         var firstNames = new[] { "Ahmed", "Mohamed", "Omar", "Hassan", "Youssef", "Ali", "Mostafa", "Khaled", "Amr", "Tarek", "Sara", "Nour", "Mona", "Aya", "Fatma", "Mariam", "Salma", "Dina", "Heba", "Rania" };
@@ -375,6 +375,15 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
             realUser.Surname = "Alumni";
             await _userManager.UpdateAsync(realUser);
             Console.WriteLine("--- FIXED NAME FOR real_alumni1 ---");
+        }
+
+        // 4. Update Syndicate Name from Arabic to English
+        var arabicSyndicate = await _syndicateRepository.FirstOrDefaultAsync(s => s.Name == "نقابة المهندسين");
+        if (arabicSyndicate != null)
+        {
+            arabicSyndicate.Update("Engineering Syndicate", "Official Syndicate for Engineers", arabicSyndicate.Requirements, arabicSyndicate.Fee);
+            await _syndicateRepository.UpdateAsync(arabicSyndicate);
+            Console.WriteLine("--- UPDATED SYNDICATE NAME TO ENGLISH ---");
         }
     }
 
@@ -930,19 +939,16 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
         }
 
         // 2. Syndicates
+        // 2. Syndicates
         if (await _syndicateRepository.GetCountAsync() == 0)
         {
-            var syn = new Syndicate(_guidGenerator.Create(), "نقابة المهندسين", "Engineers Syndicate", "ID, Graduation Certificate");
+            var syn = new Syndicate(_guidGenerator.Create(), "Engineering Syndicate", "Official Syndicate for Engineers", "ID, Graduation Certificate", 150);
             await _syndicateRepository.InsertAsync(syn);
         }
 
         // 3. Health
-        if (await _medicalPartnerRepository.GetCountAsync() == 0)
-        {
-            var partner = new MedicalPartner(_guidGenerator.Create(), "Al-Salam Hospital", MedicalPartnerType.Hospital, "Cairo, Maadi", "19999");
-            partner.AddOffer(_guidGenerator.Create(), "General Checkup", "50% Discount on Checkups", "CHECK50");
-            await _medicalPartnerRepository.InsertAsync(partner);
-        }
+        // 3. Health
+        await SeedHealthDataAsync();
 
         // 4. Career Services
         await SeedCareerServicesAsync();
@@ -1183,6 +1189,14 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
         await _permissionManager.SetForRoleAsync(roleName, AlumniPermissions.Membership.Request, true);
         await _permissionManager.SetForRoleAsync(roleName, AlumniPermissions.Benefits.Default, true);
         await _permissionManager.SetForRoleAsync(roleName, AlumniPermissions.Benefits.View, true);
+        
+        // Syndicates
+        await _permissionManager.SetForRoleAsync(roleName, AlumniPermissions.Syndicates.Default, true);
+        await _permissionManager.SetForRoleAsync(roleName, AlumniPermissions.Syndicates.Apply, true);
+
+        // Health
+        await _permissionManager.SetForRoleAsync(roleName, AlumniPermissions.Health.Default, true);
+        await _permissionManager.SetForRoleAsync(roleName, AlumniPermissions.Health.ViewOffers, true);
     }
 
     /// <summary>
@@ -1296,8 +1310,169 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
         await _magazineRepository.InsertAsync(issue2);
     }
 
+    private async Task SeedHealthDataAsync()
+    {
+        // Check if ANY health data exists. If so, strict check per item.
+        // If not, proceed.
+        // Actually, let's just check for specific names to avoid duplicates.
+        
+        // 1. Pharmacies
+        if (!await _medicalPartnerRepository.AnyAsync(x => x.Name == "El Ezaby Pharmacy"))
+        {
+            var elEzaby = new MedicalPartner(_guidGenerator.Create(), "El Ezaby Pharmacy", MedicalPartnerType.Pharmacy, "Maadi, Cairo", "19600")
+            {
+                Description = "Leading pharmacy chain in Egypt providing medicines, cosmetics, and medical devices.",
+                Website = "https://elezabypharmacy.com"
+            };
+            elEzaby.SetPremiumDetails(
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/El_Ezaby_Pharmacy_Logo.jpg/800px-El_Ezaby_Pharmacy_Logo.jpg",
+                "Cairo", "Maadi", "Pharmacy", "info@elezaby.com", "19600"
+            );
+            elEzaby.AddOffer(_guidGenerator.Create(), "General Discount", "15% off on local meds, 5% on imported.", "ALUMNI15");
+            await _medicalPartnerRepository.InsertAsync(elEzaby);
+        }
 
+        if (!await _medicalPartnerRepository.AnyAsync(x => x.Name == "Seif Pharmacies"))
+        {
+            var seif = new MedicalPartner(_guidGenerator.Create(), "Seif Pharmacies", MedicalPartnerType.Pharmacy, "Nasr City, Cairo", "19111")
+            {
+                Description = "Your trusted healthcare partner tailored for your needs.",
+                Website = "https://seifpharmacies.com"
+            };
+            seif.SetPremiumDetails(
+                "https://images.wuzzuf-data.net/files/company_logo/Seif-Pharmacies-Egypt-4389-1539607878.png",
+                "Cairo", "Nasr City", "Pharmacy", "contact@seif.com", "19111"
+            );
+            seif.AddOffer(_guidGenerator.Create(), "Cosmetics Deal", "20% off on skin care products.", "SEIF20");
+            await _medicalPartnerRepository.InsertAsync(seif);
+        }
 
+        // 2. Hospitals
+        if (!await _medicalPartnerRepository.AnyAsync(x => x.Name == "Dar Al Fouad Hospital"))
+        {
+            var darAlFouad = new MedicalPartner(_guidGenerator.Create(), "Dar Al Fouad Hospital", MedicalPartnerType.Hospital, "6th of October, Giza", "16370")
+            {
+                Description = "Accredited by JCAHO, providing world-class medical care in Egypt.",
+                Website = "https://daralfouad.org"
+            };
+            darAlFouad.SetPremiumDetails(
+                "https://upload.wikimedia.org/wikipedia/commons/1/1a/Dar_Al_Fouad_Hospital_Logo.png",
+                "Giza", "6th of October", "Hospital", "info@daralfouad.org", "16370"
+            );
+            darAlFouad.AddOffer(_guidGenerator.Create(), "Inpatient Service", "10% discount on room rates.", "DAF10");
+            darAlFouad.AddOffer(_guidGenerator.Create(), "ER Services", "Priority admission + 5% discount.", "DAF-ER");
+            await _medicalPartnerRepository.InsertAsync(darAlFouad);
+        }
+
+        // 3. Labs
+        if (!await _medicalPartnerRepository.AnyAsync(x => x.Name == "Al Borg Laboratories"))
+        {
+            var alBorg = new MedicalPartner(_guidGenerator.Create(), "Al Borg Laboratories", MedicalPartnerType.Lab, "Dokki, Giza", "19911")
+            {
+                Description = "The largest private medical laboratory chain in the Middle East.",
+                Website = "https://alborglab.com"
+            };
+            alBorg.SetPremiumDetails(
+                "https://upload.wikimedia.org/wikipedia/ar/d/d4/Al_Borg_Laboratories_logo.png",
+                "Giza", "Dokki", "Laboratories", "results@alborg.com", "19911"
+            );
+            alBorg.AddOffer(_guidGenerator.Create(), "Routine Tests", "30% discount on all routine blood tests.", "BORG30");
+            await _medicalPartnerRepository.InsertAsync(alBorg);
+        }
+        
+        // 4. Dental
+        if (!await _medicalPartnerRepository.AnyAsync(x => x.Name == "Whity Dental Clinic"))
+        {
+            var whityDental = new MedicalPartner(_guidGenerator.Create(), "Whity Dental Clinic", MedicalPartnerType.Clinic, "New Cairo, Cairo", "01000000000")
+            {
+                Description = "Premier dental care specializing in implants and hollywood smile."
+            };
+            whityDental.SetPremiumDetails(
+                null, // Placeholder
+                "Cairo", "New Cairo", "Dental", "dr.whity@dental.com", "0100223344"
+            );
+            whityDental.AddOffer(_guidGenerator.Create(), "Cleaning & Polishing", "Flat rate of 500 EGP.", "CLEAN500");
+            await _medicalPartnerRepository.InsertAsync(whityDental);
+        }
+
+        // 5. Optics
+        if (!await _medicalPartnerRepository.AnyAsync(x => x.Name == "Magrabi Optical"))
+        {
+            var magrabi = new MedicalPartner(_guidGenerator.Create(), "Magrabi Optical", MedicalPartnerType.Other, "Heliopolis, Cairo", "19000")
+            {
+                Description = "Leading eyewear retailer and eye care provider.",
+                Website = "https://magrabi.com"
+            };
+            magrabi.SetPremiumDetails(
+                "https://upload.wikimedia.org/wikipedia/commons/e/e6/Magrabi_Hospitals_%26_Centers_Logo.jpg",
+                "Cairo", "Heliopolis", "Optical", "sales@magrabi.com", "19000"
+            );
+            magrabi.AddOffer(_guidGenerator.Create(), "Sun Glasses", "Buy 1 Get 1 Free on selected brands.", "SUN24");
+            await _medicalPartnerRepository.InsertAsync(magrabi);
+        }
+
+        // 6. Additional Data for Search Testing
+        // Alexandria Pharmacy
+        var alexPharmacy = new MedicalPartner(_guidGenerator.Create(), "Alexandria Grand Pharmacy", MedicalPartnerType.Pharmacy, "Sidi Gaber, Alexandria", "03-5555555")
+        {
+            Description = "The biggest pharmacy in Alexandria with 24/7 delivery."
+        };
+        alexPharmacy.SetPremiumDetails(
+            null, 
+            "Alexandria", "Sidi Gaber", "Pharmacy", "order@alexpharm.com", "03-5555555"
+        );
+        alexPharmacy.AddOffer(_guidGenerator.Create(), "Free Delivery", "Free delivery on all orders above 200 EGP.", "ALEXFREE");
+        await _medicalPartnerRepository.InsertAsync(alexPharmacy);
+
+        // Saudi German Hospital (Cairo)
+        var sgh = new MedicalPartner(_guidGenerator.Create(), "Saudi German Hospital", MedicalPartnerType.Hospital, "Sheraton, Cairo", "16259")
+        {
+            Description = "Part of the largest private hospital group in the MENA region.",
+            Website = "https://sghkairocairo.com"
+        };
+        sgh.SetPremiumDetails(
+            "https://upload.wikimedia.org/wikipedia/commons/e/e8/Saudi_German_Hospital_Group_Logo.jpg",
+            "Cairo", "Sheraton", "Hospital", "info.cairo@sghgroup.net", "16259"
+        );
+        sgh.AddOffer(_guidGenerator.Create(), "Checkup Package", "Comprehensive full body checkup for 1500 EGP.", "CHECKUP1500");
+        await _medicalPartnerRepository.InsertAsync(sgh);
+
+        // Andalusia Hospital (Alexandria)
+        var andalusia = new MedicalPartner(_guidGenerator.Create(), "Andalusia Hospital Smouha", MedicalPartnerType.Hospital, "Smouha, Alexandria", "16781")
+        {
+            Description = "Top rated hospital in Alexandria specializing in cardiology and orthopedics."
+        };
+        andalusia.SetPremiumDetails(
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Andalusia_Hospitals_Logo.png/800px-Andalusia_Hospitals_Logo.png",
+            "Alexandria", "Smouha", "Hospital", "smouha@andalusiagroup.net", "16781"
+        );
+        andalusia.AddOffer(_guidGenerator.Create(), "Dental Discount", "25% off on all dental procedures.", "SMILE25");
+        await _medicalPartnerRepository.InsertAsync(andalusia);
+
+        // Alfa Labs (Giza)
+        var alfaLab = new MedicalPartner(_guidGenerator.Create(), "Alfa Laboratories", MedicalPartnerType.Lab, "Mohandessin, Giza", "16191")
+        {
+            Description = "Trusted results with the latest technology in medical analysis."
+        };
+        alfaLab.SetPremiumDetails(
+            "https://upload.wikimedia.org/wikipedia/commons/f/f5/Alfa_Laboratories_Logo.jpg",
+            "Giza", "Mohandessin", "Lab", "info@alfalab.com", "16191"
+        );
+        alfaLab.AddOffer(_guidGenerator.Create(), "Home Visit", "Free home visit sample collection.", "HOMEFREE");
+        await _medicalPartnerRepository.InsertAsync(alfaLab);
+
+         // Baraka Optics (Cairo)
+        var baraka = new MedicalPartner(_guidGenerator.Create(), "Baraka Optics", MedicalPartnerType.Other, "City Stars, Cairo", "19000")
+        {
+            Description = "Fashion eyewear and precision lenses."
+        };
+        baraka.SetPremiumDetails(
+            "https://barakaoptics.com/media/logo/stores/1/Baraka_Logo_1.png",
+            "Cairo", "Nasr City", "Optical", "sales@barakaoptics.com", "19999"
+        );
+         baraka.AddOffer(_guidGenerator.Create(), "Frames Discount", "30% off on RayBan and Oakley frames.", "FRAMES30");
+        await _medicalPartnerRepository.InsertAsync(baraka);
+    }
 }
 
 

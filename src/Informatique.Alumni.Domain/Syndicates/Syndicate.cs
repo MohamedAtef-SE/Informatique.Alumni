@@ -10,21 +10,25 @@ public class Syndicate : AggregateRoot<Guid>
     public string Description { get; private set; } = string.Empty;
     public string Requirements { get; private set; } = string.Empty; // Comma separated list of required doc names eg: "ID,License,GraduationCertificate"
 
+    public decimal Fee { get; private set; }
+
     private Syndicate() { }
 
-    public Syndicate(Guid id, string name, string description, string requirements)
+    public Syndicate(Guid id, string name, string description, string requirements, decimal fee)
         : base(id)
     {
         SetName(name);
         SetDescription(description);
         SetRequirements(requirements);
+        SetFee(fee);
     }
     
-    public void Update(string name, string description, string requirements)
+    public void Update(string name, string description, string requirements, decimal fee)
     {
         SetName(name);
         SetDescription(description);
         SetRequirements(requirements);
+        SetFee(fee);
     }
 
     private void SetName(string name)
@@ -40,5 +44,10 @@ public class Syndicate : AggregateRoot<Guid>
     private void SetRequirements(string requirements)
     {
          Requirements = Check.NotNull(requirements, nameof(requirements));
+    }
+
+    private void SetFee(decimal fee)
+    {
+        Fee = fee >= 0 ? fee : 0;
     }
 }

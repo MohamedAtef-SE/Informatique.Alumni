@@ -12,6 +12,15 @@ public class MedicalPartner : FullAuditedAggregateRoot<Guid>
     public string Address { get; set; } = string.Empty;
     public string ContactNumber { get; set; } = string.Empty;
     public string? Website { get; set; }
+    
+    // New Fields for Premium Look
+    public string? LogoUrl { get; set; }
+    public string? City { get; set; }
+    public string? Region { get; set; }
+    public string? Category { get; set; } // Detailed category e.g. "Dental", "Derma"
+    public string? Email { get; set; }
+    public string? HotlineNumber { get; set; }
+
     public bool IsActive { get; set; } = true;
 
     public ICollection<MedicalOffer> Offers { get; private set; }
@@ -29,6 +38,16 @@ public class MedicalPartner : FullAuditedAggregateRoot<Guid>
         Address = address;
         ContactNumber = contactNumber;
         Offers = new List<MedicalOffer>();
+    }
+
+    public void SetPremiumDetails(string? logoUrl, string? city, string? region, string? category, string? email, string? hotline)
+    {
+        LogoUrl = logoUrl;
+        City = city;
+        Region = region;
+        Category = category;
+        Email = email;
+        HotlineNumber = hotline;
     }
 
     public void AddOffer(Guid offerId, string title, string detail, string? discountCode = null)

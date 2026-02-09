@@ -60,6 +60,7 @@ export interface CardPrintDto {
     collegeName: string;
     majorName: string;
     gradYear: number;
+    isActive: boolean;
 }
 
 export interface UpdateStatusDto {

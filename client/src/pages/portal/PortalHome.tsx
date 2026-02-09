@@ -162,33 +162,7 @@ const PortalHome = () => {
                 </motion.div>
             </section>
 
-            {/* Upcoming Events Section */}
-            <section className="py-24 bg-slate-50 relative overflow-hidden">
-                <div className="container mx-auto px-4 lg:px-8 relative z-10">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: false, amount: 0.25 }}
-                        className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12"
-                    >
-                        <div>
-                            <h2 className="text-3xl md:text-5xl font-bold text-[var(--color-text-primary)] mb-4">
-                                {t('events.title')}
-                            </h2>
-                            <p className="text-[var(--color-text-secondary)] max-w-2xl">
-                                {t('events.subtitle')}
-                            </p>
-                        </div>
-                        <Link to="/portal/events">
-                            <Button variant="outline" className="group rounded-full px-8">
-                                {t('home.view_all_events')} <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform ml-2 rtl:rotate-180 rtl:group-hover:-translate-x-1 rtl:ml-0 rtl:mr-2" />
-                            </Button>
-                        </Link>
-                    </motion.div>
 
-                    <UpcomingEventsList />
-                </div>
-            </section>
 
             {/* About Our Alumni Section */}
             <section className="py-24 relative overflow-hidden bg-white">

@@ -4,6 +4,7 @@ import { magazineService } from '../../services/magazineService';
 import { BookOpen, Download } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
+import { MembershipGuard } from '../../components/common/MembershipGuard';
 
 const Magazine = () => {
     const { t, i18n } = useTranslation();
@@ -49,13 +50,14 @@ const Magazine = () => {
                                 {issue.title}
                             </h3>
                             <div className="mt-auto">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => handleDownload(issue.id, issue.title)}
-                                    className="w-full flex items-center justify-center gap-2 group-hover:bg-[var(--color-accent)] group-hover:text-white group-hover:border-[var(--color-accent)] transition-all"
-                                >
-                                    <Download className="w-4 h-4" /> {t('magazine.download_pdf')}
-                                </Button>
+                                <MembershipGuard onActive={() => handleDownload(issue.id, issue.title)}>
+                                    <Button
+                                        variant="outline"
+                                        className="w-full flex items-center justify-center gap-2 group-hover:bg-[var(--color-accent)] group-hover:text-white group-hover:border-[var(--color-accent)] transition-all"
+                                    >
+                                        <Download className="w-4 h-4" /> {t('magazine.download_pdf')}
+                                    </Button>
+                                </MembershipGuard>
                             </div>
                         </div>
                     </Card>
@@ -72,3 +74,4 @@ const Magazine = () => {
 };
 
 export default Magazine;
+

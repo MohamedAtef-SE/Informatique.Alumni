@@ -24,7 +24,8 @@ public class SyndicateAppServiceTests : AlumniApplicationTestBase<AlumniApplicat
         {
             Name = "Engineers Syndicate",
             Description = "For Engineers",
-            Requirements = "ID,Degree"
+            Requirements = "ID,Degree",
+            Fee = 150
         });
 
         // Assert
@@ -46,13 +47,15 @@ public class SyndicateAppServiceTests : AlumniApplicationTestBase<AlumniApplicat
         {
             Name = "Medical Syndicate",
             Description = "For Doctors",
-            Requirements = "ID,License"
+            Requirements = "ID,License",
+            Fee = 200
         });
 
         // Act
         var subscriptionDto = await syndicateAppService.ApplyAsync(new ApplySyndicateDto
         {
-            SyndicateId = syndicateDto.Id
+            SyndicateId = syndicateDto.Id,
+            DeliveryMethod = Informatique.Alumni.Membership.DeliveryMethod.OfficePickup
         });
 
         // Assert

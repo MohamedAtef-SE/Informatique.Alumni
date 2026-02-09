@@ -2,6 +2,7 @@ namespace Informatique.Alumni.Syndicates;
 
 public enum SyndicateStatus
 {
+    Draft = -1,
     Pending = 0,
     Reviewing = 1,
     SentToSyndicate = 2,

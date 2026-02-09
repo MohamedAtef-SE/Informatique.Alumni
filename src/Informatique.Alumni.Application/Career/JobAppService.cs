@@ -67,7 +67,7 @@ public class JobAppService : AlumniAppService, IJobAppService
         return _alumniMappers.MapToDto(job);
     }
 
-    [Authorize(AlumniPermissions.Careers.JobApply)]
+    [Authorize]
     public async Task ApplyAsync(Guid jobId)
     {
         var alumniId = CurrentUser.GetId();
