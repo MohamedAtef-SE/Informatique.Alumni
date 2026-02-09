@@ -14,6 +14,9 @@ public class SyndicateRequirement : FullAuditedAggregateRoot<Guid>
     private SyndicateRequirement()
     {
         // Parameterless constructor for ORM
+        CollegeName = null!;
+        Description = null!;
+        RequirementsContent = null!;
     }
 
     public SyndicateRequirement(Guid id, string collegeName, string description, string requirementsContent)

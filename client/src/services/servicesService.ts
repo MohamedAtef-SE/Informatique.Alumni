@@ -1,8 +1,9 @@
-import { api } from './api';
+import { api, BASE_URL } from './api';
 import type { PagedResultDto } from '../types/common';
 import type { BlogPostDto } from '../types/news';
 import type { AcademicGrantDto, CommercialDiscountDto } from '../types/benefits';
 import type { AssociationRequestDto, CardPrintDto } from '../types/membership';
+import type { CertificateAvailabilityDto } from '../types/certificates';
 
 export const servicesAppService = {
     // News
@@ -54,7 +55,7 @@ export const servicesAppService = {
         return response.data;
     },
     getCertificateDefinitions: async () => {
-        const response = await api.get('/api/app/certificate-definition/available');
+        const response = await api.get<CertificateAvailabilityDto>('/api/app/certificate-definition/available');
         return response.data;
     },
     getBranches: async () => {
@@ -76,6 +77,21 @@ export const servicesAppService = {
         const response = await api.post('/api/app/syndicate/apply', input);
         return response.data;
     },
+    paySyndicate: async (id: string) => {
+        const response = await api.post(`/api/app/syndicate-payments/${id}`);
+        return response.data;
+    },
+    uploadSyndicateDocument: async (id: string, input: any) => {
+        const response = await api.post(`/api/app/syndicate-uploads/${id}`, input);
+        return response.data;
+    },
+    getSyndicateDocument: (subscriptionId: string, documentId: string) => {
+        return `${BASE_URL}/api/app/syndicate-uploads/${subscriptionId}/${documentId}`;
+    },
+    getSyndicates: async () => {
+        const response = await api.get('/api/app/syndicate/syndicates');
+        return response.data;
+    },
 
     // Health
     getMedicalPartners: async (input: any) => {
@@ -83,7 +99,11 @@ export const servicesAppService = {
         return response.data;
     },
     getHealthcareOffers: async (input: any) => {
-        const response = await api.get('/api/app/healthcare-offer-management/active', { params: input }); // Assuming active endpoint or filter
+        const response = await api.get('/api/app/healthcare-offer-management/active', { params: input });
+        return response.data;
+    },
+    getHealthStats: async () => {
+        const response = await api.get('/api/app/medical-partner/stats'); // Standard REST convention for GetStatsAsync mapping
         return response.data;
     }
 };

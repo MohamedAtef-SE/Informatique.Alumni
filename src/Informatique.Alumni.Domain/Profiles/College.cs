@@ -12,7 +12,10 @@ public class College : FullAuditedAggregateRoot<Guid>
 
     public virtual System.Collections.Generic.ICollection<Informatique.Alumni.Organization.Department> Departments { get; private set; }
 
-    private College() { }
+    private College() 
+    {
+        Departments = new System.Collections.Generic.List<Informatique.Alumni.Organization.Department>();
+    }
 
     public College(Guid id, string name, Guid? branchId = null, string? externalId = null)
         : base(id)

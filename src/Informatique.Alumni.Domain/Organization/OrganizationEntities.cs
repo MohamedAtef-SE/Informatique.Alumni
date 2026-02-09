@@ -13,7 +13,10 @@ public class Department : FullAuditedAggregateRoot<Guid>
 
     public virtual ICollection<Specialization> Specializations { get; private set; }
 
-    private Department() { }
+    private Department() 
+    {
+        Specializations = new List<Specialization>();
+    }
 
     public Department(Guid id, string name, Guid collegeId, string? externalId = null)
         : base(id)

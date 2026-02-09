@@ -1,9 +1,12 @@
 import { useState } from 'react';
+import { MembershipGuard } from '../../components/common/MembershipGuard';
+import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { servicesAppService } from '../../services/servicesService';
 import { alumniService } from '../../services/alumniService';
-import { Newspaper, CreditCard, Award, Gift, QrCode, FileBadge, Building2, HeartPulse, Plus } from 'lucide-react';
+import { fileService } from '../../services/fileService';
+import { Newspaper, CreditCard, Award, Gift, QrCode, FileBadge, Building2, HeartPulse, Plus, Upload, Loader2 } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuth } from 'react-oidc-context';
 import ErrorModal from '../../components/common/ErrorModal';
@@ -13,6 +16,13 @@ import { Button } from '../../components/ui/Button';
 import FeaturedNews from '../../components/portal/news/FeaturedNews';
 import NewsCard from '../../components/portal/news/NewsCard';
 import ArticleView from '../../components/portal/news/ArticleView';
+
+import { PartnerFilterBar } from '../../components/portal/health/PartnerFilterBar';
+import { MedicalPartnerCard } from '../../components/portal/health/MedicalPartnerCard';
+import { HealthStats } from '../../components/portal/health/HealthStats';
+import { useDebounce } from '../../hooks/useDebounce';
+import type { MedicalPartnerDto } from '../../types/health';
+import { OfferDetailsModal } from '../../components/portal/health/OfferDetailsModal';
 
 const ServicesLayout = () => {
     const [activeTab, setActiveTab] = useState<'news' | 'benefits' | 'membership' | 'certificates' | 'syndicates' | 'health'>('news');
@@ -77,10 +87,12 @@ const ServicesLayout = () => {
                     <div className="animate-slide-up space-y-12">
                         {/* Featured News Hero */}
                         {featuredPost && (
-                            <FeaturedNews
-                                post={featuredPost}
-                                onClick={() => setSelectedNewsId(featuredPost.id)}
-                            />
+                            <MembershipGuard>
+                                <FeaturedNews
+                                    post={featuredPost}
+                                    onClick={() => setSelectedNewsId(featuredPost.id)}
+                                />
+                            </MembershipGuard>
                         )}
 
                         {/* Recent News Grid */}
@@ -89,11 +101,12 @@ const ServicesLayout = () => {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                 {regularNews.map(post => (
-                                    <NewsCard
-                                        key={post.id}
-                                        post={post}
-                                        onClick={() => setSelectedNewsId(post.id)}
-                                    />
+                                    <MembershipGuard key={post.id}>
+                                        <NewsCard
+                                            post={post}
+                                            onClick={() => setSelectedNewsId(post.id)}
+                                        />
+                                    </MembershipGuard>
                                 ))}
                             </div>
                         </div>
@@ -143,9 +156,22 @@ const ServicesLayout = () => {
                                             <p className="text-sm text-[var(--color-accent)] mb-2 font-medium">{discount.title}</p>
                                             <p className="text-xs text-[var(--color-text-secondary)] mb-4 leading-relaxed">{discount.description}</p>
                                             {discount.promoCode && (
-                                                <div className="bg-slate-100 border border-slate-200 p-2 rounded text-center font-mono text-sm text-[var(--color-text-primary)] select-all cursor-pointer hover:bg-slate-200 transition-colors">
-                                                    {discount.promoCode}
-                                                </div>
+                                                <MembershipGuard>
+                                                    <div
+                                                        className="bg-slate-100 border border-slate-200 p-2 rounded text-center font-mono text-sm text-[var(--color-text-primary)] cursor-pointer hover:bg-slate-200 transition-colors relative overflow-hidden group/code"
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(discount.promoCode);
+                                                            toast.success(t('common.copied', 'Copied to clipboard'));
+                                                        }}
+                                                    >
+                                                        <span className="blur-[4px] group-hover/code:blur-0 transition-all duration-300 select-none">
+                                                            {discount.promoCode}
+                                                        </span>
+                                                        <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-500 font-medium group-hover/code:hidden">
+                                                            Click to View
+                                                        </div>
+                                                    </div>
+                                                </MembershipGuard>
                                             )}
                                         </CardContent>
                                     </Card>
@@ -286,7 +312,7 @@ const ServicesLayout = () => {
 };
 
 // Sub-components
-const CertificatesSection = () => {
+function CertificatesSection() {
     const queryClient = useQueryClient();
     const { t, i18n } = useTranslation();
     const { data } = useQuery({ queryKey: ['my-certificates'], queryFn: servicesAppService.getCertificates });
@@ -299,6 +325,8 @@ const CertificatesSection = () => {
     const [language, setLanguage] = useState(2); // 2: English, 1: Arabic (Backend Enums)
     const [deliveryMethod, setDeliveryMethod] = useState(1); // 1: Office Pickup, 2: Home Delivery (Backend Enums)
     const [requestAddress, setRequestAddress] = useState('');
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
 
     // Error Modal State
     const [errorState, setErrorState] = useState<{ isOpen: boolean; title: string; message: string }>({
@@ -312,7 +340,7 @@ const CertificatesSection = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['my-certificates'] });
             setIsModalOpen(false);
-            alert(t('services.certificates.success'));
+            toast.success(t('services.certificates.success'));
         },
         onError: (err: any) => {
             console.error("Certificate Request Failed");
@@ -351,7 +379,9 @@ const CertificatesSection = () => {
         }
     });
 
-    const handleRequest = () => {
+
+
+    const handleRequest = async () => {
         if (!selectedDefId) {
             setErrorState({ isOpen: true, title: t('services.certificates.missing_info'), message: t('services.certificates.select_type_error') });
             return;
@@ -367,11 +397,27 @@ const CertificatesSection = () => {
             return;
         }
 
+        let attachmentUrl = null;
+        if (selectedFile) {
+            try {
+                setIsUploading(true);
+                attachmentUrl = await fileService.upload(selectedFile);
+            } catch (error) {
+                console.error("File upload failed", error);
+                setIsUploading(false);
+                setErrorState({ isOpen: true, title: t('common.error'), message: t('services.certificates.upload_error', 'File upload failed. Please try again.') });
+                return;
+            } finally {
+                setIsUploading(false);
+            }
+        }
+
         const payload = {
             items: [
                 {
                     certificateDefinitionId: selectedDefId,
-                    language: language
+                    language: language,
+                    attachmentUrl: attachmentUrl
                 }
             ],
             deliveryMethod: deliveryMethod,
@@ -383,6 +429,23 @@ const CertificatesSection = () => {
         requestMutation.mutate(payload);
     };
 
+    const getStatusInfo = (status: number) => {
+        switch (status) {
+            case 1: // Draft
+            case 2: // PendingPayment
+            case 3: // Processing
+                return { label: t('services.certificates.status.pending'), className: "bg-amber-100 text-amber-700 border-amber-200" };
+            case 4: // ReadyForPickup
+            case 5: // OutForDelivery
+            case 6: // Delivered (Using ready style for now or add new)
+                return { label: t('services.certificates.status.ready'), className: "bg-emerald-100 text-emerald-700 border-emerald-200" };
+            case 7: // Rejected
+                return { label: t('services.certificates.status.rejected'), className: "bg-red-100 text-red-700 border-red-200" };
+            default:
+                return { label: t('services.certificates.status.pending'), className: "bg-gray-100 text-gray-700 border-gray-200" };
+        }
+    };
+
     return (
         <div className="space-y-6 animate-slide-up">
             <ErrorModal
@@ -392,108 +455,167 @@ const CertificatesSection = () => {
                 onClose={() => setErrorState(prev => ({ ...prev, isOpen: false }))}
             />
 
-            <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold text-[var(--color-text-primary)] flex items-center gap-2"><FileBadge className="w-5 h-5 text-[var(--color-accent)]" /> {t('services.certificates.my_certificates')}</h2>
+            <h2 className="text-xl font-bold text-[var(--color-text-primary)] flex items-center gap-2"><FileBadge className="w-5 h-5 text-[var(--color-accent)]" /> {t('services.certificates.my_certificates')}</h2>
+            {definitions?.isEligible !== false ? (
                 <Button
                     onClick={() => setIsModalOpen(true)}
                     className="flex items-center gap-2 shadow-sm"
                 >
                     <Plus className="w-4 h-4" /> {t('services.certificates.request_new')}
                 </Button>
-            </div>
+            ) : null}
+
+
+            {/* Ineligibility Banner */}
+            {
+                definitions?.isEligible === false && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 flex flex-col md:flex-row items-center gap-4 text-center md:text-left animate-fade-in">
+                        <div className="bg-amber-100 p-3 rounded-full">
+                            <CreditCard className="w-6 h-6 text-amber-600" />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="font-bold text-amber-800 text-lg">{t('services.membership.required_title', 'Active Membership Required')}</h3>
+                            <p className="text-amber-700/80 text-sm mt-1">
+                                {definitions.ineligibilityReason || t('services.membership.required_desc', 'You need an active membership to request certificates. Please renew your membership to access this service.')}
+                            </p>
+                        </div>
+                        <Button
+                            variant="outline"
+                            className="border-amber-300 text-amber-800 hover:bg-amber-100"
+                            onClick={() => document.getElementById('tab-membership')?.click()} // Hacky navigation or just let them find it
+                        >
+                            {t('services.membership.renew_btn')}
+                        </Button>
+                    </div>
+                )
+            }
 
             {/* Request Modal */}
-            {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className="bg-white border border-[var(--color-border)] rounded-xl p-6 w-full max-w-md space-y-4 shadow-2xl">
-                        <h3 className="text-xl font-bold text-[var(--color-text-primary)]">{t('services.certificates.modal_title')}</h3>
+            {
+                isModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+                        <div className="bg-white border border-[var(--color-border)] rounded-xl p-6 w-full max-w-md space-y-4 shadow-2xl">
+                            <h3 className="text-xl font-bold text-[var(--color-text-primary)]">{t('services.certificates.modal_title')}</h3>
 
-                        <div className="space-y-3">
-                            <div>
-                                <label className="text-xs text-[var(--color-text-secondary)] block mb-1">{t('services.certificates.type_label')}</label>
-                                <select
-                                    className="w-full bg-slate-50 border border-[var(--color-border)] rounded-lg px-3 py-2 text-[var(--color-text-primary)] focus:border-[var(--color-accent)] outline-none"
-                                    value={selectedDefId}
-                                    onChange={(e) => setSelectedDefId(e.target.value)}
-                                >
-                                    <option value="">{t('services.certificates.select_type')}</option>
-                                    {definitions?.items?.map((def: any) => (
-                                        <option key={def.id} value={def.id}>{def.nameEn} ({def.fee} {t('common.currency')})</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="text-xs text-[var(--color-text-secondary)] block mb-1">{t('services.certificates.language_label')}</label>
-                                <div className="flex gap-4">
-                                    <label className="flex items-center gap-2 text-[var(--color-text-primary)] cursor-pointer text-sm">
-                                        <input type="radio" name="lang" checked={language === 2} onChange={() => setLanguage(2)} className="accent-[var(--color-accent)]" /> {t('services.certificates.lang_en')}
-                                    </label>
-                                    <label className="flex items-center gap-2 text-[var(--color-text-primary)] cursor-pointer text-sm">
-                                        <input type="radio" name="lang" checked={language === 1} onChange={() => setLanguage(1)} className="accent-[var(--color-accent)]" /> {t('services.certificates.lang_ar')}
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="text-xs text-[var(--color-text-secondary)] block mb-1">{t('services.certificates.delivery_label')}</label>
-                                <div className="flex gap-4">
-                                    <label className="flex items-center gap-2 text-[var(--color-text-primary)] cursor-pointer text-sm">
-                                        <input type="radio" name="delivery" checked={deliveryMethod === 1} onChange={() => setDeliveryMethod(1)} className="accent-[var(--color-accent)]" /> {t('services.certificates.pickup')}
-                                    </label>
-                                    <label className="flex items-center gap-2 text-[var(--color-text-primary)] cursor-pointer text-sm">
-                                        <input type="radio" name="delivery" checked={deliveryMethod === 2} onChange={() => setDeliveryMethod(2)} className="accent-[var(--color-accent)]" /> {t('services.certificates.home_delivery')}
-                                    </label>
-                                </div>
-                            </div>
-
-                            {deliveryMethod === 1 && (
+                            <div className="space-y-3">
                                 <div>
-                                    <label className="text-xs text-[var(--color-text-secondary)] block mb-1">{t('services.certificates.branch_label')}</label>
+                                    <label className="text-xs text-[var(--color-text-secondary)] block mb-1">{t('services.certificates.type_label')}</label>
                                     <select
                                         className="w-full bg-slate-50 border border-[var(--color-border)] rounded-lg px-3 py-2 text-[var(--color-text-primary)] focus:border-[var(--color-accent)] outline-none"
-                                        value={selectedBranchId}
-                                        onChange={(e) => setSelectedBranchId(e.target.value)}
+                                        value={selectedDefId}
+                                        onChange={(e) => setSelectedDefId(e.target.value)}
                                     >
-                                        <option value="">{t('services.certificates.select_branch')}</option>
-                                        {branches?.map((branch: any) => (
-                                            <option key={branch.id} value={branch.id}>{branch.name}</option>
+                                        <option value="">{t('services.certificates.select_type')}</option>
+                                        {definitions?.items?.map((def: any) => (
+                                            <option key={def.id} value={def.id}>{def.nameEn} ({def.fee} {t('common.currency')})</option>
                                         ))}
                                     </select>
                                 </div>
-                            )}
 
-                            {deliveryMethod === 2 && (
                                 <div>
-                                    <label className="text-xs text-[var(--color-text-secondary)] block mb-1">{t('services.certificates.address_label')}</label>
-                                    <textarea
-                                        className="w-full bg-slate-50 border border-[var(--color-border)] rounded-lg px-3 py-2 text-[var(--color-text-primary)] focus:border-[var(--color-accent)] outline-none resize-none h-24"
-                                        placeholder={t('services.certificates.address_placeholder')}
-                                        value={requestAddress}
-                                        onChange={(e) => setRequestAddress(e.target.value)}
-                                    />
+                                    <label className="text-xs text-[var(--color-text-secondary)] block mb-1">{t('services.certificates.language_label')}</label>
+                                    <div className="flex gap-4">
+                                        <label className="flex items-center gap-2 text-[var(--color-text-primary)] cursor-pointer text-sm">
+                                            <input type="radio" name="lang" checked={language === 2} onChange={() => setLanguage(2)} className="accent-[var(--color-accent)]" /> {t('services.certificates.lang_en')}
+                                        </label>
+                                        <label className="flex items-center gap-2 text-[var(--color-text-primary)] cursor-pointer text-sm">
+                                            <input type="radio" name="lang" checked={language === 1} onChange={() => setLanguage(1)} className="accent-[var(--color-accent)]" /> {t('services.certificates.lang_ar')}
+                                        </label>
+                                    </div>
                                 </div>
-                            )}
-                        </div>
 
-                        <div className="flex gap-3 pt-4">
-                            <button
-                                onClick={() => setIsModalOpen(false)}
-                                className="flex-1 px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-[var(--color-text-secondary)] transition-colors font-medium"
-                            >
-                                {t('common.cancel')}
-                            </button>
-                            <Button
-                                onClick={handleRequest}
-                                disabled={requestMutation.isPending}
-                                className="flex-1"
-                            >
-                                {requestMutation.isPending ? t('services.certificates.submitting') : t('services.certificates.submit')}
-                            </Button>
+                                <div>
+                                    <label className="text-xs text-[var(--color-text-secondary)] block mb-1">{t('services.certificates.delivery_label')}</label>
+                                    <div className="flex gap-4">
+                                        <label className="flex items-center gap-2 text-[var(--color-text-primary)] cursor-pointer text-sm">
+                                            <input type="radio" name="delivery" checked={deliveryMethod === 1} onChange={() => setDeliveryMethod(1)} className="accent-[var(--color-accent)]" /> {t('services.certificates.pickup')}
+                                        </label>
+                                        <label className="flex items-center gap-2 text-[var(--color-text-primary)] cursor-pointer text-sm">
+                                            <input type="radio" name="delivery" checked={deliveryMethod === 2} onChange={() => setDeliveryMethod(2)} className="accent-[var(--color-accent)]" /> {t('services.certificates.home_delivery')}
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {deliveryMethod === 1 && (
+                                    <div>
+                                        <label className="text-xs text-[var(--color-text-secondary)] block mb-1">{t('services.certificates.branch_label')}</label>
+                                        <select
+                                            className="w-full bg-slate-50 border border-[var(--color-border)] rounded-lg px-3 py-2 text-[var(--color-text-primary)] focus:border-[var(--color-accent)] outline-none"
+                                            value={selectedBranchId}
+                                            onChange={(e) => setSelectedBranchId(e.target.value)}
+                                        >
+                                            <option value="">{t('services.certificates.select_branch')}</option>
+                                            {branches?.map((branch: any) => (
+                                                <option key={branch.id} value={branch.id}>{branch.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+
+                                {deliveryMethod === 2 && (
+                                    <div>
+                                        <label className="text-xs text-[var(--color-text-secondary)] block mb-1">{t('services.certificates.address_label')}</label>
+                                        <textarea
+                                            className="w-full bg-slate-50 border border-[var(--color-border)] rounded-lg px-3 py-2 text-[var(--color-text-primary)] focus:border-[var(--color-accent)] outline-none resize-none h-24"
+                                            placeholder={t('services.certificates.address_placeholder')}
+                                            value={requestAddress}
+                                            onChange={(e) => setRequestAddress(e.target.value)}
+                                        />
+                                    </div>
+
+                                )}
+
+                                <div>
+                                    <label className="text-xs text-[var(--color-text-secondary)] block mb-1">{t('services.certificates.attachment_label', 'Supporting Document (ID/Passport - Optional)')}</label>
+                                    <div className="border border-dashed border-[var(--color-border)] rounded-lg p-4 text-center hover:bg-slate-50 transition-colors relative">
+                                        <input
+                                            type="file"
+                                            accept=".pdf,.jpg,.jpeg,.png"
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            onChange={(e) => {
+                                                if (e.target.files && e.target.files[0]) {
+                                                    setSelectedFile(e.target.files[0]);
+                                                }
+                                            }}
+                                        />
+                                        <div className="flex flex-col items-center gap-1 pointer-events-none">
+                                            <Upload className="w-5 h-5 text-[var(--color-accent)]" />
+                                            <span className="text-sm text-[var(--color-text-primary)] font-medium">
+                                                {selectedFile ? selectedFile.name : t('services.certificates.upload_placeholder', 'Click to upload file')}
+                                            </span>
+                                            <span className="text-xs text-[var(--color-text-muted)]">
+                                                PDF, JPG, PNG (Max 5MB)
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3 pt-4">
+                                    <button
+                                        onClick={() => setIsModalOpen(false)}
+                                        className="flex-1 px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-[var(--color-text-secondary)] transition-colors font-medium"
+                                    >
+                                        {t('common.cancel')}
+                                    </button>
+                                    <Button
+                                        onClick={handleRequest}
+                                        disabled={requestMutation.isPending || isUploading}
+                                        className="flex-1"
+                                    >
+                                        {isUploading ? (
+                                            <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> {t('common.uploading', 'Uploading...')}</span>
+                                        ) : requestMutation.isPending ? (
+                                            t('services.certificates.submitting')
+                                        ) : (
+                                            t('services.certificates.submit')
+                                        )}
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {data?.items?.length === 0 && (
@@ -505,7 +627,9 @@ const CertificatesSection = () => {
                 )}
 
                 {data?.items?.map((cert: any) => {
-                    const certName = cert.items?.[0]?.certificateDefinitionName || 'Certificate Request';
+                    const certName = cert.items?.[0]?.certificateDefinitionName || t('services.certificates.certificate_request');
+                    const statusInfo = getStatusInfo(cert.status);
+
                     return (
                         <div key={cert.id} className="bg-white border border-[var(--color-border)] rounded-xl p-4 flex justify-between items-center group hover:shadow-md transition-all hover:border-[var(--color-accent)]/30">
                             <div>
@@ -513,16 +637,14 @@ const CertificatesSection = () => {
                                 <div className="flex gap-2 text-xs text-[var(--color-text-muted)] mt-1">
                                     <span>{new Date(cert.creationTime).toLocaleDateString(i18n.language)}</span>
                                     <span>•</span>
-                                    <span>{cert.deliveryMethod === 0 ? t('services.certificates.pickup') : t('services.certificates.home_delivery')}</span>
+                                    <span>{cert.deliveryMethod === 1 ? t('services.certificates.pickup') : t('services.certificates.home_delivery')}</span>
                                 </div>
                             </div>
                             <div className={clsx(
                                 "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border",
-                                cert.status === 1 ? "bg-emerald-100 text-emerald-700 border-emerald-200" :
-                                    cert.status === 2 ? "bg-red-100 text-red-700 border-red-200" :
-                                        "bg-amber-100 text-amber-700 border-amber-200"
+                                statusInfo.className
                             )}>
-                                {cert.status === 0 ? t('services.certificates.status.pending') : cert.status === 1 ? t('services.certificates.status.ready') : t('services.certificates.status.rejected')}
+                                {statusInfo.label}
                             </div>
                         </div>
                     );
@@ -532,66 +654,191 @@ const CertificatesSection = () => {
     );
 };
 
-const SyndicatesSection = () => {
+import SyndicateApplicationWizard from '../../components/portal/syndicates/SyndicateApplicationWizard';
+
+function SyndicatesSection() {
     const { t } = useTranslation();
+    const queryClient = useQueryClient();
     // Returns array of subscriptions
     const { data: applications } = useQuery({ queryKey: ['syndicate-status'], queryFn: servicesAppService.getSyndicateStatus });
+    const [isWizardOpen, setIsWizardOpen] = useState(false);
 
     const activeApplication = applications && applications.length > 0 ? applications[0] : null;
 
     const getStatusLabel = (status: number) => {
-        const statuses = ['Pending', 'Reviewing', 'SentToSyndicate', 'CardReady', 'Received', 'Rejected'];
-        return statuses[status] || 'Unknown';
+        switch (status) {
+            case -1: return t('services.syndicates.status.draft');
+            case 0: return t('services.syndicates.status.pending');
+            case 1: return t('services.syndicates.status.reviewing');
+            case 2: return t('services.syndicates.status.sent_to_syndicate');
+            case 3: return t('services.syndicates.status.card_ready');
+            case 4: return t('services.syndicates.status.rejected');
+            case 5: return t('services.syndicates.status.received');
+            default: return t('services.syndicates.status.unknown');
+        }
     };
 
     return (
-        <Card variant="default" className="max-w-xl mx-auto p-8 text-center space-y-4 border-[var(--color-border)]">
-            <Building2 className="w-16 h-16 text-[var(--color-accent)] mx-auto opacity-80" />
-            <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">
-                {activeApplication?.syndicateName || t('services.syndicates.title')}
-            </h2>
+        <>
+            <Card variant="default" className="max-w-xl mx-auto p-8 text-center space-y-4 border-[var(--color-border)]">
+                <Building2 className="w-16 h-16 text-[var(--color-accent)] mx-auto opacity-80" />
+                <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">
+                    {activeApplication?.syndicateName || t('services.syndicates.title')}
+                </h2>
 
-            {/* Content */}
-            <>
-                <p className="text-[var(--color-text-secondary)]">
-                    {t('services.syndicates.description')}
-                </p>
+                {/* Content */}
+                <>
+                    <p className="text-[var(--color-text-secondary)]">
+                        {t('services.syndicates.description')}
+                    </p>
 
-                {activeApplication ? (
-                    <div className="bg-emerald-50 text-emerald-700 border border-emerald-200 p-4 rounded-lg font-bold">
-                        {t('services.syndicates.status_label')}: {getStatusLabel(activeApplication.status)}
-                    </div>
-                ) : (
-                    <Button className="w-full shadow-md shadow-blue-500/10">{t('services.syndicates.apply_btn')}</Button>
-                )}
-            </>
-        </Card>
+                    {activeApplication ? (
+                        <div className="space-y-3">
+                            <div className={clsx(
+                                "p-4 rounded-lg font-bold border",
+                                activeApplication.status === -1 ? "bg-gray-50 text-gray-700 border-gray-200" :
+                                    activeApplication.status === 4 ? "bg-red-50 text-red-700 border-red-200" :
+                                        "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            )}>
+                                {t('services.syndicates.status_label')}: {getStatusLabel(activeApplication.status)}
+                            </div>
+
+                            {/* Resume Draft */}
+                            {activeApplication.status === -1 && (
+                                <Button
+                                    onClick={() => setIsWizardOpen(true)}
+                                    className="w-full"
+                                    variant="outline"
+                                >
+                                    {t('common.resume', 'Resume Application')}
+                                </Button>
+                            )}
+
+                            {/* Upload Documents for Pending/Reviewing */}
+                            {(activeApplication.status === 0 || activeApplication.status === 1) && (
+                                <Button
+                                    onClick={() => setIsWizardOpen(true)}
+                                    className="w-full"
+                                    variant="outline"
+                                >
+                                    <Upload className="w-4 h-4 mr-2" />
+                                    {t('services.syndicates.upload_docs')}
+                                </Button>
+                            )}
+                        </div>
+                    ) : (
+                        <MembershipGuard>
+                            <Button
+                                onClick={() => setIsWizardOpen(true)}
+                                className="w-full shadow-md shadow-blue-500/10"
+                            >
+                                {t('services.syndicates.apply_btn')}
+                            </Button>
+                        </MembershipGuard>
+                    )}
+                </>
+            </Card>
+
+            {isWizardOpen && (
+                <SyndicateApplicationWizard
+                    existingSubscription={activeApplication}
+                    onClose={() => setIsWizardOpen(false)}
+                    onSuccess={() => {
+                        setIsWizardOpen(false);
+                        queryClient.invalidateQueries({ queryKey: ['syndicate-status'] });
+                    }}
+                />
+            )}
+        </>
     );
 };
 
-const HealthSection = () => {
+function HealthSection() {
     const { t } = useTranslation();
-    const { data } = useQuery({ queryKey: ['medical-partners'], queryFn: () => servicesAppService.getMedicalPartners({ maxResultCount: 10 }) });
+    const [filterText, setFilterText] = useState('');
+    const [category, setCategory] = useState('');
+    const [city, setCity] = useState('');
+    const [selectedPartner, setSelectedPartner] = useState<MedicalPartnerDto | null>(null);
+
+    const debouncedFilterText = useDebounce(filterText, 800);
+
+    const queryInput = {
+        filterText: debouncedFilterText,
+        category: category === 'all' ? undefined : category,
+        city: city === 'all' ? undefined : city,
+        maxResultCount: 50
+    };
+
+    const { data, isLoading } = useQuery({
+        queryKey: ['medical-partners', queryInput],
+        queryFn: () => servicesAppService.getMedicalPartners(queryInput)
+    });
+
+    const handleClearFilters = () => {
+        setFilterText('');
+        setCategory('');
+        setCity('');
+    };
 
     return (
-        <div className="space-y-6 animate-slide-up">
-            <h2 className="text-xl font-bold text-[var(--color-text-primary)] flex items-center gap-2"><HeartPulse className="w-5 h-5 text-[var(--color-accent)]" /> {t('services.health.title')}</h2>
+        <div className="space-y-8 animate-slide-up">
+            <HealthStats />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {data?.map((partner: any) => (
-                    <Card key={partner.id} variant="default" className="border-[var(--color-border)] hover:border-[var(--color-accent)]/30 hover:shadow-md transition-all">
-                        <CardContent className="p-6">
-                            <h3 className="font-bold text-[var(--color-text-primary)]">{partner.name}</h3>
-                            <p className="text-sm text-[var(--color-accent)] font-medium">{partner.type}</p>
-                            <p className="text-xs text-[var(--color-text-muted)] mt-2">{partner.address}</p>
-                            <div className="mt-4 pt-4 border-t border-[var(--color-border)] flex justify-between items-center">
-                                <span className="text-xs text-[var(--color-text-muted)]">{t('services.health.discount')}</span>
-                                <span className="font-bold text-emerald-600">{partner.discountRate}% {t('services.health.off')}</span>
+            <div className="space-y-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <h2 className="text-xl font-bold text-[var(--color-text-primary)] flex items-center gap-2">
+                        <HeartPulse className="w-5 h-5 text-[var(--color-accent)]" />
+                        {t('services.health.title')}
+                    </h2>
+                </div>
+
+                <PartnerFilterBar
+                    filterText={filterText}
+                    setFilterText={setFilterText}
+                    category={category}
+                    setCategory={setCategory}
+                    city={city}
+                    setCity={setCity}
+                    onClear={handleClearFilters}
+                />
+
+                {isLoading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {[1, 2, 3].map(i => (
+                            <div key={i} className="h-64 bg-slate-100 rounded-xl animate-pulse"></div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {data?.length === 0 && (
+                            <div className="col-span-full text-center py-12 text-[var(--color-text-muted)] bg-slate-50 rounded-xl border border-dashed border-[var(--color-border)]">
+                                <HeartPulse className="w-12 h-12 mx-auto mb-2 opacity-20" />
+                                <p>No medical partners found matching your criteria.</p>
+                                <Button
+                                    variant="link"
+                                    onClick={handleClearFilters}
+                                    className="mt-2 text-[var(--color-accent)]"
+                                >
+                                    Clear Filters
+                                </Button>
                             </div>
-                        </CardContent>
-                    </Card>
-                ))}
+                        )}
+                        {data?.map((partner: MedicalPartnerDto) => (
+                            <MedicalPartnerCard
+                                key={partner.id}
+                                partner={partner}
+                                onViewOffers={(p) => setSelectedPartner(p)}
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
+
+            <OfferDetailsModal
+                isOpen={!!selectedPartner}
+                onClose={() => setSelectedPartner(null)}
+                partner={selectedPartner}
+            />
         </div>
     );
 };

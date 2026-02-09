@@ -39,11 +39,14 @@ public class CertificateManagerTests
         // Mock MembershipManager partially or fully
         _membershipManager = Substitute.ForPartsOf<MembershipManager>(feeRepo, reqRepo, payRepo, profileRepo, configRepo);
 
+        var configuration = Substitute.For<Microsoft.Extensions.Configuration.IConfiguration>();
+
         _certificateManager = new CertificateManager(
             _mockDefinitionRepository,
             _mockProfileRepository,
             _mockBranchRepository,
-            _membershipManager
+            _membershipManager,
+            configuration
         );
     }
     

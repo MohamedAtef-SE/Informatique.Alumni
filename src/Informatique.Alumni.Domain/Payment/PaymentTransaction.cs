@@ -12,7 +12,11 @@ public class PaymentTransaction : CreationAuditedAggregateRoot<Guid>
     public PaymentStatus Status { get; private set; }
     public string? ErrorMessage { get; private set; }
 
-    private PaymentTransaction() { }
+    private PaymentTransaction() 
+    {
+        GatewayTransactionId = null!;
+        Currency = null!;
+    }
 
     public PaymentTransaction(
         Guid id, 

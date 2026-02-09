@@ -11,6 +11,7 @@ public class CertificateRequestItem : Entity<Guid>
     public Guid? QualificationId { get; private set; } // FK to Education record
     public CertificateLanguage Language { get; private set; }
     public decimal Fee { get; private set; }
+    public string? AttachmentUrl { get; private set; }
     
     // Anti-fraud fields (per certificate item)
     public string? VerificationHash { get; private set; }
@@ -25,7 +26,8 @@ public class CertificateRequestItem : Entity<Guid>
         Guid certificateDefinitionId,
         CertificateLanguage language,
         decimal fee,
-        Guid? qualificationId = null)
+        Guid? qualificationId = null,
+        string? attachmentUrl = null)
         : base(id)
     {
         CertificateRequestId = Check.NotDefaultOrNull<Guid>(certificateRequestId, nameof(certificateRequestId));
@@ -33,6 +35,7 @@ public class CertificateRequestItem : Entity<Guid>
         Language = language;
         Fee = fee;
         QualificationId = qualificationId;
+        AttachmentUrl = attachmentUrl;
     }
 
     public void MarkAsReady(string verificationHash, string qrCodeContent)

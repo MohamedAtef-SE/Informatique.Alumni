@@ -9,7 +9,10 @@ public class PaymentMethod : Entity<Guid>
     public string Name { get; private set; }
     public bool IsActive { get; private set; }
 
-    protected PaymentMethod() { }
+    protected PaymentMethod() 
+    {
+        Name = null!;
+    }
 
     public PaymentMethod(Guid id, string name, bool isActive = true)
         : base(id)

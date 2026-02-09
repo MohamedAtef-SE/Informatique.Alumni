@@ -129,7 +129,8 @@ public class MembershipAppService : AlumniAppService, IMembershipAppService
             Degree = education?.Degree ?? "N/A",
             CollegeName = education?.InstitutionName ?? "N/A",
             MajorName = education?.Degree ?? "N/A", // Fallback to Degree if MajorId unavailable
-            GradYear = education?.GraduationYear ?? 0
+            GradYear = education?.GraduationYear ?? 0,
+            IsActive = request.Status >= MembershipRequestStatus.Paid
         };
     }
 

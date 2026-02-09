@@ -39,10 +39,18 @@ public class BranchAppService :
     public async Task<List<BranchDto>> GetAcademicStructureAsync()
     {
         return await _academicStructureCache.GetOrAddAsync(
-            "AcademicStructure_v2",
+            "AcademicStructure_v4",
             async () =>
             {
-                var branches = await Repository.GetListAsync();
+                var query = await Repository.GetQueryableAsync();
+                var branches = await AsyncExecuter.ToListAsync(query);
+                
+                System.Console.WriteLine($"--- BranchAppService: Retrieved {branches.Count} branches from DB ---");
+                foreach(var b in branches)
+                {
+                    System.Console.WriteLine($"--- Branch: {b.Name} ({b.Id}) IsDeleted: {b.IsDeleted} ---");
+                }
+
                 return _alumniMappers.MapToDtos(branches);
             },
             () => new Microsoft.Extensions.Caching.Distributed.DistributedCacheEntryOptions

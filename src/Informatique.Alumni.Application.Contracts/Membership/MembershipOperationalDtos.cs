@@ -31,6 +31,7 @@ public class CardPrintDto
     public string CollegeName { get; set; } = string.Empty; // Resolved from CollegeId? Or just Name if not using Master Data
     public string MajorName { get; set; } = string.Empty;
     public int GradYear { get; set; }
+    public bool IsActive { get; set; }
 }
 
 public class UpdateStatusDto

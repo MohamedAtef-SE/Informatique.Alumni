@@ -20,7 +20,7 @@ public class BlogAppServiceTests : AlumniApplicationTestBase<AlumniApplicationTe
     public async Task GetPostsAsync_Should_Return_List()
     {
         // Act
-        var result = await _blogAppService.GetPostsAsync(new PostSearchInputDto());
+        var result = await _blogAppService.GetListAsync(new PostSearchInputDto());
 
         // Assert
         result.ShouldNotBeNull();

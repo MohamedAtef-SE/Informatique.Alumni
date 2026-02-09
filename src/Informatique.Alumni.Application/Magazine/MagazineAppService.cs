@@ -111,7 +111,8 @@ public class MagazineAppService : AlumniAppService, IMagazineAppService
     public async Task<PagedResultDto<MagazineListDto>> GetListAsync(GetMagazinesInput input)
     {
         // 1. Gate: Check Membership
-        await _membershipGuard.CheckAsync();
+        // Removed to allow viewing list
+        // await _membershipGuard.CheckAsync();
 
         // 2. Query
         var queryable = await _magazineRepository.GetQueryableAsync();

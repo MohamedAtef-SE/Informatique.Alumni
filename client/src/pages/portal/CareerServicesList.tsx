@@ -18,6 +18,7 @@ import {
 } from '../../components/ui/Dialog';
 import FeedbackModal from '../../components/common/FeedbackModal';
 import MyCv from './MyCv';
+import { MembershipGuard } from '../../components/common/MembershipGuard';
 
 const CareerServicesList = () => {
     const [activeTab, setActiveTab] = useState<'services' | 'jobs' | 'guidance' | 'cv'>('services');
@@ -210,13 +211,15 @@ const JobsTab = () => {
                             </div>
                         </div>
                         <div className="flex items-center justify-end md:w-48">
-                            <Button
-                                className="w-full md:w-auto shadow-md shadow-blue-500/10"
-                                onClick={() => handleApplyClick(job)}
-                                disabled={applyMutation.isPending && selectedJob?.id === job.id}
-                            >
-                                {t('career.jobs.apply')}
-                            </Button>
+                            <MembershipGuard>
+                                <Button
+                                    className="w-full md:w-auto shadow-md shadow-blue-500/10"
+                                    onClick={() => handleApplyClick(job)}
+                                    disabled={applyMutation.isPending && selectedJob?.id === job.id}
+                                >
+                                    {t('career.jobs.apply')}
+                                </Button>
+                            </MembershipGuard>
                         </div>
                     </CardContent>
                 </Card>
@@ -367,26 +370,28 @@ const GuidanceTab = () => {
                                 className="bg-white border-[var(--color-border)] text-[var(--color-text-primary)]"
                             />
                         </div>
-                        <Button
-                            onClick={() => {
-                                if (!selectedAdvisor) return toast.error(t('career.guidance.select_advisor_error'));
-                                if (!selectedDate) return toast.error("Please select a date and time");
+                        <MembershipGuard>
+                            <Button
+                                onClick={() => {
+                                    if (!selectedAdvisor) return toast.error(t('career.guidance.select_advisor_error'));
+                                    if (!selectedDate) return toast.error("Please select a date and time");
 
-                                const dateObj = new Date(selectedDate);
-                                const timeString = dateObj.toTimeString().split(' ')[0]; // "HH:MM:SS"
+                                    const dateObj = new Date(selectedDate);
+                                    const timeString = dateObj.toTimeString().split(' ')[0]; // "HH:MM:SS"
 
-                                bookMutation.mutate({
-                                    advisorId: selectedAdvisor,
-                                    date: dateObj.toISOString(),
-                                    startTime: timeString,
-                                    subject: topic
-                                });
-                            }}
-                            disabled={bookMutation.isPending}
-                            className="w-full shadow-lg shadow-blue-500/20"
-                        >
-                            {bookMutation.isPending ? t('career.guidance.requesting') : t('career.guidance.request_btn')}
-                        </Button>
+                                    bookMutation.mutate({
+                                        advisorId: selectedAdvisor,
+                                        date: dateObj.toISOString(),
+                                        startTime: timeString,
+                                        subject: topic
+                                    });
+                                }}
+                                disabled={bookMutation.isPending}
+                                className="w-full shadow-lg shadow-blue-500/20"
+                            >
+                                {bookMutation.isPending ? t('career.guidance.requesting') : t('career.guidance.request_btn')}
+                            </Button>
+                        </MembershipGuard>
                     </CardContent>
                 </Card>
             </div>

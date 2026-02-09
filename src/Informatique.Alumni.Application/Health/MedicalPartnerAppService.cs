@@ -41,6 +41,8 @@ public class MedicalPartnerAppService : AlumniAppService, IMedicalPartnerAppServ
             Description = input.Description,
             Website = input.Website
         };
+        partner.SetPremiumDetails(input.LogoUrl, input.City, input.Region, input.Category, input.Email, input.HotlineNumber);
+        
         await _partnerRepository.InsertAsync(partner);
         await InvalidateCacheAsync();
         return _alumniMappers.MapToDto(partner);
@@ -50,7 +52,18 @@ public class MedicalPartnerAppService : AlumniAppService, IMedicalPartnerAppServ
     public async Task<MedicalPartnerDto> UpdateAsync(Guid id, CreateUpdateMedicalPartnerDto input)
     {
         var partner = await _partnerRepository.GetAsync(id);
-        _alumniMappers.MapToEntity(input, partner);
+        
+        // Map basic fields
+        partner.Name = input.Name;
+        partner.Description = input.Description;
+        partner.Type = input.Type;
+        partner.Address = input.Address;
+        partner.ContactNumber = input.ContactNumber;
+        partner.Website = input.Website;
+        
+        // Map premium fields
+        partner.SetPremiumDetails(input.LogoUrl, input.City, input.Region, input.Category, input.Email, input.HotlineNumber);
+
         await _partnerRepository.UpdateAsync(partner);
         await InvalidateCacheAsync();
         return _alumniMappers.MapToDto(partner);
@@ -75,19 +88,63 @@ public class MedicalPartnerAppService : AlumniAppService, IMedicalPartnerAppServ
         return dto;
     }
 
-    public async Task<List<MedicalPartnerDto>> GetListAsync(MedicalPartnerType? type)
+    public async Task<List<MedicalPartnerDto>> GetListAsync(GetMedicalPartnersInput input)
     {
-        var cacheKey = $"MedicalPartners_{(type?.ToString() ?? "All")}";
+        // For now, disabling cache for complex filtering or we need a smarter cache key
+        // Simplest approach: Cache the full list, then filter in memory (if list < 1000 items)
+        // Or just query DB directly if we expect many items. 
+        // Given typically < 100 partners, Memory Filter on Cached All is fine.
         
-        var dtos = await _cache.GetOrAddAsync(cacheKey, async () => 
+        var cacheKey = "MedicalPartners_All";
+        
+        var allDtos = await _cache.GetOrAddAsync(cacheKey, async () => 
         {
             var query = await _partnerRepository.WithDetailsAsync(x => x.Offers);
-            var items = await AsyncExecuter.ToListAsync(query.WhereIf(type.HasValue, x => x.Type == type));
+            var items = await AsyncExecuter.ToListAsync(query);
             return _alumniMappers.MapToDtos(items);
         });
 
-        await GateDiscountCodesAsync(dtos);
-        return dtos;
+        // Apply Filters in Memory
+        var queryable = allDtos.AsQueryable();
+
+        if (input.Type.HasValue)
+        {
+            queryable = queryable.Where(x => x.Type == input.Type.Value);
+        }
+
+        if (!string.IsNullOrEmpty(input.FilterText))
+        {
+            queryable = queryable.Where(x => x.Name.Contains(input.FilterText, StringComparison.OrdinalIgnoreCase) || 
+                                             (x.Description != null && x.Description.Contains(input.FilterText, StringComparison.OrdinalIgnoreCase)) ||
+                                             (x.Category != null && x.Category.Contains(input.FilterText, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        if (!string.IsNullOrEmpty(input.Category))
+        {
+             queryable = queryable.Where(x => x.Category != null && x.Category.Contains(input.Category, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrEmpty(input.City))
+        {
+             queryable = queryable.Where(x => x.City != null && x.City.Equals(input.City, StringComparison.OrdinalIgnoreCase));
+        }
+        
+        if (!string.IsNullOrEmpty(input.Region))
+        {
+             queryable = queryable.Where(x => x.Region != null && x.Region.Contains(input.Region, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (input.HasActiveOffers == true)
+        {
+             queryable = queryable.Where(x => x.Offers.Any(o => o.IsActive));
+        }
+        
+        // Sorting would go here
+
+        var paged = queryable.ToList(); // Add Skip/Take if needed later
+
+        await GateDiscountCodesAsync(paged);
+        return paged;
     }
 
     [Authorize(AlumniPermissions.Health.Manage)]
@@ -158,5 +215,20 @@ public class MedicalPartnerAppService : AlumniAppService, IMedicalPartnerAppServ
                 offer.DiscountCode = "******** (Active Membership Required)";
             }
         }
+    }
+    public async Task<HealthStatsDto> GetStatsAsync()
+    {
+        var partnerCount = await _partnerRepository.CountAsync();
+
+        var query = await _partnerRepository.GetQueryableAsync();
+        var offerCount = query.SelectMany(x => x.Offers).Count(x => x.IsActive);
+
+        return new HealthStatsDto
+        {
+            MedicalPartnersCount = (int)partnerCount,
+            ActiveOffersCount = offerCount,
+            AverageSavings = "20%", 
+            VerifiedQuality = "100%"
+        };
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Informatique.Alumni.Permissions;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.BlobStoring;
@@ -12,6 +13,7 @@ using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Users;
 
 namespace Informatique.Alumni.Syndicates;
+using Volo.Abp.Content;
 
 using Informatique.Alumni.Profiles;
 
@@ -25,6 +27,7 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
     private readonly IBlobContainer<SyndicateBlobContainer> _blobContainer;
     private readonly AlumniApplicationMappers _alumniMappers;
     private readonly IRepository<AlumniProfile, Guid> _alumniProfileRepository;
+    private readonly Informatique.Alumni.Payment.IPaymentAppService _paymentAppService;
 
     public SyndicateAppService(
         IRepository<Syndicate, Guid> syndicateRepository,
@@ -32,7 +35,8 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
         SyndicateManager syndicateManager,
         IBlobContainer<SyndicateBlobContainer> blobContainer,
         AlumniApplicationMappers alumniMappers,
-        IRepository<AlumniProfile, Guid> alumniProfileRepository)
+        IRepository<AlumniProfile, Guid> alumniProfileRepository,
+        Informatique.Alumni.Payment.IPaymentAppService paymentAppService)
     {
         _syndicateRepository = syndicateRepository;
         _subscriptionRepository = subscriptionRepository;
@@ -40,6 +44,7 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
         _blobContainer = blobContainer;
         _alumniMappers = alumniMappers;
         _alumniProfileRepository = alumniProfileRepository;
+        _paymentAppService = paymentAppService;
     }
 
     public async Task<List<SyndicateDto>> GetSyndicatesAsync()
@@ -51,28 +56,36 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
     [Authorize(AlumniPermissions.Syndicates.Manage)]
     public async Task<SyndicateDto> CreateSyndicateAsync(CreateUpdateSyndicateDto input)
     {
-        var syndicate = new Syndicate(GuidGenerator.Create(), input.Name, input.Description, input.Requirements);
+        var syndicate = new Syndicate(GuidGenerator.Create(), input.Name, input.Description, input.Requirements, input.Fee);
         await _syndicateRepository.InsertAsync(syndicate);
         return _alumniMappers.MapToDto(syndicate);
     }
 
-    [Authorize(AlumniPermissions.Syndicates.Apply)]
+    [Authorize]
     public async Task<SyndicateSubscriptionDto> ApplyAsync(ApplySyndicateDto input)
     {
         var alumniId = CurrentUser.GetId();
-        if (await _subscriptionRepository.AnyAsync(x => x.AlumniId == alumniId && x.SyndicateId == input.SyndicateId))
+        var existingSubscription = await _subscriptionRepository.FirstOrDefaultAsync(x => x.AlumniId == alumniId && x.SyndicateId == input.SyndicateId);
+        
+        if (existingSubscription != null)
         {
+            // Resume if Draft
+            if (existingSubscription.Status == SyndicateStatus.Draft)
+            {
+                return _alumniMappers.MapToDto(existingSubscription);
+            }
+            // Block if already submitted
             throw new UserFriendlyException("You have already applied for this syndicate.");
         }
 
-        // Assuming default fee is 0 for self-apply or determined elsewhere. 
-        // Using 0 as placeholder since explicit fee requirement for ApplyAsync wasn't detailed but strict constructor requires it.
-        var subscription = new SyndicateSubscription(GuidGenerator.Create(), alumniId, input.SyndicateId, 0);
+        var syndicate = await _syndicateRepository.GetAsync(input.SyndicateId);
+
+        var subscription = new SyndicateSubscription(GuidGenerator.Create(), alumniId, input.SyndicateId, syndicate.Fee, input.DeliveryMethod);
         await _subscriptionRepository.InsertAsync(subscription);
         return _alumniMappers.MapToDto(subscription);
     }
 
-    [Authorize(AlumniPermissions.Syndicates.Apply)]
+    [Authorize]
     public async Task<SyndicateSubscriptionDto> GetMySubscriptionAsync(Guid syndicateId)
     {
         var alumniId = CurrentUser.GetId();
@@ -80,10 +93,15 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
         if (subscription == null) throw new EntityNotFoundException();
         
         await _subscriptionRepository.EnsureCollectionLoadedAsync(subscription, x => x.Documents);
-        return _alumniMappers.MapToDto(subscription);
+        var dto = _alumniMappers.MapToDto(subscription);
+        
+        var syndicate = await _syndicateRepository.GetAsync(syndicateId);
+        dto.SyndicateName = syndicate.Name;
+        
+        return dto;
     }
 
-    [Authorize(AlumniPermissions.Syndicates.Apply)]
+    [Authorize]
     public async Task<List<SyndicateSubscriptionDto>> GetMyApplicationsAsync()
     {
         var alumniId = CurrentUser.GetId();
@@ -109,8 +127,59 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
         return dtos;
     }
 
-    [Authorize(AlumniPermissions.Syndicates.Apply)]
-    public async Task UploadDocumentAsync(Guid subscriptionId, UploadSyndicateDocDto input)
+    [HttpPost("/api/app/syndicate-payments/{subscriptionId}")]
+    [Authorize]
+    public async Task<SyndicateSubscriptionDto> PayAsync(Guid subscriptionId)
+    {
+        var subscription = await _subscriptionRepository.GetAsync(subscriptionId);
+        if (subscription.AlumniId != CurrentUser.GetId()) throw new UnauthorizedAccessException();
+
+        if (subscription.PaymentStatus == Informatique.Alumni.Syndicates.PaymentStatus.Paid) 
+        {
+             var paidDto = _alumniMappers.MapToDto(subscription);
+             var paidSyndicate = await _syndicateRepository.GetAsync(subscription.SyndicateId);
+             paidDto.SyndicateName = paidSyndicate.Name;
+             return paidDto;
+        }
+
+        // Call Payment Service
+        var paymentResult = await _paymentAppService.CheckoutAsync(new Informatique.Alumni.Payment.CheckoutDto
+        {
+            OrderId = subscription.Id,
+            Amount = subscription.FeeAmount,
+            Currency = "EGP", 
+            Description = $"Syndicate Application Fee: {subscription.Id}"
+        });
+
+        if (paymentResult.Status == Informatique.Alumni.Payment.PaymentStatus.Completed)
+        {
+             subscription.ConfirmPayment(paymentResult.Amount, paymentResult.GatewayTransactionId, Informatique.Alumni.Payment.PaymentGatewayType.Mock);
+             await _subscriptionRepository.UpdateAsync(subscription);
+        }
+
+        var dto = _alumniMappers.MapToDto(subscription);
+        var syndicate = await _syndicateRepository.GetAsync(subscription.SyndicateId);
+        dto.SyndicateName = syndicate.Name;
+
+        return dto;
+    }
+
+    [Authorize]
+    public async Task<SyndicateSubscriptionDto> GetApplicationDetailsAsync(Guid subscriptionId)
+    {
+        var subscription = await _subscriptionRepository.GetAsync(subscriptionId);
+        if (subscription.AlumniId != CurrentUser.GetId()) throw new UnauthorizedAccessException();
+
+        var dto = _alumniMappers.MapToDto(subscription);
+        var syndicate = await _syndicateRepository.GetAsync(subscription.SyndicateId);
+        dto.SyndicateName = syndicate.Name;
+
+        return dto;
+    }
+
+    [HttpPost("/api/app/syndicate-uploads/{subscriptionId}")]
+    [Authorize]
+    public async Task UploadDocumentAsync(Guid subscriptionId, [FromBody] UploadSyndicateDocDto input)
     {
         var subscription = await _subscriptionRepository.GetAsync(subscriptionId);
         if (subscription.AlumniId != CurrentUser.GetId()) throw new UnauthorizedAccessException();
@@ -126,6 +195,24 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
         await _subscriptionRepository.EnsureCollectionLoadedAsync(subscription, x => x.Documents);
         subscription.AddDocument(GuidGenerator.Create(), input.RequirementName, blobName);
         await _subscriptionRepository.UpdateAsync(subscription);
+    }
+
+    [HttpGet("/api/app/syndicate-uploads/{subscriptionId}/{documentId}")]
+    [Authorize]
+    public async Task<IRemoteStreamContent> GetDocumentAsync(Guid subscriptionId, Guid documentId)
+    {
+        var subscription = await _subscriptionRepository.GetAsync(subscriptionId);
+        if (subscription.AlumniId != CurrentUser.GetId()) throw new UnauthorizedAccessException();
+
+        await _subscriptionRepository.EnsureCollectionLoadedAsync(subscription, x => x.Documents);
+        var document = subscription.Documents.FirstOrDefault(x => x.Id == documentId);
+        
+        if (document == null) throw new EntityNotFoundException("Document not found");
+
+        var content = await _blobContainer.GetAllBytesOrNullAsync(document.FileBlobName);
+        if (content == null) throw new EntityNotFoundException("File content not found");
+
+        return new RemoteStreamContent(new System.IO.MemoryStream(content), document.FileBlobName, "application/octet-stream");
     }
 
     [Authorize(AlumniPermissions.Syndicates.Manage)]
@@ -290,5 +377,4 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
     }
     }
 
-[BlobContainerName("syndicate-docs")]
-public class SyndicateBlobContainer { }
+

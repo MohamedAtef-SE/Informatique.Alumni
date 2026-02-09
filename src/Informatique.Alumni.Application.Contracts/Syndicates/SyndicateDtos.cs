@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Volo.Abp.Application.Dtos;
+using Informatique.Alumni.Membership;
 
 namespace Informatique.Alumni.Syndicates;
 
@@ -9,6 +10,7 @@ public class SyndicateDto : EntityDto<Guid>
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Requirements { get; set; } = string.Empty;
+    public decimal Fee { get; set; }
 }
 
 public class CreateUpdateSyndicateDto
@@ -16,6 +18,7 @@ public class CreateUpdateSyndicateDto
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Requirements { get; set; } = string.Empty;
+    public decimal Fee { get; set; }
 }
 
 public class SyndicateSubscriptionDto : FullAuditedEntityDto<Guid>
@@ -26,6 +29,7 @@ public class SyndicateSubscriptionDto : FullAuditedEntityDto<Guid>
     public SyndicateStatus Status { get; set; }
     public decimal FeeAmount { get; set; }
     public PaymentStatus PaymentStatus { get; set; }
+    public DeliveryMethod DeliveryMethod { get; set; }
     public string? AdminNotes { get; set; }
     public List<SyndicateDocumentDto> Documents { get; set; } = new();
 }
@@ -39,6 +43,7 @@ public class SyndicateDocumentDto : EntityDto<Guid>
 public class ApplySyndicateDto
 {
     public Guid SyndicateId { get; set; }
+    public DeliveryMethod DeliveryMethod { get; set; }
 }
 
 public class BatchUpdateStatusDto

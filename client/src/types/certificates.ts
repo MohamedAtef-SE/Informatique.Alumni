@@ -46,3 +46,21 @@ export interface UpdateCertificateStatusDto {
     newStatus: CertificateRequestStatus;
     note?: string;
 }
+
+// --- New Types for Availability Check ---
+
+export interface CertificateDefinitionDto extends EntityDto<string> {
+    nameAr: string;
+    nameEn: string;
+    fee: number;
+    degreeType: number;
+    description?: string;
+    requiredDocuments?: string;
+    isActive: boolean;
+}
+
+export interface CertificateAvailabilityDto {
+    isEligible: boolean;
+    ineligibilityReason?: string;
+    items: CertificateDefinitionDto[];
+}

@@ -85,7 +85,7 @@ public class AdvisingAppService : AlumniAppService, IGuidanceAppService
     }
 
     // [New] Create Request Endpoint
-    [Authorize(AlumniPermissions.Guidance.BookSession)]
+    [Authorize]
     public async Task<AdvisingRequestDto> CreateRequestAsync(CreateAdvisingRequestDto input)
     {
         var request = await _advisingManager.CreateRequestAsync(

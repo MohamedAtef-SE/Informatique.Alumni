@@ -12,8 +12,9 @@ public interface IMedicalPartnerAppService : IApplicationService
     Task<MedicalPartnerDto> UpdateAsync(Guid id, CreateUpdateMedicalPartnerDto input);
     Task DeleteAsync(Guid id);
     Task<MedicalPartnerDto> GetAsync(Guid id);
-    Task<List<MedicalPartnerDto>> GetListAsync(MedicalPartnerType? type);
+    Task<List<MedicalPartnerDto>> GetListAsync(GetMedicalPartnersInput input);
     
     Task<MedicalPartnerDto> AddOfferAsync(Guid partnerId, CreateUpdateMedicalOfferDto input);
     Task<MedicalPartnerDto> RemoveOfferAsync(Guid partnerId, Guid offerId);
+    Task<HealthStatsDto> GetStatsAsync();
 }

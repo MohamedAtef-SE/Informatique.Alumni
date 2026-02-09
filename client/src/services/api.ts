@@ -3,7 +3,7 @@ import { useLoaderStore } from '../stores/useLoaderStore';
 import { useSessionStore } from '../stores/useSessionStore';
 
 // Default to localhost if environment variable is not set
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:44386';
+export const BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:44386';
 
 // OIDC Configuration (must match auth.ts)
 const OIDC_AUTHORITY = 'https://localhost:44386';

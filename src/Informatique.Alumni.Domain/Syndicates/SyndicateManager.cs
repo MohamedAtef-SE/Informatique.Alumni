@@ -39,59 +39,7 @@ public class SyndicateManager : DomainService
         return new SyndicateSubscription(GuidGenerator.Create(), alumniId, syndicateId, feeAmount);
     }
 
-    public async Task<decimal> PayRequestAsync(SyndicateSubscription subscription, PaymentGatewayType gatewayType)
-    {
-        if (subscription.PaymentStatus == PaymentStatus.Paid)
-        {
-            throw new UserFriendlyException("Request is already paid.");
-        }
 
-        var profile = await _alumniProfileRepository.GetAsync(subscription.AlumniId);
-        
-        // Split Payment Logic
-        decimal walletDeduction = 0;
-        decimal gatewayAmount = subscription.FeeAmount; // Default: All Gateway
-
-        if (profile.WalletBalance > 0)
-        {
-            if (profile.WalletBalance >= subscription.FeeAmount)
-            {
-                // Cover full amount with Wallet
-                walletDeduction = subscription.FeeAmount;
-                gatewayAmount = 0;
-            }
-            else
-            {
-                // Partial cover
-                walletDeduction = profile.WalletBalance;
-                gatewayAmount = subscription.FeeAmount - walletDeduction;
-            }
-        }
-
-        // Processing Logic
-        if (walletDeduction > 0)
-        {
-            profile.DeductWallet(walletDeduction);
-        }
-
-        subscription.InitializePayment(walletDeduction, gatewayAmount, gatewayType);
-
-        // If fully paid by wallet, mark as Paid immediately
-        if (gatewayAmount == 0)
-        {
-            subscription.SetPaymentStatus(PaymentStatus.Paid);
-        }
-        else
-        {
-            // Pending Gateway Payment
-            subscription.SetPaymentStatus(PaymentStatus.Pending);
-        }
-        
-        await _alumniProfileRepository.UpdateAsync(profile);
-        
-        // Return the amount needed to be charged via Gateway
-        return gatewayAmount;
-    }
     public void VerifyRequirementCompletion(SyndicateSubscription subscription, Syndicate syndicate)
     {
         if (string.IsNullOrWhiteSpace(syndicate.Requirements)) return;

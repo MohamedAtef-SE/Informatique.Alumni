@@ -20,7 +20,7 @@ public class CareerService : FullAuditedAggregateRoot<Guid>
     public Guid ServiceTypeId { get; private set; }
     public Guid BranchId { get; private set; }
     
-    public CareerServiceType ServiceType { get; set; }
+    public virtual CareerServiceType? ServiceType { get; set; }
     public ICollection<CareerServiceTimeslot> Timeslots { get; private set; }
 
     private CareerService() { }

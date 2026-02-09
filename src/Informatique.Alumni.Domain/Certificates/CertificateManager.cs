@@ -8,8 +8,9 @@ using Informatique.Alumni.Branches;
 using Informatique.Alumni.Membership;
 using Informatique.Alumni.Profiles;
 using Volo.Abp;
-using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Domain.Services;
+using Volo.Abp.Domain.Repositories;
+using Microsoft.Extensions.Configuration;
 
 namespace Informatique.Alumni.Certificates;
 
@@ -19,17 +20,20 @@ public class CertificateManager : DomainService
     private readonly IRepository<AlumniProfile, Guid> _profileRepository;
     private readonly IRepository<Branch, Guid> _branchRepository;
     private readonly MembershipManager _membershipManager;
+    private readonly IConfiguration _configuration;
 
     public CertificateManager(
         IRepository<CertificateDefinition, Guid> definitionRepository,
         IRepository<AlumniProfile, Guid> profileRepository,
         IRepository<Branch, Guid> branchRepository,
-        MembershipManager membershipManager)
+        MembershipManager membershipManager,
+        IConfiguration configuration)
     {
         _definitionRepository = definitionRepository;
         _profileRepository = profileRepository;
         _branchRepository = branchRepository;
         _membershipManager = membershipManager;
+        _configuration = configuration;
     }
 
     /// <summary>
@@ -72,7 +76,8 @@ public class CertificateManager : DomainService
                 input.CertificateDefinitionId,
                 input.Language,
                 definition.Fee,
-                input.QualificationId
+                input.QualificationId,
+                input.AttachmentUrl
             );
             
             certificateRequestItems.Add(item);
@@ -201,8 +206,8 @@ public class CertificateManager : DomainService
     /// </summary>
     public string GenerateQrCodeUrl(Guid itemId, string verificationHash)
     {
-        // In production, this would use a configuration value for the domain
-        return $"https://alumni.example.com/verify?id={itemId}&hash={verificationHash}";
+        var baseUrl = _configuration["App:ClientUrl"]?.TrimEnd('/') ?? _configuration["App:SelfUrl"]?.TrimEnd('/') ?? "https://alumni.informatique.com";
+        return $"{baseUrl}/verify-certificate?id={itemId}&hash={verificationHash}";
     }
 
     /// <summary>
@@ -227,4 +232,5 @@ public class CreateItemInput
     public Guid CertificateDefinitionId { get; set; }
     public Guid? QualificationId { get; set; }
     public CertificateLanguage Language { get; set; }
+    public string? AttachmentUrl { get; set; }
 }

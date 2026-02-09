@@ -176,7 +176,8 @@ public class GalleryAppService : AlumniAppService, IGalleryAppService
     public async Task<PagedResultDto<GalleryAlbumListDto>> GetAlbumsAsync(GalleryFilterDto input)
     {
         // 1. Gate: Check Membership
-        await _membershipGuard.CheckAsync();
+        // Removed to allow non-active viewing list
+        // await _membershipGuard.CheckAsync();
 
         // 2. Query
         var queryable = await _albumRepository.WithDetailsAsync(x => x.MediaItems);
@@ -222,7 +223,8 @@ public class GalleryAppService : AlumniAppService, IGalleryAppService
     public async Task<GalleryAlbumDetailDto> GetAlbumDetailsAsync(Guid id)
     {
         // 1. Gate: Check Membership
-        await _membershipGuard.CheckAsync();
+        // Removed to allow non-active viewing details
+        // await _membershipGuard.CheckAsync();
 
         var queryable = await _albumRepository.WithDetailsAsync(x => x.MediaItems);
         var album = await AsyncExecuter.FirstOrDefaultAsync(queryable, x => x.Id == id);

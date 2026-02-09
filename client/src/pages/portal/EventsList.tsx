@@ -51,8 +51,17 @@ const EventsTab = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-slide-up">
             {data?.items.map((event) => (
                 <Card key={event.id} variant="default" className="overflow-hidden flex flex-col group hover:border-[var(--color-accent)]/50 transition-all relative border-[var(--color-border)]">
-                    {/* Image Placeholder */}
-                    <div className="h-48 bg-gradient-to-br from-indigo-50 to-slate-100 relative p-4 flex flex-col justify-end border-b border-[var(--color-border)]">
+                    {/* Event Image */}
+                    <div className="h-48 relative overflow-hidden border-b border-[var(--color-border)]">
+                        <img
+                            src={event.coverImageUrl || `https://source.unsplash.com/800x600/?${encodeURIComponent(event.nameEn?.toLowerCase().replace(/\s+/g, ',') || 'event,networking')}`}
+                            alt={event.nameEn}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            onError={(e) => {
+                                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2070&auto=format&fit=crop';
+                            }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                         <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-lg border border-[var(--color-border)] text-xs font-bold text-[var(--color-text-primary)] shadow-sm">
                             {event.hasFees ? `${event.feeAmount} ${t('common.currency')}` : t('events.free_entry')}
                         </div>
