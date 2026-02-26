@@ -164,6 +164,14 @@ public class MembershipManager : DomainService
 
         // Approve through domain entity method
         request.Approve();
+
+        // Update Profile Status to Active
+        var profile = await _profileRepository.GetAsync(request.AlumniId);
+        if (profile != null && profile.Status != Informatique.Alumni.Profiles.AlumniStatus.Active)
+        {
+             profile.Approve(); 
+             await _profileRepository.UpdateAsync(profile);
+        }
     }
 
     /// <summary>

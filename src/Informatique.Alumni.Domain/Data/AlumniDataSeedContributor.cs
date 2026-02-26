@@ -43,6 +43,45 @@ public class AlumniDataSeedContributor : IDataSeedContributor, ITransientDepende
         await CreateRoleAsync("Alumni");
 
         await GrantAlumniPermissionsAsync();
+        await GrantEmployeePermissionsAsync();
+        await GrantSystemAdminPermissionsAsync();
+    }
+
+    private async Task GrantSystemAdminPermissionsAsync()
+    {
+        var roleName = "SystemAdmin";
+        var providerName = "R";
+
+        // Grant all Employee permissions to SystemAdmin as well
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Admin.AlumniManage, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Admin.AlumniApprove, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Events.Manage, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Admin.ContentModerate, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Gallery.Upload, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Careers.JobManage, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Guidance.ManageRequests, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Guidance.ManageAvailability, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Certificates.Process, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Membership.Process, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Syndicates.Manage, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Health.Manage, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Benefits.Manage, providerName, roleName, true);
+
+        // Also grant to the default ABP "admin" role
+        var adminRoleName = "admin";
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Admin.AlumniManage, providerName, adminRoleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Admin.AlumniApprove, providerName, adminRoleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Events.Manage, providerName, adminRoleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Admin.ContentModerate, providerName, adminRoleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Gallery.Upload, providerName, adminRoleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Careers.JobManage, providerName, adminRoleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Guidance.ManageRequests, providerName, adminRoleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Guidance.ManageAvailability, providerName, adminRoleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Certificates.Process, providerName, adminRoleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Membership.Process, providerName, adminRoleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Syndicates.Manage, providerName, adminRoleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Health.Manage, providerName, adminRoleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Benefits.Manage, providerName, adminRoleName, true);
     }
 
     private async Task GrantAlumniPermissionsAsync()
@@ -78,6 +117,35 @@ public class AlumniDataSeedContributor : IDataSeedContributor, ITransientDepende
         // Trips
         await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Trips.Default, providerName, roleName, true);
         await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Trips.Request, providerName, roleName, true);
+    }
+
+    private async Task GrantEmployeePermissionsAsync()
+    {
+        var roleName = "Employee";
+        var providerName = "R";
+
+        // Admin Access & Alumni Management
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Admin.AlumniManage, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Admin.AlumniApprove, providerName, roleName, true);
+        
+        // Content & Events
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Events.Manage, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Admin.ContentModerate, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Gallery.Upload, providerName, roleName, true);
+        // Factory was invalid
+        
+        // Careers
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Careers.JobManage, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Careers.JobApply, providerName, roleName, true); // Maybe validation?
+
+        // Services
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Guidance.ManageRequests, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Guidance.ManageAvailability, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Certificates.Process, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Membership.Process, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Syndicates.Manage, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Health.Manage, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Benefits.Manage, providerName, roleName, true);
     }
 
     private async Task CreateRoleAsync(string roleName)

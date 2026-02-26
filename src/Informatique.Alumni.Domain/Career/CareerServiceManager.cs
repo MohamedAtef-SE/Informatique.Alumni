@@ -33,27 +33,27 @@ public class CareerServiceManager : DomainService
         // 1. Validate Code Uniqueness
         if (await _serviceRepository.AnyAsync(x => x.Code == code))
         {
-            throw new BusinessException("Career:DuplicateServiceCode");
+            throw new UserFriendlyException("A service with this code already exists.", "Career:DuplicateServiceCode");
         }
 
         // 2. Validate Schedule (Overlaps & Input Logic)
         if (timeslots == null || !timeslots.Any())
         {
-            throw new BusinessException("Career:ServiceMustHaveTimeslots");
+            throw new UserFriendlyException("Service must have at least one timeslot.", "Career:ServiceMustHaveTimeslots");
         }
 
         foreach (var slot in timeslots)
         {
             if (slot.start >= slot.end)
             {
-                throw new BusinessException("Career:StartTimeMustBeBeforeEndTime");
+                throw new UserFriendlyException("Start time must be before end time.", "Career:StartTimeMustBeBeforeEndTime");
             }
             
             // Check Last Subscription Date validity
             var slotStartDateTime = slot.date.Date.Add(slot.start);
             if (lastSubscriptionDate > slotStartDateTime)
             {
-                throw new BusinessException("Career:LastSubscriptionDateTooLate");
+                throw new UserFriendlyException("Subscription deadline must be before the earliest session.", "Career:LastSubscriptionDateTooLate");
             }
 
             // Check overlap with OTHER services (same room)
@@ -74,7 +74,7 @@ public class CareerServiceManager : DomainService
 
             if (overlapExists.Any())
             {
-                throw new BusinessException("Career:RoomScheduleConflict")
+                throw new UserFriendlyException($"Room {slot.room} is already booked for this schedule.", "Career:RoomScheduleConflict")
                     .WithData("Room", slot.room)
                     .WithData("Date", slot.date.ToString("yyyy-MM-dd"));
             }
@@ -109,6 +109,43 @@ public class CareerServiceManager : DomainService
                 slot.capacity
             ));
         }
+
+        return service;
+    }
+
+    public async Task<CareerService> UpdateAsync(
+        CareerService service,
+        string nameAr,
+        string nameEn,
+        string code,
+        string description,
+        bool hasFees,
+        decimal feeAmount,
+        DateTime lastSubscriptionDate,
+        Guid serviceTypeId,
+        Guid branchId
+    )
+    {
+        // 1. Validate Code Uniqueness (excluding self)
+        if (await _serviceRepository.AnyAsync(x => x.Code == code && x.Id != service.Id))
+        {
+            throw new UserFriendlyException("A service with this code already exists.", "Career:DuplicateServiceCode");
+        }
+
+        // Note: For now, we only update the main details. Handling timeslot updates 
+        // requires complex logic (e.g. tracking additions, removals, overlaps and 
+        // ensuring no active subscriptions exist for deleted slots).
+        // For the current objective, we update the aggregate root details.
+
+        service.SetNames(nameAr, nameEn);
+        service.SetDetails(
+            code,
+            description,
+            lastSubscriptionDate,
+            serviceTypeId,
+            branchId
+        );
+        service.SetFinancials(hasFees, feeAmount);
 
         return service;
     }

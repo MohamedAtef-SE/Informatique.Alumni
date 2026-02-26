@@ -21,6 +21,7 @@ import Calendar from './pages/portal/Calendar';
 import Magazine from './pages/portal/Magazine';
 import AdminLayout from './components/layouts/AdminLayout';
 import AdminGuard from './components/auth/AdminGuard';
+import AlumniGuard from './components/auth/AlumniGuard';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AlumniManager from './pages/admin/AlumniManager';
 import EventManager from './pages/admin/EventManager';
@@ -52,19 +53,21 @@ function App() {
         </Route>
 
         {/* Protected Portal Routes */}
-        <Route path="/portal" element={<MainLayout />}>
-          <Route index element={<PortalHome />} />
-          <Route path="directory" element={<Directory />} />
-          <Route path="directory/:id" element={<AlumniProfile />} />
-          <Route path="career" element={<CareerServicesList />} />
-          <Route path="career/:id" element={<CareerServiceDetail />} />
-          <Route path="events" element={<EventsList />} />
-          <Route path="events/:id" element={<EventDetail />} />
-          <Route path="services" element={<ServicesLayout />} />
-          <Route path="gallery" element={<Gallery />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="calendar" element={<Calendar />} />
-          <Route path="magazine" element={<Magazine />} />
+        <Route path="/portal" element={<AlumniGuard />}>
+          <Route element={<MainLayout />}>
+            <Route index element={<PortalHome />} />
+            <Route path="directory" element={<Directory />} />
+            <Route path="directory/:id" element={<AlumniProfile />} />
+            <Route path="career" element={<CareerServicesList />} />
+            <Route path="career/:id" element={<CareerServiceDetail />} />
+            <Route path="events" element={<EventsList />} />
+            <Route path="events/:id" element={<EventDetail />} />
+            <Route path="services" element={<ServicesLayout />} />
+            <Route path="gallery" element={<Gallery />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="calendar" element={<Calendar />} />
+            <Route path="magazine" element={<Magazine />} />
+          </Route>
         </Route>
 
         {/* Admin Routes */}

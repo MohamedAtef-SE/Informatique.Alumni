@@ -44,7 +44,8 @@ public class CommercialDiscountAppService : AlumniAppService, ICommercialDiscoun
             input.Description,
             input.DiscountPercentage,
             input.PromoCode,
-            input.ValidUntil
+            input.ValidUntil,
+            input.WebsiteUrl
         );
         await _discountRepository.InsertAsync(discount);
         return _alumniMappers.MapToDto(discount);
@@ -54,7 +55,7 @@ public class CommercialDiscountAppService : AlumniAppService, ICommercialDiscoun
     public async Task<CommercialDiscountDto> UpdateAsync(Guid id, CreateUpdateCommercialDiscountDto input)
     {
         var discount = await _discountRepository.GetAsync(id);
-        discount.UpdateInfo(input.ProviderName, input.Title, input.Description, input.DiscountPercentage, input.PromoCode, input.ValidUntil);
+        discount.UpdateInfo(input.ProviderName, input.Title, input.Description, input.DiscountPercentage, input.PromoCode, input.ValidUntil, input.WebsiteUrl);
         await _discountRepository.UpdateAsync(discount);
         return _alumniMappers.MapToDto(discount);
     }

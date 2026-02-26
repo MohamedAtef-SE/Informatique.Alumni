@@ -44,6 +44,13 @@ public partial class AlumniApplicationMappers : ITransientDependency
     public partial List<SubscriptionFeeDto> MapToDtos(IEnumerable<SubscriptionFee> entities);
 
     [MapperIgnoreTarget(nameof(AssociationRequestDto.SubscriptionFeeName))]
+    [MapperIgnoreTarget(nameof(AssociationRequestDto.AlumniName))]
+    [MapperIgnoreTarget(nameof(AssociationRequestDto.AlumniNationalId))]
+    [MapperIgnoreTarget(nameof(AssociationRequestDto.AlumniPhotoUrl))]
+    [MapperIgnoreTarget(nameof(AssociationRequestDto.CollegeName))]
+    [MapperIgnoreTarget(nameof(AssociationRequestDto.GraduationYear))]
+    [MapperIgnoreTarget(nameof(AssociationRequestDto.EligibilityChecks))]
+    [MapperIgnoreTarget(nameof(AssociationRequestDto.EligibilitySummary))]
     public partial AssociationRequestDto MapToDto(AssociationRequest entity);
     public partial List<AssociationRequestDto> MapToDtos(IEnumerable<AssociationRequest> entities);
 
@@ -107,14 +114,20 @@ public partial class AlumniApplicationMappers : ITransientDependency
 
     public partial CareerServiceTypeDto MapToDto(CareerServiceType entity);
     public partial List<CareerServiceTypeDto> MapToDtos(IEnumerable<CareerServiceType> entities);
+    
+    public partial CareerLookupItemDto MapToLookupItemDto(CareerServiceType entity);
+    [MapProperty(nameof(Branch.Name), nameof(CareerLookupItemDto.NameEn))]
+    [MapProperty(nameof(Branch.Name), nameof(CareerLookupItemDto.NameAr))]
+    public partial CareerLookupItemDto MapToLookupItemDto(Branch entity);
 
     public partial CareerServiceDto MapToDto(CareerService entity);
     public partial List<CareerServiceDto> MapToDtos(IEnumerable<CareerService> entities);
 
+    public partial CareerServiceTimeslotDto MapToDto(CareerServiceTimeslot entity);
+    public partial List<CareerServiceTimeslotDto> MapToDtos(IEnumerable<CareerServiceTimeslot> entities);
+
     public partial AlumniCareerSubscriptionDto MapToDto(AlumniCareerSubscription entity);
     
-    public partial CareerServiceTimeslotDto MapToDto(CareerServiceTimeslot entity);
-
     // Mapperly might struggle with private constructor. 
     // I should create Timeslot manually in AppService or expose a constructor for Mapper?
     // Better: Handle Timeslot creation in AppService loop for now or assume Mapperly can standard map if I add a constructor or configuration.

@@ -12,10 +12,18 @@ export const oidcConfig: AuthProviderProps = {
     stateStore: new WebStorageStateStore({ store: window.localStorage }), // Ensure state persists across tabs/redirects
     automaticSilentRenew: true,
     loadUserInfo: true,
-    onSigninCallback: (_user) => {
-        // Navigate to dashboard after login
+    onSigninCallback: (user) => {
+        // Route based on role after login
         window.history.replaceState({}, document.title, window.location.pathname);
-        window.location.href = '/portal';
+        const roles = user?.profile?.role;
+        const roleArray: string[] = Array.isArray(roles) ? roles : roles ? [String(roles)] : [];
+        const isAdmin = roleArray.some(r => r.toLowerCase() === 'admin');
+
+        if (isAdmin) {
+            window.location.href = '/admin/dashboard';
+        } else {
+            window.location.href = '/portal';
+        }
     },
 };
 

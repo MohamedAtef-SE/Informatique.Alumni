@@ -11,6 +11,7 @@ using Volo.Abp.Application.Dtos;
 using Volo.Abp.Domain.Entities;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Users;
+using Volo.Abp.Identity;
 
 namespace Informatique.Alumni.Certificates;
 
@@ -22,8 +23,10 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
     private readonly IRepository<Branch, Guid> _branchRepository;
     private readonly IRepository<Education, Guid> _educationRepository;
     private readonly IRepository<AlumniProfile, Guid> _alumniProfileRepository;
+    private readonly IRepository<College, Guid> _collegeRepository;
     private readonly CertificateManager _certificateManager;
     private readonly AlumniApplicationMappers _alumniMappers;
+    private readonly IRepository<IdentityUser, Guid> _userRepository;
 
     public CertificateRequestAppService(
         IRepository<CertificateRequest, Guid> repository,
@@ -31,16 +34,20 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
         IRepository<Branch, Guid> branchRepository,
         IRepository<Education, Guid> educationRepository,
         IRepository<AlumniProfile, Guid> alumniProfileRepository,
+        IRepository<College, Guid> collegeRepository,
         CertificateManager certificateManager,
-        AlumniApplicationMappers alumniMappers)
+        AlumniApplicationMappers alumniMappers,
+        IRepository<IdentityUser, Guid> userRepository)
     {
         _repository = repository;
         _definitionRepository = definitionRepository;
         _branchRepository = branchRepository;
         _educationRepository = educationRepository;
         _alumniProfileRepository = alumniProfileRepository;
+        _collegeRepository = collegeRepository;
         _certificateManager = certificateManager;
         _alumniMappers = alumniMappers;
+        _userRepository = userRepository;
     }
 
     [Authorize]
@@ -65,6 +72,15 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
             var branch = await _branchRepository.GetAsync(entity.TargetBranchId.Value);
             dto.TargetBranchName = branch.Name;
         }
+        
+        var user = await _userRepository.FindAsync(entity.AlumniId);
+        if (user != null)
+        {
+            dto.AlumniName = $"{user.Name} {user.Surname}".Trim();
+            if (string.IsNullOrWhiteSpace(dto.AlumniName)) dto.AlumniName = user.UserName;
+            dto.AlumniEmail = user.Email;
+        }
+        dto.StudentId = entity.AlumniId.ToString();
         
         return dto;
     }
@@ -94,11 +110,14 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
 
         // ========== Build Query with Filtering ==========
         var queryable = await _repository.WithDetailsAsync(x => x.Items);
+        
+        Console.WriteLine($"[CERT_TRACE] Initial count: {await AsyncExecuter.CountAsync(queryable)}");
 
         // Branch filter (security-enforced)
         if (effectiveBranchId.HasValue)
         {
             queryable = queryable.Where(x => x.TargetBranchId == effectiveBranchId.Value);
+            Console.WriteLine($"[CERT_TRACE] After Branch Filter (effectiveBranchId={effectiveBranchId}): {await AsyncExecuter.CountAsync(queryable)}");
         }
 
 
@@ -121,18 +140,20 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
                  // No matches found
                  queryable = queryable.Where(x => false);
             }
+            Console.WriteLine($"[CERT_TRACE] After GraduationYear Filter: {await AsyncExecuter.CountAsync(queryable)}");
         }
 
         // Delivery Method filter (Office vs Home)
         if (input.DeliveryMethod.HasValue)
         {
             queryable = queryable.Where(x => x.DeliveryMethod == input.DeliveryMethod.Value);
+            Console.WriteLine($"[CERT_TRACE] After DeliveryMethod Filter: {await AsyncExecuter.CountAsync(queryable)}");
         }
 
-        // Status filter
         if (input.Status.HasValue)
         {
             queryable = queryable.Where(x => x.Status == input.Status.Value);
+            Console.WriteLine($"[CERT_TRACE] After Status Filter (Status={input.Status.Value}): {await AsyncExecuter.CountAsync(queryable)}");
         }
 
         // Alumni ID filter
@@ -177,7 +198,7 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
         // 1. Certificate Definitions
         var definitionIds = allItems.Select(x => x.CertificateDefinitionId).Distinct().ToList();
         var definitions = await _definitionRepository.GetListAsync(x => definitionIds.Contains(x.Id));
-        var defDict = definitions.ToDictionary(x => x.Id, x => x.NameEn);
+        var defDict = definitions.ToDictionary(x => x.Id, x => new { x.NameEn, x.RequiredDocuments });
 
         // 2. Qualifications
         var qualificationIds = allItems.Where(x => x.QualificationId.HasValue)
@@ -189,6 +210,28 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
             qualDict = qualifications.ToDictionary(x => x.Id, x => $"{x.Degree} - {x.InstitutionName}");
         }
 
+        // Fetch User and Profile details
+        var uniqueUserIds = dtos.Select(x => x.AlumniId).Distinct().ToList();
+        var users = await _userRepository.GetListAsync(x => uniqueUserIds.Contains(x.Id));
+        var userDict = users.ToDictionary(x => x.Id, x => x);
+
+        var profilesQuery = await _alumniProfileRepository.WithDetailsAsync(x => x.Educations, x => x.Mobiles, x => x.Emails);
+        var userProfiles = await AsyncExecuter.ToListAsync(profilesQuery.Where(x => uniqueUserIds.Contains(x.UserId)));
+        var profileDict = userProfiles.ToDictionary(x => x.UserId, x => x);
+
+        // Fetch Colleges for profiles
+        var customCollegeIds = userProfiles.SelectMany(p => p.Educations)
+            .Where(e => e.CollegeId.HasValue)
+            .Select(e => e.CollegeId!.Value)
+            .Distinct()
+            .ToList();
+        Dictionary<Guid, string> collegeDict = new();
+        if (customCollegeIds.Any())
+        {
+             var colleges = await _collegeRepository.GetListAsync(x => customCollegeIds.Contains(x.Id));
+             collegeDict = colleges.ToDictionary(x => x.Id, x => x.Name);
+        }
+
         // 3. Map in Memory
         foreach (var dto in dtos)
         {
@@ -196,12 +239,45 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
             {
                 dto.TargetBranchName = branchName;
             }
+            
+            if (userDict.TryGetValue(dto.AlumniId, out var user))
+            {
+                dto.AlumniName = $"{user.Name} {user.Surname}".Trim();
+                if (string.IsNullOrWhiteSpace(dto.AlumniName)) dto.AlumniName = user.UserName;
+                dto.AlumniEmail = user.Email;
+            }
+            
+            if (profileDict.TryGetValue(dto.AlumniId, out var profile))
+            {
+                var primaryMobile = profile.Mobiles.FirstOrDefault(m => m.IsPrimary);
+                dto.MobileNumber = primaryMobile != null ? primaryMobile.MobileNumber : profile.MobileNumber;
+
+                var primaryEmail = profile.Emails.FirstOrDefault(e => e.IsPrimary);
+                if (primaryEmail != null) dto.AlumniEmail = primaryEmail.Email;
+
+                var latestEducation = profile.Educations.OrderByDescending(e => e.GraduationYear).FirstOrDefault();
+                if (latestEducation != null)
+                {
+                    dto.GraduationYear = latestEducation.GraduationYear;
+                    if (latestEducation.CollegeId.HasValue && collegeDict.TryGetValue(latestEducation.CollegeId.Value, out var collegeName))
+                    {
+                        dto.CollegeName = collegeName;
+                    }
+                    else if (!string.IsNullOrWhiteSpace(latestEducation.InstitutionName))
+                    {
+                        dto.CollegeName = latestEducation.InstitutionName;
+                    }
+                }
+            }
+
+            dto.StudentId = dto.AlumniId.ToString();
 
             foreach (var item in dto.Items)
             {
-                if (defDict.TryGetValue(item.CertificateDefinitionId, out var defName))
+                if (defDict.TryGetValue(item.CertificateDefinitionId, out var defData))
                 {
-                    item.CertificateDefinitionName = defName;
+                    item.CertificateDefinitionName = defData.NameEn;
+                    item.RequiredDocuments = defData.RequiredDocuments;
                 }
                 
                 if (item.QualificationId.HasValue && qualDict.TryGetValue(item.QualificationId.Value, out var qualName))
@@ -424,7 +500,7 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
     {
         var definitionIds = dto.Items.Select(x => x.CertificateDefinitionId).Distinct().ToList();
         var definitions = await _definitionRepository.GetListAsync(x => definitionIds.Contains(x.Id));
-        var defDict = definitions.ToDictionary(x => x.Id, x => x.NameEn);
+        var defDict = definitions.ToDictionary(x => x.Id, x => new { x.NameEn, x.RequiredDocuments });
         
         var qualificationIds = dto.Items.Where(x => x.QualificationId.HasValue)
             .Select(x => x.QualificationId!.Value).Distinct().ToList();
@@ -438,9 +514,10 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
         
         foreach (var item in dto.Items)
         {
-            if (defDict.TryGetValue(item.CertificateDefinitionId, out var defName))
+            if (defDict.TryGetValue(item.CertificateDefinitionId, out var defData))
             {
-                item.CertificateDefinitionName = defName;
+                item.CertificateDefinitionName = defData.NameEn;
+                item.RequiredDocuments = defData.RequiredDocuments;
             }
             
             if (item.QualificationId.HasValue && qualDict.TryGetValue(item.QualificationId.Value, out var qualName))

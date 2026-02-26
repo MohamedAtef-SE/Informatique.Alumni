@@ -6,15 +6,24 @@ import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 
 const Login = () => {
-    const { signinRedirect, isAuthenticated } = useAuth();
+    const auth = useAuth();
+    const { signinRedirect, isAuthenticated } = auth;
     const navigate = useNavigate();
     const { t } = useTranslation();
 
     useEffect(() => {
         if (isAuthenticated) {
-            navigate('/portal');
+            const roles = auth.user?.profile?.role;
+            const roleArray: string[] = Array.isArray(roles) ? roles : roles ? [String(roles)] : [];
+            const isAdmin = roleArray.some(r => r.toLowerCase() === 'admin');
+
+            if (isAdmin) {
+                navigate('/admin/dashboard');
+            } else {
+                navigate('/portal');
+            }
         }
-    }, [isAuthenticated, navigate]);
+    }, [isAuthenticated, navigate, auth.user]);
 
     const handleLogin = () => {
         signinRedirect();

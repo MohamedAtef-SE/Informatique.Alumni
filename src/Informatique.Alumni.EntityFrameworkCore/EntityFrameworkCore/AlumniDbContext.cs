@@ -88,6 +88,7 @@ public class AlumniDbContext :
     // Magazine & Blog
     public DbSet<Informatique.Alumni.Magazine.Magazine> Magazines { get; set; } 
     public DbSet<MagazineIssue> MagazineIssues { get; set; }
+    public DbSet<ArticleCategory> ArticleCategories { get; set; }
     public DbSet<BlogPost> BlogPosts { get; set; }
     public DbSet<PostComment> PostComments { get; set; }
 
@@ -285,6 +286,13 @@ public class AlumniDbContext :
             b.ConfigureByConvention();
             b.HasIndex(x => x.UserId);
             b.HasOne<Nationality>().WithMany().HasForeignKey(x => x.NationalityId).IsRequired(false);
+
+            // Admin Lifecycle
+            b.Property(x => x.Status).HasConversion<string>().HasMaxLength(32).HasDefaultValue(Profiles.AlumniStatus.Pending);
+            b.Property(x => x.IdCardStatus).HasConversion<string>().HasMaxLength(32).HasDefaultValue(Profiles.IdCardStatus.None);
+            b.Property(x => x.IsNotable).HasDefaultValue(false);
+            b.Property(x => x.RejectionReason).HasMaxLength(1024);
+            b.HasIndex(x => x.Status);
         });
 
         builder.Entity<Experience>(b =>
@@ -396,7 +404,18 @@ public class AlumniDbContext :
             b.ToTable(AlumniConsts.DbTablePrefix + "BlogPosts", AlumniConsts.DbSchema);
             b.ConfigureByConvention();
             b.HasIndex(x => x.AuthorId);
-            b.HasIndex(x => x.Category);
+            b.HasIndex(x => x.CategoryId);
+            b.Property(x => x.Slug).IsRequired().HasMaxLength(256);
+            b.HasIndex(x => x.Slug).IsUnique();
+            b.HasOne(x => x.Category).WithMany().HasForeignKey(x => x.CategoryId).IsRequired(false);
+        });
+
+        builder.Entity<ArticleCategory>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "ArticleCategories", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.NameAr).IsRequired().HasMaxLength(128);
+            b.Property(x => x.NameEn).IsRequired().HasMaxLength(128);
         });
 
         builder.Entity<PostComment>(b =>

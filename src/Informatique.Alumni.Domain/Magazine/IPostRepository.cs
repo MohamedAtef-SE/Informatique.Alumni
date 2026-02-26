@@ -9,7 +9,7 @@ namespace Informatique.Alumni.Magazine;
 public interface IPostRepository : IRepository<BlogPost, Guid>
 {
     Task<List<BlogPost>> GetListAsync(
-        string? category = null,
+        Guid? categoryId = null,
         string? keyword = null,
         DateTime? minDate = null,
         DateTime? maxDate = null,
@@ -23,7 +23,7 @@ public interface IPostRepository : IRepository<BlogPost, Guid>
     );
 
     Task<long> GetCountAsync(
-        string? category = null,
+        Guid? categoryId = null,
         string? keyword = null,
         DateTime? minDate = null,
         DateTime? maxDate = null,

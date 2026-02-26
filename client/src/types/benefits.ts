@@ -15,4 +15,22 @@ export interface CommercialDiscountDto extends FullAuditedEntityDto<string> {
     discountPercentage: number;
     promoCode?: string;
     validUntil: string;
+    websiteUrl?: string;
+}
+
+export interface CreateAcademicGrantDto {
+    nameAr: string;
+    nameEn: string;
+    type: string; // 'Partial', 'Full'
+    percentage: number;
+}
+
+export interface CreateCommercialDiscountDto {
+    providerName: string;
+    title: string;
+    description: string;
+    discountPercentage: number;
+    promoCode?: string;
+    validUntil: string;
+    websiteUrl?: string;
 }

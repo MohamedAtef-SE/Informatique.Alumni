@@ -23,6 +23,7 @@ public static class AlumniDomainErrorCodes
         public const string FeeAmountMustBeZero = "Alumni:Event:007";
         public const string InvalidTimeslotRange = "Alumni:Event:008";
         public const string NoTimeslotsDefined = "Alumni:Event:009";
+        public const string DuplicateCode = "Alumni:Event:010";
         public const string InvalidSubscriptionDate = "Events:InvalidSubscriptionDate";
     }
 

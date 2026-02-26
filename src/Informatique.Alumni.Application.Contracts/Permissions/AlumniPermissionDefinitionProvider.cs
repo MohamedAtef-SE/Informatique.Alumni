@@ -31,6 +31,7 @@ public class AlumniPermissionDefinitionProvider : PermissionDefinitionProvider
         membershipPermission.AddChild(AlumniPermissions.Membership.ManageFees, L("Permission:ManageFees"));
         membershipPermission.AddChild(AlumniPermissions.Membership.Request, L("Permission:RequestMembership"));
         membershipPermission.AddChild(AlumniPermissions.Membership.Process, L("Permission:ProcessMembership"));
+        membershipPermission.AddChild(AlumniPermissions.Membership.GlobalView, L("Permission:GlobalView"));
 
         var profilePermission = myGroup.AddPermission(AlumniPermissions.Profiles.Default, L("Permission:Profiles"));
         profilePermission.AddChild(AlumniPermissions.Profiles.Manage, L("Permission:ManageProfiles"));
@@ -100,6 +101,25 @@ public class AlumniPermissionDefinitionProvider : PermissionDefinitionProvider
         var tripsPermission = myGroup.AddPermission(AlumniPermissions.Trips.Default, L("Permission:Trips"));
         tripsPermission.AddChild(AlumniPermissions.Trips.Manage, L("Permission:ManageTrips"));
         tripsPermission.AddChild(AlumniPermissions.Trips.Request, L("Permission:RequestTrip"));
+
+        // Admin Module
+        var adminPermission = myGroup.AddPermission(AlumniPermissions.Admin.Default, L("Permission:Admin"));
+        adminPermission.AddChild(AlumniPermissions.Admin.AlumniManage, L("Permission:AdminAlumniManage"));
+        adminPermission.AddChild(AlumniPermissions.Admin.AlumniApprove, L("Permission:AdminAlumniApprove"));
+        adminPermission.AddChild(AlumniPermissions.Admin.JobModerate, L("Permission:AdminJobModerate"));
+        adminPermission.AddChild(AlumniPermissions.Admin.EventManage, L("Permission:AdminEventManage"));
+        adminPermission.AddChild(AlumniPermissions.Admin.Dashboard, L("Permission:AdminDashboard"));
+        adminPermission.AddChild(AlumniPermissions.Admin.ContentModerate, L("Permission:AdminContentModerate"));
+        adminPermission.AddChild(AlumniPermissions.Admin.GuidanceManage, L("Permission:AdminGuidanceManage"));
+
+        // Phase 2
+        adminPermission.AddChild(AlumniPermissions.Admin.CertificateManage, L("Permission:AdminCertificateManage"));
+        adminPermission.AddChild(AlumniPermissions.Admin.MembershipManage, L("Permission:AdminMembershipManage"));
+        adminPermission.AddChild(AlumniPermissions.Admin.SyndicateManage, L("Permission:AdminSyndicateManage"));
+        adminPermission.AddChild(AlumniPermissions.Admin.TripManage, L("Permission:AdminTripManage"));
+        adminPermission.AddChild(AlumniPermissions.Admin.GalleryManage, L("Permission:AdminGalleryManage"));
+        adminPermission.AddChild(AlumniPermissions.Admin.HealthcareManage, L("Permission:AdminHealthcareManage"));
+        adminPermission.AddChild(AlumniPermissions.Admin.BenefitsManage, L("Permission:AdminBenefitsManage"));
     }
 
     private static LocalizableString L(string name)

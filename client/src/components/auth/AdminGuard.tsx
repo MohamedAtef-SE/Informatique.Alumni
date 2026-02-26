@@ -10,15 +10,19 @@ const AdminGuard = () => {
     }
 
     if (!auth.isAuthenticated) {
-        return <Navigate to="/login" state={{ from: location }} replace />;
+        return <Navigate to="/auth/login" state={{ from: location }} replace />;
     }
 
-    // TODO: Implement actual Role Check here. 
-    // For now, we assume anyone who can login to this specific route via direct link is authorized OR we just check a claim.
-    // const isAdmin = auth.user?.profile?.role === 'admin'; 
-    // if (!isAdmin) return <Navigate to="/portal/dashboard" replace />;
+    // Check admin role from OIDC claims
+    const roles = auth.user?.profile?.role;
+    const roleArray: string[] = Array.isArray(roles) ? roles : roles ? [String(roles)] : [];
+    const allowedRoles = ['admin', 'systemadmin', 'collegeadmin', 'employee'];
+    const hasAccess = roleArray.some(r => allowedRoles.includes(r.toLowerCase()));
 
-    // For Development/Demo purposes, we allow access.
+    if (!hasAccess) {
+        return <Navigate to="/portal" replace />;
+    }
+
     return <Outlet />;
 };
 

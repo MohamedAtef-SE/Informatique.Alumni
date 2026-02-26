@@ -21,6 +21,12 @@ public class AlumniProfile : FullAuditedAggregateRoot<Guid>
     public Guid? NationalityId { get; private set; }
 
     public int ViewCount { get; private set; } = 0;
+
+    // Admin Lifecycle Fields
+    public AlumniStatus Status { get; private set; } = AlumniStatus.Pending;
+    public bool IsNotable { get; private set; } = false;
+    public IdCardStatus IdCardStatus { get; private set; } = IdCardStatus.None;
+    public string? RejectionReason { get; private set; }
     
     // Note: Educations collection handles degrees
     
@@ -298,6 +304,46 @@ public class AlumniProfile : FullAuditedAggregateRoot<Guid>
         }
         
         _educations.Remove(education);
+    }
+
+    // ── Admin Lifecycle Methods ──
+
+    public void Approve()
+    {
+        if (Status == AlumniStatus.Active)
+        {
+            throw new BusinessException("Alumni:AlreadyActive");
+        }
+
+        Status = AlumniStatus.Active;
+        RejectionReason = null;
+    }
+
+    public void Reject(string reason)
+    {
+        Check.NotNullOrWhiteSpace(reason, nameof(reason));
+        Status = AlumniStatus.Rejected;
+        RejectionReason = reason;
+    }
+
+    public void Ban()
+    {
+        if (Status == AlumniStatus.Banned)
+        {
+            throw new BusinessException("Alumni:AlreadyBanned");
+        }
+
+        Status = AlumniStatus.Banned;
+    }
+
+    public void MarkAsNotable(bool isNotable)
+    {
+        IsNotable = isNotable;
+    }
+
+    public void UpdateIdCardStatus(IdCardStatus status)
+    {
+        IdCardStatus = status;
     }
 }
 

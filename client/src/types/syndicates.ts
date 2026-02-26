@@ -1,10 +1,13 @@
 import type { FullAuditedEntityDto, EntityDto, PagedAndSortedResultRequestDto } from './common';
 
 export const SyndicateStatus = {
+    Draft: -1,
     Pending: 0,
-    Approved: 1,
-    Rejected: 2,
-    MoreInfoRequired: 3
+    Reviewing: 1,
+    SentToSyndicate: 2,
+    CardReady: 3,
+    Rejected: 4,
+    Received: 5
 } as const;
 export type SyndicateStatus = typeof SyndicateStatus[keyof typeof SyndicateStatus];
 
@@ -34,6 +37,21 @@ export interface SyndicateSubscriptionDto extends FullAuditedEntityDto<string> {
 export interface SyndicateDocumentDto extends EntityDto<string> {
     requirementName: string;
     fileBlobName: string;
+}
+
+export interface SyndicateSubscriptionAdmin extends FullAuditedEntityDto<string> {
+    alumniId: string;
+    alumniName: string;
+    alumniNationalId: string;
+    alumniMobile: string;
+    syndicateId: string;
+    syndicateName: string;
+    status: SyndicateStatus;
+    feeAmount: number;
+    paymentStatus: PaymentStatus;
+    deliveryMethod: number;
+    adminNotes?: string;
+    documents: SyndicateDocumentDto[];
 }
 
 export interface SyndicateRequestFilterDto extends PagedAndSortedResultRequestDto {

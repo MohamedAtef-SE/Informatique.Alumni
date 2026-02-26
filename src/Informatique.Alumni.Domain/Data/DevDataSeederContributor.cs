@@ -69,11 +69,14 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
     private readonly IBlobContainer<MagazineBlobContainer> _magazineBlobContainer;
     private readonly IRepository<Informatique.Alumni.Guidance.GuidanceSessionRule, Guid> _ruleRepository;
     private readonly IRepository<Informatique.Alumni.Career.CurriculumVitae, Guid> _cvRepository;
+    private readonly IRepository<Informatique.Alumni.Magazine.ArticleCategory, Guid> _articleCategoryRepository;
 
     private const string DevUserName = "devuser";
     private const string RealUserName = "real_alumni";
+    private const string AdminUserName = "adminuser";
     private const string DevUserEmail = "devuser@alumni.local";
     private const string RealUserEmail = "real@alumni.local";
+    private const string AdminUserEmail = "admin@alumni.local";
     private const string DefaultPassword = "Dev@123456";
     private const string AlumniGroupName = "Alumni";
 
@@ -111,7 +114,8 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
         IRepository<AlumniEventRegistration, Guid> eventRegistrationRepository,
         IBlobContainer<MagazineBlobContainer> magazineBlobContainer,
         IRepository<Informatique.Alumni.Guidance.GuidanceSessionRule, Guid> ruleRepository,
-        IRepository<Informatique.Alumni.Career.CurriculumVitae, Guid> cvRepository)
+        IRepository<Informatique.Alumni.Career.CurriculumVitae, Guid> cvRepository,
+        IRepository<Informatique.Alumni.Magazine.ArticleCategory, Guid> articleCategoryRepository)
     {
         _userRepository = userRepository;
         _userManager = userManager;
@@ -147,6 +151,7 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
         _magazineBlobContainer = magazineBlobContainer;
         _ruleRepository = ruleRepository;
         _cvRepository = cvRepository;
+        _articleCategoryRepository = articleCategoryRepository;
     }
 
     private async Task SeedMultipleAlumniAsync()
@@ -190,9 +195,16 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
         
         await _userManager.AddToRoleAsync(user, "alumni");
 
-        // 2. Alumni Profile (Summary for Directory)
         var profile = new Informatique.Alumni.Profiles.AlumniProfile(_guidGenerator.Create(), userId, $"+201{random.Next(100000000, 999999999)}", $"2{random.Next(90, 99)}0101{random.Next(10000, 99999)}");
         profile.UpdateBasicInfo(profile.MobileNumber, jobTitle, $"{jobTitle} at {company}");
+        
+        var primaryMobile = new Informatique.Alumni.Profiles.ContactMobile(_guidGenerator.Create(), profile.Id, profile.MobileNumber, true);
+        profile.AddMobile(primaryMobile);
+        profile.SetPrimaryMobile(primaryMobile.Id);
+
+        var primaryEmail = new Informatique.Alumni.Profiles.ContactEmail(_guidGenerator.Create(), profile.Id, email, true);
+        profile.AddEmail(primaryEmail);
+        profile.SetPrimaryEmail(primaryEmail.Id);
         profile.UpdateAddress("Cairo", "Cairo", "Egypt");
         profile.UpdateProfessionalInfo(company, jobTitle);
         profile.SetPhotoUrl($"https://ui-avatars.com/api/?name={firstName}+{lastName}&background=random&color=fff&size=200");
@@ -257,6 +269,60 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
         cv.Experiences.Add(prevCvExp);
 
         await _cvRepository.InsertAsync(cv);
+
+        // 5. Membership Request (Diverse Statuses for Admin Testing)
+        var existingRequest = await _requestRepository.FirstOrDefaultAsync(x => x.AlumniId == profile.Id);
+        if (existingRequest == null)
+        {
+            var fee = await _feeRepository.FirstOrDefaultAsync(x => x.Name == "Standard Membership");
+            if (fee != null)
+            {
+                var deliveryMethod = random.NextDouble() > 0.5
+                    ? Informatique.Alumni.Membership.DeliveryMethod.HomeDelivery
+                    : Informatique.Alumni.Membership.DeliveryMethod.OfficePickup;
+                var deliveryFee = deliveryMethod == Informatique.Alumni.Membership.DeliveryMethod.HomeDelivery ? 25m : 0m;
+
+                var request = new AssociationRequest(
+                    _guidGenerator.Create(),
+                    profile.Id,
+                    fee.Id,
+                    Guid.NewGuid().ToString(),
+                    branch?.Id ?? Guid.NewGuid(),
+                    DateTime.UtcNow.AddDays(-random.Next(1, 30)),
+                    DateTime.UtcNow.AddYears(1),
+                    deliveryMethod,
+                    deliveryFee,
+                    0,
+                    fee.Amount + deliveryFee,
+                    null
+                );
+
+                // Distribute statuses: ~40% Pending, ~25% Paid, ~25% Approved, ~10% Rejected
+                var roll = random.NextDouble();
+                if (roll < 0.40)
+                {
+                    // Stay Pending — no payment
+                }
+                else if (roll < 0.65)
+                {
+                    // Paid but awaiting admin
+                    request.MarkAsPaid();
+                }
+                else if (roll < 0.90)
+                {
+                    // Approved
+                    request.MarkAsPaid();
+                    request.Approve();
+                }
+                else
+                {
+                    // Rejected
+                    request.Reject("Incomplete documentation provided.");
+                }
+
+                await _requestRepository.InsertAsync(request);
+            }
+        }
     }
 
     public async Task SeedAsync(DataSeedContext context)
@@ -266,6 +332,7 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
         if (!string.IsNullOrEmpty(environment) && !string.Equals(environment, "Development", StringComparison.OrdinalIgnoreCase)) return;
 
         await SeedDevUserAsync();
+        await SeedAdminUserAsync();
         
         // --- Single Real Alumni (Legacy) ---
         var realUser = await SeedRealAlumniAsync();
@@ -285,6 +352,7 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
         await SeedServicesAsync();
         await SeedGalleryAsync();
         await SeedGuidanceRulesAsync();
+        await SeedCertificateRequestsAsync();
         
         await CreateAlumniRoleAsync();
         
@@ -385,6 +453,42 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
             await _syndicateRepository.UpdateAsync(arabicSyndicate);
             Console.WriteLine("--- UPDATED SYNDICATE NAME TO ENGLISH ---");
         }
+    }
+
+    /// <summary>
+    /// Seeds a dedicated admin user with all Admin.* permissions.
+    /// Credentials: adminuser / admin@alumni.local / Dev@123456
+    /// </summary>
+    private async Task SeedAdminUserAsync()
+    {
+        var existingUser = await _userRepository.FindByNormalizedUserNameAsync(_userManager.NormalizeName(AdminUserName));
+        if (existingUser != null)
+        {
+            // Ensure permissions are up to date
+            await GrantAllAlumniPermissionsToUserAsync(existingUser.Id);
+            return;
+        }
+
+        var userId = _guidGenerator.Create();
+        var adminUser = new IdentityUser(userId, AdminUserName, AdminUserEmail);
+        adminUser.Name = "System";
+        adminUser.Surname = "Admin";
+        adminUser.SetIsActive(true);
+        adminUser.SetEmailConfirmed(true);
+
+        var result = await _userManager.CreateAsync(adminUser, DefaultPassword);
+        if (!result.Succeeded)
+        {
+            throw new Exception($"Failed to create admin user: {string.Join(", ", result.Errors)}");
+        }
+
+        // Assign admin role
+        var adminRole = await _roleRepository.FindByNormalizedNameAsync(_roleManager.NormalizeKey("admin"));
+        if (adminRole != null) await _userManager.AddToRoleAsync(adminUser, "admin");
+
+        // Grant ALL Alumni permissions (incl. Admin.*)
+        await GrantAllAlumniPermissionsToUserAsync(userId);
+        Console.WriteLine("--- SEEDED ADMIN USER (adminuser / admin@alumni.local / Dev@123456) ---");
     }
 
     private async Task SeedDevUserAsync()
@@ -753,7 +857,14 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
     private async Task SeedMagazineAsync()
     {
         // 1. Clean up potential legacy data
-        var legacyTitles = new[] { "Alumni Achievements 2025", "Campus Renovation Update", "Career Fair Recap" };
+        var legacyTitles = new[] { 
+            "Alumni Achievements 2025", "Campus Renovation Update", "Career Fair Recap",
+            // One-time fix: delete posts seeded with invalid authorIds
+            "The AI Revolution: How Alumni are Shaping the Future of Healthcare",
+            "Quantum Computing: The Next Leap for Cryptography",
+            "Alumni Tech Summit 2026 Recap: Building Bridges",
+            "Green Tech Initiative: Sustainability in Software"
+        };
         foreach (var title in legacyTitles)
         {
             var legacyPost = await _postRepository.FirstOrDefaultAsync(p => p.Title == title);
@@ -763,12 +874,38 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
             }
         }
 
+        Guid? categoryId1 = null;
+        Guid? categoryId2 = null;
+
+        if (await _articleCategoryRepository.GetCountAsync() == 0)
+        {
+            var cat1 = new Informatique.Alumni.Magazine.ArticleCategory(_guidGenerator.Create(), "Tech News", "أخبار التكنولوجيا");
+            var cat2 = new Informatique.Alumni.Magazine.ArticleCategory(_guidGenerator.Create(), "University News", "أخبار الجامعة");
+            var cat3 = new Informatique.Alumni.Magazine.ArticleCategory(_guidGenerator.Create(), "Alumni Announcements", "إعلانات الخريجين");
+            
+            await _articleCategoryRepository.InsertAsync(cat1);
+            await _articleCategoryRepository.InsertAsync(cat2);
+            await _articleCategoryRepository.InsertAsync(cat3);
+            categoryId1 = cat1.Id;
+            categoryId2 = cat2.Id;
+        }
+        else
+        {
+            var existingCats = await _articleCategoryRepository.GetListAsync();
+            categoryId1 = existingCats.FirstOrDefault()?.Id;
+            categoryId2 = existingCats.Skip(1).FirstOrDefault()?.Id ?? categoryId1;
+        }
+
         // 2. Define New Rich Content
+        // Use admin user as the author so authorName enrichment works
+        var adminUser = await _userRepository.FindByNormalizedUserNameAsync(_userManager.NormalizeName(AdminUserName));
+        var authorId = adminUser?.Id ?? Guid.Empty;
         var posts = new[]
         {
             new Informatique.Alumni.Magazine.BlogPost(
                 _guidGenerator.Create(), 
                 "The AI Revolution: How Alumni are Shaping the Future of Healthcare", 
+                "the-ai-revolution",
                 "From predictive diagnostics to personalized treatment plans, our graduates are at the forefront of the AI integration in modern medicine.", 
                 @"<p>Artificial Intelligence is no longer just a buzzword; it's a transformative force reshaping industries, and healthcare is its most promising frontier. This month, we spotlight three distinguished alumni who are pioneering AI-driven solutions to some of medicine's most complex challenges.</p>
                   <h3>Dr. Sarah El-Sayed (Class of 2018)</h3>
@@ -777,8 +914,8 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
                   <p>Beyond diagnostics, our software engineering graduates are building the robust cloud infrastructures required to process genomic data at scale. The intersection of Biology and Computer Science—Bioinformatics—is seeing a surge in demand, and our curriculum has evolved to meet this need.</p>
                   <blockquote>""The skills I learned in the Distributed Systems course were crucial for building our scalable patient data platform,"" says Ahmed Nour, CTO of MediCloud.</blockquote>
                   <p>As we look forward to the 2030 vision, the synergy between medical expertise and computational power will only grow stronger.</p>", 
-                _guidGenerator.Create(), 
-                "Innovation", 
+                authorId, 
+                categoryId1, 
                 "AI,Healthcare,Alumni,Innovation") 
             { 
                 IsPublished = true,
@@ -787,9 +924,10 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
                 ViewCount = 1250
             },
 
-            new Informatique.Alumni.Magazine.BlogPost(
+             new Informatique.Alumni.Magazine.BlogPost(
                 _guidGenerator.Create(), 
                 "Quantum Computing: The Next Leap for Cryptography", 
+                "quantum-computing-cryptography",
                 "University researchers unveil a new quantum-resistant encryption algorithm.", 
                 @"<p>In a landmark paper published this week, a team of researchers from our Computer Science department, led by alumni Prof. Hassan Kamal, proposed a fascinating new lattice-based cryptography method designed to withstand the brute-force capabilities of future quantum computers.</p>
                   <p>Current encryption standards like RSA rely on the difficulty of factoring large prime numbers—a task that quantum computers could theoretically solve in seconds using Shor's algorithm.</p>
@@ -801,8 +939,8 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
                     <li><strong>Adoption:</strong> Open-source library released on GitHub.</li>
                   </ul>
                   <p>This breakthrough puts our institution on the map as a global hub for cryptographic research.</p>", 
-                _guidGenerator.Create(), 
-                "Research", 
+                authorId, 
+                null, 
                 "Quantum,Cryptography,Research,Security") 
             { 
                 IsPublished = true, 
@@ -814,6 +952,7 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
              new Informatique.Alumni.Magazine.BlogPost(
                 _guidGenerator.Create(), 
                 "Alumni Tech Summit 2026 Recap: Building Bridges", 
+                "alumni-tech-summit-2026-recap",
                 "Over 500 attendees gathered for our largest annual networking event.", 
                 @"<p>The Grand Hall was buzzing with energy last Saturday as alumni from graduating classes spanning three decades gathered for the <strong>Alumni Tech Summit 2026</strong>. The theme, 'Building Bridges', focused on connecting fresh graduates with industry veterans.</p>
                   <h3>Keynote Highlights</h3>
@@ -822,8 +961,8 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
                   <h3>Startup Showcase</h3>
                   <p>Five alumni-founded startups pitched their ideas to a panel of angel investors. The winner, 'AgriBot', secured seed funding for their autonomous farming rover.</p>
                   <p>We thank all our sponsors and volunteers for making this unforgettable night possible. See you next year!</p>", 
-                _guidGenerator.Create(), 
-                "Events", 
+                authorId, 
+                null, 
                 "Summit,Networking,Community,Startup") 
             { 
                 IsPublished = true, 
@@ -835,6 +974,7 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
             new Informatique.Alumni.Magazine.BlogPost(
                 _guidGenerator.Create(), 
                 "Green Tech Initiative: Sustainability in Software", 
+                "green-tech-initiative-sustainability",
                 "How efficient coding can reduce carbon footprints.", 
                 @"<p>Did you know that the global IT sector consumes more electricity than entire nations? As developers, we have a responsibility to write efficient code. The 'Green Tech Initiative' is a new student-led movement advocating for sustainable software engineering practices.</p>
                   <h3>Optimizing for the Planet</h3>
@@ -845,8 +985,8 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
                     <li><strong>Green Hosting:</strong> Choosing providers powered by renewable energy.</li>
                   </ol>
                   <p>Join the hackathon next month to build tools that help measure and reduce digital carbon emissions.</p>", 
-                _guidGenerator.Create(), 
-                "Sustainability", 
+                authorId, 
+                null, 
                 "GreenTech,Environment,Coding,Future") 
             { 
                 IsPublished = true, 
@@ -858,9 +998,15 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
 
         foreach (var post in posts)
         {
-            if (!await _postRepository.AnyAsync(p => p.Title == post.Title))
+            var existing = await _postRepository.FirstOrDefaultAsync(p => p.Title == post.Title);
+            if (existing == null)
             {
                 await _postRepository.InsertAsync(post);
+            }
+            else if (existing.AuthorId != authorId)
+            {
+                existing.AuthorId = authorId;
+                await _postRepository.UpdateAsync(existing);
             }
         }
     }
@@ -901,16 +1047,16 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
         if (await _discountRepository.GetCountAsync() < 3) 
         {
             await _discountRepository.InsertAsync(new CommercialDiscount(
-                _guidGenerator.Create(), catTech.Id, "Apple Store", "Education Pricing + 10%", "Get exclusive alumni pricing on MacBooks and iPads.", 15, "EDU-ALUM-2026", DateTime.UtcNow.AddYears(1)));
+                _guidGenerator.Create(), catTech.Id, "Apple Store", "Education Pricing + 10%", "Get exclusive alumni pricing on MacBooks and iPads.", 15, "EDU-ALUM-2026", DateTime.UtcNow.AddYears(1), "https://www.apple.com/shop/go/edu_702188"));
             
             await _discountRepository.InsertAsync(new CommercialDiscount(
-                _guidGenerator.Create(), catTech.Id, "JetBrains", "Free All Products Pack", "1-Year free license for IntelliJ, WebStorm, and ReSharper.", 100, "CODE-WITH-US", DateTime.UtcNow.AddMonths(6)));
+                _guidGenerator.Create(), catTech.Id, "JetBrains", "Free All Products Pack", "1-Year free license for IntelliJ, WebStorm, and ReSharper.", 100, "CODE-WITH-US", DateTime.UtcNow.AddMonths(6), "https://www.jetbrains.com/community/education/"));
 
             await _discountRepository.InsertAsync(new CommercialDiscount(
-                _guidGenerator.Create(), catLifestyle.Id, "Gold's Gym", "Corporate rate", "30% Off Annual Membership at any branch nationwide.", 30, "FIT-ALUMNI", DateTime.UtcNow.AddYears(1)));
+                _guidGenerator.Create(), catLifestyle.Id, "Gold's Gym", "Corporate rate", "30% Off Annual Membership at any branch nationwide.", 30, "FIT-ALUMNI", DateTime.UtcNow.AddYears(1), null));
 
             await _discountRepository.InsertAsync(new CommercialDiscount(
-                _guidGenerator.Create(), catTravel.Id, "Booking.com", "Genius Level 3", "Instant upgrade to Genius Level 3 for lower rates and free breakfasts.", 20, "TRAVEL-SMART", DateTime.UtcNow.AddYears(2)));
+                _guidGenerator.Create(), catTravel.Id, "Booking.com", "Genius Level 3", "Instant upgrade to Genius Level 3 for lower rates and free breakfasts.", 20, "TRAVEL-SMART", DateTime.UtcNow.AddYears(2), "https://www.booking.com"));
         }
     }
 
@@ -932,10 +1078,14 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
         // 1. Certificates
         if (await _certificateDefinitionRepository.GetCountAsync() == 0)
         {
-            var cert1 = new CertificateDefinition(_guidGenerator.Create(), "شهادة تخرج", "Graduation Certificate", 50, DegreeType.Undergraduate);
-            var cert2 = new CertificateDefinition(_guidGenerator.Create(), "بيان درجات", "Transcript", 75, DegreeType.Undergraduate);
-            await _certificateDefinitionRepository.InsertAsync(cert1);
-            await _certificateDefinitionRepository.InsertAsync(cert2);
+            // Inject mock HTML requirements for testing UI
+            var reqDocsHtml1 = @"<ul><li>Copy of National ID</li><li>Clear personal photo (4x6)</li><li>Clearance from the university library</li></ul>";
+            var reqDocsHtml2 = @"<p>To request a transcript, you <strong>MUST</strong> upload:</p><ol><li>Copy of your Graduation Certificate</li><li>Payment receipt</li></ol>";
+            
+            var cert1 = new CertificateDefinition(_guidGenerator.Create(), "شهادة تخرج", "Graduation Certificate", 50, DegreeType.Undergraduate, "Official university graduation certificate.", reqDocsHtml1);
+            var cert2 = new CertificateDefinition(_guidGenerator.Create(), "بيان درجات", "Transcript", 75, DegreeType.Undergraduate, "Detailed courses and grades transcript.", reqDocsHtml2);
+            await _certificateDefinitionRepository.InsertAsync(cert1, autoSave: true);
+            await _certificateDefinitionRepository.InsertAsync(cert2, autoSave: true);
         }
 
         // 2. Syndicates
@@ -1087,6 +1237,7 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
         }
 
 // Removed invalid seed for certificate request
+
 
     }
 
@@ -1472,6 +1623,49 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
         );
          baraka.AddOffer(_guidGenerator.Create(), "Frames Discount", "30% off on RayBan and Oakley frames.", "FRAMES30");
         await _medicalPartnerRepository.InsertAsync(baraka);
+    }
+
+    private async Task SeedCertificateRequestsAsync()
+    {
+        if (await _certificateRequestRepository.GetCountAsync() > 0) return;
+
+        var certDef = await _certificateDefinitionRepository.FirstOrDefaultAsync();
+        var profile = await _profileRepository.FirstOrDefaultAsync(); // Get first available profile
+        
+        Console.WriteLine($"--- SEEDING CERT. REQ: certDef={certDef?.Id}, profile={profile?.Id} ---");
+
+        if (certDef != null && profile != null)
+        {
+            var reqId = _guidGenerator.Create();
+            var mockRequest = new CertificateRequest(
+                reqId,
+                profile.UserId,
+                Informatique.Alumni.Certificates.DeliveryMethod.HomeDelivery,
+                Guid.Empty,
+                "123 Mock Street",
+                "Admin requested test data."
+            );
+
+            // Simulate the request being placed
+            var itemObj = new CertificateRequestItem(
+                _guidGenerator.Create(),
+                reqId,
+                certDef.Id,
+                CertificateLanguage.English,
+                certDef.Fee,
+                null,
+                "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" // Fake attachment URL
+            );
+            
+            mockRequest.AddItem(itemObj);
+            
+            // Apply 0 wallet deduction to trigger state transition from Draft -> PendingPayment
+            mockRequest.ApplyWalletDeduction(0);
+
+            // Add to DB
+            var result = await _certificateRequestRepository.InsertAsync(mockRequest, autoSave: true);
+            Console.WriteLine($"--- SEEDED MOCK CERTIFICATE REQUEST {result.Id} WITH STATUS {result.Status} ---");
+        }
     }
 }
 

@@ -119,6 +119,15 @@ public class SeederAppService : ApplicationService
                 
                 var profile = new AlumniProfile(_guidGenerator.Create(), user.Id, mobile, nationalId);
                 profile.UpdateBasicInfo(mobile, $"Software Engineer {i}", $"Bio for {username}");
+                
+                var primaryMobile = new ContactMobile(_guidGenerator.Create(), profile.Id, mobile, true);
+                profile.AddMobile(primaryMobile);
+                profile.SetPrimaryMobile(primaryMobile.Id);
+
+                var primaryEmail = new ContactEmail(_guidGenerator.Create(), profile.Id, email, true);
+                profile.AddEmail(primaryEmail);
+                profile.SetPrimaryEmail(primaryEmail.Id);
+
                 profile.SetBranchId(branch.Id);
                 profile.UpdateProfessionalInfo("Tech Corp", $"Senior Dev {i}");
                 

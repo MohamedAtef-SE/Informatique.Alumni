@@ -11,6 +11,7 @@ public class CommercialDiscount : FullAuditedAggregateRoot<Guid>
     public decimal DiscountPercentage { get; set; }
     public string? PromoCode { get; set; }
     public DateTime ValidUntil { get; set; }
+    public string? WebsiteUrl { get; set; }
 
     public Guid CategoryId { get; private set; } // [New] Link to Category
 
@@ -24,7 +25,8 @@ public class CommercialDiscount : FullAuditedAggregateRoot<Guid>
         string description, 
         decimal discountPercentage, 
         string? promoCode, 
-        DateTime validUntil)
+        DateTime validUntil,
+        string? websiteUrl)
         : base(id)
     {
         CategoryId = categoryId;
@@ -34,6 +36,7 @@ public class CommercialDiscount : FullAuditedAggregateRoot<Guid>
         DiscountPercentage = discountPercentage;
         PromoCode = promoCode;
         ValidUntil = validUntil;
+        WebsiteUrl = websiteUrl;
     }
 
     public void UpdateInfo(
@@ -42,7 +45,8 @@ public class CommercialDiscount : FullAuditedAggregateRoot<Guid>
         string description, 
         decimal discountPercentage, 
         string? promoCode, 
-        DateTime validUntil)
+        DateTime validUntil,
+        string? websiteUrl)
     {
         ProviderName = providerName;
         Title = title;
@@ -50,5 +54,6 @@ public class CommercialDiscount : FullAuditedAggregateRoot<Guid>
         DiscountPercentage = discountPercentage;
         PromoCode = promoCode;
         ValidUntil = validUntil;
+        WebsiteUrl = websiteUrl;
     }
 }
