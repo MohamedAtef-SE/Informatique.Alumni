@@ -182,9 +182,11 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
     public async Task UploadDocumentAsync(Guid subscriptionId, [FromBody] UploadSyndicateDocDto input)
     {
         var subscription = await _subscriptionRepository.GetAsync(subscriptionId);
-        if (subscription.AlumniId != CurrentUser.GetId()) throw new UnauthorizedAccessException();
+        if (subscription.AlumniId != CurrentUser.GetId()) throw new UserFriendlyException("You do not have access to this subscription.");
         
-        if (subscription.Status != SyndicateStatus.Pending && subscription.Status != SyndicateStatus.Reviewing)
+        if (subscription.Status != SyndicateStatus.Draft && 
+            subscription.Status != SyndicateStatus.Pending && 
+            subscription.Status != SyndicateStatus.Reviewing)
         {
             throw new UserFriendlyException("Cannot upload documents in current status.");
         }

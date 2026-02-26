@@ -2,11 +2,13 @@ import type { FullAuditedEntityDto, EntityDto, PagedAndSortedResultRequestDto } 
 import type { DeliveryMethod } from './membership';
 
 export const CertificateRequestStatus = {
-    Pending: 0,
-    Processing: 1,
-    ReadyForPickup: 2,
-    Delivered: 3,
-    Rejected: 4
+    Draft: 1,
+    PendingPayment: 2,
+    Processing: 3,
+    ReadyForPickup: 4,
+    OutForDelivery: 5,
+    Delivered: 6,
+    Rejected: 7
 } as const;
 export type CertificateRequestStatus = typeof CertificateRequestStatus[keyof typeof CertificateRequestStatus];
 
@@ -17,10 +19,21 @@ export const CertificateLanguage = {
 export type CertificateLanguage = typeof CertificateLanguage[keyof typeof CertificateLanguage];
 
 export interface CertificateRequestDto extends FullAuditedEntityDto<string> {
+    // Requester Information
     alumniId: string;
+    alumniName?: string;
+    alumniEmail?: string;
+    mobileNumber?: string;
+    studentId?: string;
+    collegeName?: string;
+    graduationYear?: number;
     items: CertificateRequestItemDto[];
     status: CertificateRequestStatus;
+    totalItemFees: number;
+    deliveryFee: number;
     totalFees: number;
+    usedWalletAmount: number;
+    paidGatewayAmount: number;
     remainingAmount: number;
     deliveryMethod: DeliveryMethod;
     targetBranchName?: string;
@@ -34,6 +47,10 @@ export interface CertificateRequestItemDto extends EntityDto<string> {
     qualificationName?: string;
     language: CertificateLanguage;
     fee: number;
+
+    // Proof mapping
+    attachmentUrl?: string;
+    requiredDocuments?: string;
 }
 
 export interface CertificateRequestFilterDto extends PagedAndSortedResultRequestDto {

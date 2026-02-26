@@ -11,6 +11,21 @@ export interface AlumniTripDto extends FullAuditedEntityDto<string> {
     isActive: boolean;
 }
 
+export interface CreateTripDto {
+    title: string;
+    description?: string;
+    destination: string;
+    startDate: string;
+    endDate: string;
+    maxCapacity: number;
+    pricePerPerson: number;
+    isActive: boolean;
+}
+
+export interface UpdateTripDto extends CreateTripDto {
+    id: string;
+}
+
 export const TripRequestStatus = {
     Pending: 0,
     Approved: 1,

@@ -8,12 +8,20 @@ const Callback = () => {
 
     useEffect(() => {
         if (auth.isAuthenticated) {
-            navigate('/portal');
+            const roles = auth.user?.profile?.role;
+            const roleArray: string[] = Array.isArray(roles) ? roles : roles ? [String(roles)] : [];
+            const isAdmin = roleArray.some(r => r.toLowerCase() === 'admin');
+
+            if (isAdmin) {
+                navigate('/admin/dashboard');
+            } else {
+                navigate('/portal');
+            }
         }
         if (auth.error) {
             console.error(auth.error);
         }
-    }, [auth.isAuthenticated, auth.error, navigate]);
+    }, [auth.isAuthenticated, auth.error, navigate, auth.user]);
 
     return (
         <div className="flex items-center justify-center h-screen bg-[var(--color-bg-dark)]">

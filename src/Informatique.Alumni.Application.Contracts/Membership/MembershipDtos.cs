@@ -38,6 +38,17 @@ public class AssociationRequestDto : FullAuditedEntityDto<Guid>
     public decimal DeliveryFee { get; set; }
     public Guid TargetBranchId { get; set; }
     public DeliveryMethod DeliveryMethod { get; set; }
+
+    // Alumni Identity (populated by service)
+    public string AlumniName { get; set; } = string.Empty;
+    public string AlumniNationalId { get; set; } = string.Empty;
+    public string? AlumniPhotoUrl { get; set; }
+    public string? CollegeName { get; set; }
+    public int? GraduationYear { get; set; }
+
+    // Eligibility Checks (populated by service)
+    public List<EligibilityCheckDto> EligibilityChecks { get; set; } = new();
+    public string EligibilitySummary { get; set; } = "Unknown"; // "AllClear", "NeedsReview", "CannotApprove"
 }
 
 public class CreateAssociationRequestDto

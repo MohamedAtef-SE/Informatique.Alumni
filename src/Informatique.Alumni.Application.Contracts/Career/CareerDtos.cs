@@ -1,6 +1,7 @@
 using System;
 using Volo.Abp.Application.Dtos;
 using System.Collections.Generic;
+using Informatique.Alumni.Admin;
 
 namespace Informatique.Alumni.Career;
 
@@ -17,6 +18,13 @@ public class CareerServiceDto : FullAuditedEntityDto<Guid>
     public DateTime LastSubscriptionDate { get; set; }
     
     public int SubscribedCount { get; set; } // Derived or unused? Keep for now if needed.
+    
+    public Guid ServiceTypeId { get; set; }
+    public Guid BranchId { get; set; }
+    
+    public CareerLookupItemDto? ServiceType { get; set; }
+    public CareerLookupItemDto? Branch { get; set; }
+    
     public List<CareerServiceTimeslotDto> Timeslots { get; set; } = new();
 }
 
@@ -45,6 +53,7 @@ public class CreateCareerServiceDto
     public DateTime LastSubscriptionDate { get; set; }
     
     public Guid ServiceTypeId { get; set; }
+    public Guid BranchId { get; set; }
     public List<CreateCareerServiceTimeslotDto> Timeslots { get; set; } = new();
 }
 
@@ -74,4 +83,17 @@ public class BulkEmailDto
 {
     public string Subject { get; set; } = string.Empty;
     public string Body { get; set; } = string.Empty;
+}
+
+public class CareerLookupItemDto
+{
+    public Guid Id { get; set; }
+    public string NameAr { get; set; } = string.Empty;
+    public string NameEn { get; set; } = string.Empty;
+}
+
+public class CareerLookupsDto
+{
+    public List<CareerLookupItemDto> ServiceTypes { get; set; } = new();
+    public List<CareerLookupItemDto> Branches { get; set; } = new();
 }

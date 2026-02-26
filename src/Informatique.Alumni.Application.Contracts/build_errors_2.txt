@@ -1,0 +1,14 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Informatique.Alumni.Domain.Shared -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain.Shared\bin\Debug\net10.0\Informatique.Alumni.Domain.Shared.dll
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\Career\CareerDtos.cs(25,12): error CS0246: The type or namespace name 'CareerLookupsItemDto' could not be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\Informatique.Alumni.Application.Contracts.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\Career\CareerDtos.cs(26,12): error CS0246: The type or namespace name 'CareerLookupsItemDto' could not be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\Informatique.Alumni.Application.Contracts.csproj]
+
+Build FAILED.
+
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\Career\CareerDtos.cs(25,12): error CS0246: The type or namespace name 'CareerLookupsItemDto' could not be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\Informatique.Alumni.Application.Contracts.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\Career\CareerDtos.cs(26,12): error CS0246: The type or namespace name 'CareerLookupsItemDto' could not be found (are you missing a using directive or an assembly reference?) [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\Informatique.Alumni.Application.Contracts.csproj]
+    0 Warning(s)
+    2 Error(s)
+
+Time Elapsed 00:00:01.45

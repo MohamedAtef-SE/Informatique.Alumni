@@ -10,6 +10,14 @@ public class CertificateRequestDto : FullAuditedEntityDto<Guid>
     public List<CertificateRequestItemDto> Items { get; set; } = new();
     public CertificateRequestStatus Status { get; set; }
     
+    // Requester Information
+    public string? AlumniName { get; set; }
+    public string? AlumniEmail { get; set; }
+    public string? MobileNumber { get; set; }
+    public string? StudentId { get; set; }
+    public string? CollegeName { get; set; }
+    public int? GraduationYear { get; set; }
+    
     // Financial properties
     public decimal UsedWalletAmount { get; set; }
     public decimal PaidGatewayAmount { get; set; }
@@ -38,6 +46,10 @@ public class CertificateRequestItemDto : EntityDto<Guid>
     public string? QualificationName { get; set; }
     public CertificateLanguage Language { get; set; }
     public decimal Fee { get; set; }
+    
+    // Proof mapping
+    public string? AttachmentUrl { get; set; }
+    public string? RequiredDocuments { get; set; }
     
     // Anti-fraud fields
     public string? VerificationHash { get; set; }

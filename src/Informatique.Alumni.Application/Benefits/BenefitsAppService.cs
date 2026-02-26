@@ -39,8 +39,9 @@ public class BenefitsAppService : AlumniAppService, IBenefitsAppService
     [Authorize]
     public async Task<PagedResultDto<AcademicGrantDto>> GetGrantsAsync(PagedAndSortedResultRequestDto input)
     {
-        var count = await _grantRepository.GetCountAsync();
         var query = await _grantRepository.GetQueryableAsync();
+        query = query.Where(x => !x.IsDeleted);
+        var count = await AsyncExecuter.CountAsync(query);
         var list = await AsyncExecuter.ToListAsync(query.OrderBy(input.Sorting ?? "CreationTime desc").PageBy(input.SkipCount, input.MaxResultCount));
         
         return new PagedResultDto<AcademicGrantDto>(count, _alumniMappers.MapToDtos(list));
@@ -81,8 +82,9 @@ public class BenefitsAppService : AlumniAppService, IBenefitsAppService
     [Authorize]
     public async Task<PagedResultDto<CommercialDiscountDto>> GetDiscountsAsync(PagedAndSortedResultRequestDto input)
     {
-        var count = await _discountRepository.GetCountAsync();
         var query = await _discountRepository.GetQueryableAsync();
+        query = query.Where(x => !x.IsDeleted);
+        var count = await AsyncExecuter.CountAsync(query);
         var list = await AsyncExecuter.ToListAsync(query.OrderBy(input.Sorting ?? "CreationTime desc").PageBy(input.SkipCount, input.MaxResultCount));
         return new PagedResultDto<CommercialDiscountDto>(count, _alumniMappers.MapToDtos(list));
     }
@@ -98,7 +100,8 @@ public class BenefitsAppService : AlumniAppService, IBenefitsAppService
             input.Description,
             input.DiscountPercentage,
             input.PromoCode,
-            input.ValidUntil
+            input.ValidUntil,
+            input.WebsiteUrl
         );
         await _discountRepository.InsertAsync(discount);
         return _alumniMappers.MapToDto(discount);
@@ -108,7 +111,7 @@ public class BenefitsAppService : AlumniAppService, IBenefitsAppService
     public async Task<CommercialDiscountDto> UpdateDiscountAsync(Guid id, CreateUpdateCommercialDiscountDto input)
     {
         var discount = await _discountRepository.GetAsync(id);
-        discount.UpdateInfo(input.ProviderName, input.Title, input.Description, input.DiscountPercentage, input.PromoCode, input.ValidUntil);
+        discount.UpdateInfo(input.ProviderName, input.Title, input.Description, input.DiscountPercentage, input.PromoCode, input.ValidUntil, input.WebsiteUrl);
         await _discountRepository.UpdateAsync(discount);
         return _alumniMappers.MapToDto(discount);
     }

@@ -165,4 +165,25 @@ public static class AlumniPermissions
         public const string View = Default + ".View";
         public const string Manage = Default + ".Manage";
     }
+
+    public static class Admin
+    {
+        public const string Default = GroupName + ".Admin";
+        public const string AlumniManage = Default + ".AlumniManage";
+        public const string AlumniApprove = Default + ".AlumniApprove";
+        public const string JobModerate = Default + ".JobModerate";
+        public const string EventManage = Default + ".EventManage";
+        public const string Dashboard = Default + ".Dashboard";
+        public const string ContentModerate = Default + ".ContentModerate";
+        public const string GuidanceManage = Default + ".GuidanceManage";
+
+        // Phase 2
+        public const string CertificateManage = Default + ".CertificateManage";
+        public const string MembershipManage = Default + ".MembershipManage";
+        public const string SyndicateManage = Default + ".SyndicateManage";
+        public const string TripManage = Default + ".TripManage";
+        public const string GalleryManage = Default + ".GalleryManage";
+        public const string HealthcareManage = Default + ".HealthcareManage";
+        public const string BenefitsManage = Default + ".BenefitsManage";
+    }
 }

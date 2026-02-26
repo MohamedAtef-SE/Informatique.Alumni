@@ -305,13 +305,11 @@ public class MembershipAppService : AlumniAppService, IMembershipAppService
     public async Task<PagedResultDto<AssociationRequestDto>> GetListAsync(MembershipRequestFilterDto input)
     {
         // Security Logic: Scoped View
-        // Rule: Employees view requests for their Registered Branch by default unless they have GlobalView.
         var hasGlobalView = await AuthorizationService.IsGrantedAsync(AlumniPermissions.Membership.GlobalView);
         var currentUserBranchId = CurrentUser.FindClaim("BranchId")?.Value;
         
         Guid? userBranchGuid = !string.IsNullOrEmpty(currentUserBranchId) ? Guid.Parse(currentUserBranchId) : null;
         
-        // Force Filter if not Global View
         if (!hasGlobalView && userBranchGuid.HasValue)
         {
             input.BranchId = userBranchGuid.Value;
@@ -320,61 +318,318 @@ public class MembershipAppService : AlumniAppService, IMembershipAppService
         // Build Query
         var queryable = await _requestRepository.GetQueryableAsync();
         
-        // Filter by Branch
         if (input.BranchId.HasValue)
-        {
             queryable = queryable.Where(x => x.TargetBranchId == input.BranchId.Value);
-        }
-        
-        // Filter by Status
         if (input.Status.HasValue)
-        {
             queryable = queryable.Where(x => x.Status == input.Status.Value);
-        }
-        
-        // Filter by Delivery Method
         if (input.DeliveryMethod.HasValue)
-        {
             queryable = queryable.Where(x => x.DeliveryMethod == input.DeliveryMethod.Value);
-        }
-        
-        // Date Range
         if (input.MinDate.HasValue)
-        {
             queryable = queryable.Where(x => x.RequestDate >= input.MinDate.Value);
-        }
         if (input.MaxDate.HasValue)
-        {
             queryable = queryable.Where(x => x.RequestDate <= input.MaxDate.Value);
-        }
 
-        // Apply General Filter (Optional, assumes joins for Name/ID, skipping for brevity unless implemented)
-        
-        var query = queryable;
-
-        var totalCount = await AsyncExecuter.CountAsync(query);
+        var totalCount = await AsyncExecuter.CountAsync(queryable);
         
         var entities = await AsyncExecuter.ToListAsync(
-            query.OrderByDescending(x => x.RequestDate) // Default sorting
-                 .PageBy(input)
+            queryable.OrderByDescending(x => x.RequestDate).PageBy(input)
         );
         
         var dtos = _alumniMappers.MapToDtos(entities);
-        
-        // Fill fee names
+
+        // ── Batch Load: Fees ──
         var feeIds = entities.Select(x => x.SubscriptionFeeId).Distinct().ToList();
         var fees = await _feeRepository.GetListAsync(x => feeIds.Contains(x.Id));
-        var feeDict = fees.ToDictionary(x => x.Id, x => x.Name);
-        
-        foreach (var dto in dtos)
+        var feeDict = fees.ToDictionary(x => x.Id);
+
+        // ── Batch Load: Alumni Profiles (with Educations) ──
+        var alumniIds = entities.Select(x => x.AlumniId).Distinct().ToList();
+        var profileQuery = await _profileRepository.WithDetailsAsync(p => p.Educations);
+        var profiles = await AsyncExecuter.ToListAsync(
+            profileQuery.Where(p => alumniIds.Contains(p.Id))
+        );
+        var profileDict = profiles.ToDictionary(p => p.Id);
+
+        // ── Batch Load: Identity Users ──
+        var userIds = profiles.Select(p => p.UserId).Distinct().ToList();
+        var users = await _identityUserRepository.GetListByIdsAsync(userIds);
+        var userDict = users.ToDictionary(u => u.Id);
+
+        // ── Batch Load: Payments (check existence per request) ──
+        var requestIds = entities.Select(x => x.Id).ToList();
+        var paidRequestIds = (await _paymentRepository.GetListAsync(
+            p => requestIds.Contains(p.RequestId) && p.Status == PaymentStatus.Completed
+        )).Select(p => p.RequestId).ToHashSet();
+
+        // ── Batch Load: Already-approved alumni (for duplicate check) ──
+        var approvedAlumniIds = (await AsyncExecuter.ToListAsync(
+            (await _requestRepository.GetQueryableAsync())
+                .Where(r => alumniIds.Contains(r.AlumniId) 
+                         && r.Status == MembershipRequestStatus.Approved)
+                .Select(r => new { r.AlumniId, r.Id })
+        )).GroupBy(r => r.AlumniId)
+          .ToDictionary(g => g.Key, g => g.Select(x => x.Id).ToHashSet());
+
+        // ── Populate DTOs ──
+        for (int i = 0; i < dtos.Count; i++)
         {
-            if (feeDict.TryGetValue(dto.SubscriptionFeeId, out var name))
-            {
-                dto.SubscriptionFeeName = name;
-            }
+            var dto = dtos[i];
+            var entity = entities[i];
+
+            // Fee name
+            dto.SubscriptionFeeName = feeDict.TryGetValue(dto.SubscriptionFeeId, out var fee)
+                ? fee.Name : "Unknown Fee";
+
+            // Alumni identity
+            var profile = profileDict.GetValueOrDefault(entity.AlumniId);
+            var user = profile != null ? userDict.GetValueOrDefault(profile.UserId) : null;
+
+            dto.AlumniName = user != null ? $"{user.Name} {user.Surname}" : "Unknown Alumni";
+            dto.AlumniNationalId = profile?.NationalId ?? "—";
+            dto.AlumniPhotoUrl = profile?.PhotoUrl;
+
+            // Education (latest)
+            var education = profile?.Educations
+                .OrderByDescending(e => e.GraduationYear)
+                .ThenByDescending(e => e.GraduationSemester)
+                .FirstOrDefault();
+            dto.CollegeName = education?.InstitutionName;
+            dto.GraduationYear = education?.GraduationYear;
+
+            // ── Run 6 Eligibility Checks ──
+            dto.EligibilityChecks = BuildEligibilityChecks(
+                entity, profile, education, fee, paidRequestIds, approvedAlumniIds);
+
+            dto.EligibilitySummary = dto.EligibilityChecks.Any(c => c.Status == "Fail")
+                ? "CannotApprove"
+                : dto.EligibilityChecks.Any(c => c.Status == "Warning")
+                    ? "NeedsReview"
+                    : "AllClear";
         }
 
         return new PagedResultDto<AssociationRequestDto>(totalCount, dtos);
+    }
+
+    /// <summary>
+    /// Runs 6 business-rule eligibility checks for a single membership request.
+    /// </summary>
+    private static List<EligibilityCheckDto> BuildEligibilityChecks(
+        AssociationRequest entity,
+        AlumniProfile? profile,
+        Education? education,
+        SubscriptionFee? fee,
+        HashSet<Guid> paidRequestIds,
+        Dictionary<Guid, HashSet<Guid>> approvedAlumniIds)
+    {
+        var checks = new List<EligibilityCheckDto>();
+
+        // 1. Payment Check
+        if (entity.Status == MembershipRequestStatus.Pending)
+        {
+            checks.Add(new EligibilityCheckDto
+            {
+                CheckName = "Payment",
+                Status = "Fail",
+                Message = "No payment received yet. Alumni must pay before approval.",
+                Icon = "x"
+            });
+        }
+        else if (paidRequestIds.Contains(entity.Id) || entity.Status >= MembershipRequestStatus.Paid)
+        {
+            checks.Add(new EligibilityCheckDto
+            {
+                CheckName = "Payment",
+                Status = "Pass",
+                Message = "Payment verified.",
+                Icon = "check"
+            });
+        }
+        else
+        {
+            checks.Add(new EligibilityCheckDto
+            {
+                CheckName = "Payment",
+                Status = "Fail",
+                Message = "No completed payment found for this request.",
+                Icon = "x"
+            });
+        }
+
+        // 2. Duplicate Check
+        if (approvedAlumniIds.TryGetValue(entity.AlumniId, out var approvedIds)
+            && approvedIds.Any(id => id != entity.Id))
+        {
+            checks.Add(new EligibilityCheckDto
+            {
+                CheckName = "Duplicate",
+                Status = "Fail",
+                Message = "This alumni already has another approved membership request.",
+                Icon = "x"
+            });
+        }
+        else
+        {
+            checks.Add(new EligibilityCheckDto
+            {
+                CheckName = "Duplicate",
+                Status = "Pass",
+                Message = "No duplicate active membership found.",
+                Icon = "check"
+            });
+        }
+
+        // 3. Profile Completeness
+        if (profile == null)
+        {
+            checks.Add(new EligibilityCheckDto
+            {
+                CheckName = "Profile",
+                Status = "Fail",
+                Message = "Alumni profile not found.",
+                Icon = "x"
+            });
+        }
+        else if (string.IsNullOrWhiteSpace(profile.NationalId))
+        {
+            checks.Add(new EligibilityCheckDto
+            {
+                CheckName = "Profile",
+                Status = "Fail",
+                Message = "Missing National ID — required for membership card.",
+                Icon = "x"
+            });
+        }
+        else if (string.IsNullOrWhiteSpace(profile.PhotoUrl))
+        {
+            checks.Add(new EligibilityCheckDto
+            {
+                CheckName = "Profile",
+                Status = "Warning",
+                Message = "No profile photo uploaded. Recommended for ID card.",
+                Icon = "alert-triangle"
+            });
+        }
+        else
+        {
+            checks.Add(new EligibilityCheckDto
+            {
+                CheckName = "Profile",
+                Status = "Pass",
+                Message = "Profile complete (National ID + Photo).",
+                Icon = "check"
+            });
+        }
+
+        // 4. Graduation / Education Check
+        if (education == null)
+        {
+            checks.Add(new EligibilityCheckDto
+            {
+                CheckName = "Graduation",
+                Status = "Fail",
+                Message = "No education records found. Cannot verify alumni status.",
+                Icon = "x"
+            });
+        }
+        else if (string.IsNullOrWhiteSpace(education.InstitutionName))
+        {
+            checks.Add(new EligibilityCheckDto
+            {
+                CheckName = "Graduation",
+                Status = "Warning",
+                Message = $"Education record exists (Year: {education.GraduationYear}) but institution name is missing.",
+                Icon = "alert-triangle"
+            });
+        }
+        else
+        {
+            checks.Add(new EligibilityCheckDto
+            {
+                CheckName = "Graduation",
+                Status = "Pass",
+                Message = $"Verified: {education.InstitutionName}, Class of {education.GraduationYear}.",
+                Icon = "check"
+            });
+        }
+
+        // 5. Alumni Status Check
+        if (profile != null)
+        {
+            if (profile.Status == AlumniStatus.Banned)
+            {
+                checks.Add(new EligibilityCheckDto
+                {
+                    CheckName = "Alumni Status",
+                    Status = "Fail",
+                    Message = "This alumni is BANNED. Cannot approve membership.",
+                    Icon = "x"
+                });
+            }
+            else if (profile.Status == AlumniStatus.Rejected)
+            {
+                checks.Add(new EligibilityCheckDto
+                {
+                    CheckName = "Alumni Status",
+                    Status = "Fail",
+                    Message = "This alumni profile was previously rejected.",
+                    Icon = "x"
+                });
+            }
+            else
+            {
+                checks.Add(new EligibilityCheckDto
+                {
+                    CheckName = "Alumni Status",
+                    Status = "Pass",
+                    Message = $"Alumni status: {profile.Status}.",
+                    Icon = "check"
+                });
+            }
+        }
+        else
+        {
+            checks.Add(new EligibilityCheckDto
+            {
+                CheckName = "Alumni Status",
+                Status = "Fail",
+                Message = "Alumni profile not found.",
+                Icon = "x"
+            });
+        }
+
+        // 6. Fee Validity Check
+        if (fee == null)
+        {
+            checks.Add(new EligibilityCheckDto
+            {
+                CheckName = "Fee Validity",
+                Status = "Fail",
+                Message = "Subscription fee record not found.",
+                Icon = "x"
+            });
+        }
+        else if (!fee.IsCurrentlyValid())
+        {
+            checks.Add(new EligibilityCheckDto
+            {
+                CheckName = "Fee Validity",
+                Status = "Warning",
+                Message = $"Subscription fee \"{fee.Name}\" season ended on {fee.SeasonEndDate:yyyy-MM-dd}.",
+                Icon = "alert-triangle"
+            });
+        }
+        else
+        {
+            checks.Add(new EligibilityCheckDto
+            {
+                CheckName = "Fee Validity",
+                Status = "Pass",
+                Message = $"Fee \"{fee.Name}\" is valid until {fee.SeasonEndDate:yyyy-MM-dd}.",
+                Icon = "check"
+            });
+        }
+
+        return checks;
     }
 
     [Authorize(AlumniPermissions.Membership.Process)]

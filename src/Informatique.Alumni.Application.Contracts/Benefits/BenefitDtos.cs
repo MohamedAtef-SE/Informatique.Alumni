@@ -28,6 +28,7 @@ public class CommercialDiscountDto : FullAuditedEntityDto<Guid>
     public decimal DiscountPercentage { get; set; }
     public string? PromoCode { get; set; }
     public DateTime ValidUntil { get; set; }
+    public string? WebsiteUrl { get; set; }
 }
 
 public class CreateUpdateCommercialDiscountDto
@@ -39,4 +40,5 @@ public class CreateUpdateCommercialDiscountDto
     public decimal DiscountPercentage { get; set; }
     public string? PromoCode { get; set; }
     public DateTime ValidUntil { get; set; }
+    public string? WebsiteUrl { get; set; }
 }

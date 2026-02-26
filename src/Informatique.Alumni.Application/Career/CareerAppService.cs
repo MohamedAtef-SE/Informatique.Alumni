@@ -16,6 +16,8 @@ using System.Linq.Dynamic.Core;
 using Informatique.Alumni.Profiles;
 
 namespace Informatique.Alumni.Career;
+using Informatique.Alumni.Admin;
+using Informatique.Alumni.Branches;
 
 [Authorize(AlumniPermissions.Career.Default)]
 public class CareerAppService : ApplicationService, ICareerAppService
@@ -28,6 +30,8 @@ public class CareerAppService : ApplicationService, ICareerAppService
     private readonly AlumniApplicationMappers _alumniMappers;
     private readonly IBlobContainer<AlumniBlobContainer> _blobContainer;
     private readonly Volo.Abp.EventBus.Local.ILocalEventBus _localEventBus;
+    private readonly IRepository<CareerServiceType, Guid> _serviceTypeRepository;
+    private readonly IRepository<Branch, Guid> _branchRepository;
 
     public CareerAppService(
         IRepository<CareerService, Guid> serviceRepository,
@@ -37,7 +41,9 @@ public class CareerAppService : ApplicationService, ICareerAppService
         IBackgroundJobManager backgroundJobManager,
         AlumniApplicationMappers alumniMappers,
         IBlobContainer<AlumniBlobContainer> blobContainer,
-        Volo.Abp.EventBus.Local.ILocalEventBus localEventBus)
+        Volo.Abp.EventBus.Local.ILocalEventBus localEventBus,
+        IRepository<CareerServiceType, Guid> serviceTypeRepository,
+        IRepository<Branch, Guid> branchRepository)
     {
         _serviceRepository = serviceRepository;
         _subscriptionRepository = subscriptionRepository;
@@ -47,18 +53,35 @@ public class CareerAppService : ApplicationService, ICareerAppService
         _alumniMappers = alumniMappers;
         _blobContainer = blobContainer;
         _localEventBus = localEventBus;
+        _serviceTypeRepository = serviceTypeRepository;
+        _branchRepository = branchRepository;
     }
 
     public async Task<PagedResultDto<CareerServiceDto>> GetServicesAsync(PagedAndSortedResultRequestDto input)
     {
         var count = await _serviceRepository.GetCountAsync();
-        var query = await _serviceRepository.WithDetailsAsync(x => x.Timeslots);
+        var query = await _serviceRepository.WithDetailsAsync(x => x.Timeslots, x => x.ServiceType, x => x.Branch);
         var sorting = string.IsNullOrWhiteSpace(input.Sorting) ? "CreationTime desc" : input.Sorting;
         
         // Fix: Sort before Paging
         var list = await AsyncExecuter.ToListAsync(query.OrderBy(sorting).PageBy(input.SkipCount, input.MaxResultCount));
         
-        return new PagedResultDto<CareerServiceDto>(count, _alumniMappers.MapToDtos(list));
+        var dtos = _alumniMappers.MapToDtos(list);
+        
+        var serviceIds = list.Select(s => s.Id).ToList();
+        var subCounts = await AsyncExecuter.ToListAsync(
+            (await _subscriptionRepository.GetQueryableAsync())
+            .Where(r => serviceIds.Contains(r.CareerServiceId))
+            .GroupBy(r => r.CareerServiceId)
+            .Select(g => new { ServiceId = g.Key, Count = g.Count() })
+        );
+
+        foreach (var dto in dtos)
+        {
+            dto.SubscribedCount = subCounts.FirstOrDefault(c => c.ServiceId == dto.Id)?.Count ?? 0;
+        }
+        
+        return new PagedResultDto<CareerServiceDto>(count, dtos);
     }
 
     [Authorize(AlumniPermissions.Career.Manage)]
@@ -84,7 +107,7 @@ public class CareerAppService : ApplicationService, ICareerAppService
             input.FeeAmount,
             input.LastSubscriptionDate,
             input.ServiceTypeId,
-            CurrentUser.FindClaim("BranchId")?.Value != null ? Guid.Parse(CurrentUser.FindClaim("BranchId").Value) : throw new BusinessException("Career:UserMustHaveBranch"),
+            input.BranchId,
             timeslots
         );
 
@@ -97,36 +120,67 @@ public class CareerAppService : ApplicationService, ICareerAppService
     [Authorize(AlumniPermissions.Career.Manage)]
     public async Task<CareerServiceDto> UpdateServiceAsync(Guid id, CreateCareerServiceDto input)
     {
-        // Update Logic - For now simple property update, ideally Manager should handle complex updates
-        // To follow Strict Additive Rule, I will keep update simpler or implement basics.
-        // User story focused on Creation. I will implement basic update.
+        var query = await _serviceRepository.WithDetailsAsync(x => x.Timeslots, x => x.ServiceType, x => x.Branch);
+        var service = await AsyncExecuter.FirstOrDefaultAsync(query.Where(x => x.Id == id))
+            ?? throw new Volo.Abp.Domain.Entities.EntityNotFoundException(typeof(CareerService), id);
         
-        var service = await _serviceRepository.GetAsync(id);
+        await _careerManager.UpdateAsync(
+            service,
+            input.NameAr,
+            input.NameEn,
+            input.Code,
+            input.Description,
+            input.HasFees,
+            input.FeeAmount,
+            input.LastSubscriptionDate,
+            input.ServiceTypeId,
+            input.BranchId
+        );
         
-        service.SetNames(input.NameAr, input.NameEn);
-        service.SetFinancials(input.HasFees, input.FeeAmount);
         service.SetMapUrl(input.MapUrl);
-        
-        // Handling Timeslots in Update is complex (deleting existing? updating?). 
-        // For this phase, I will assume full replacement or add logic later.
-        // I'll skip deep timeslot update to avoid complexity not requested.
-        
         await _serviceRepository.UpdateAsync(service);
+        
         return _alumniMappers.MapToDto(service);
     }
 
     public async Task<CareerServiceDto> GetAsync(Guid id)
     {
-        var query = await _serviceRepository.WithDetailsAsync(x => x.Timeslots);
+        var query = await _serviceRepository.WithDetailsAsync(x => x.Timeslots, x => x.ServiceType, x => x.Branch);
         var service = await AsyncExecuter.FirstOrDefaultAsync(query.Where(x => x.Id == id))
             ?? throw new Volo.Abp.Domain.Entities.EntityNotFoundException(typeof(CareerService), id);
-        return _alumniMappers.MapToDto(service);
+            
+        var dto = _alumniMappers.MapToDto(service);
+        dto.SubscribedCount = await _subscriptionRepository.CountAsync(s => s.CareerServiceId == id);
+        return dto;
     }
 
     [Authorize(AlumniPermissions.Career.Manage)]
     public async Task DeleteServiceAsync(Guid id)
     {
         await _serviceRepository.DeleteAsync(id);
+    }
+
+    [Authorize(AlumniPermissions.Career.Manage)]
+    public async Task<CareerLookupsDto> GetLookupsAsync()
+    {
+        var activeTypes = await _serviceTypeRepository.GetListAsync(x => x.IsActive);
+        var branches = await _branchRepository.GetListAsync();
+
+        return new CareerLookupsDto
+        {
+            ServiceTypes = activeTypes.Select(x => new CareerLookupItemDto
+            {
+                Id = x.Id,
+                NameAr = x.NameAr,
+                NameEn = x.NameEn
+            }).ToList(),
+            Branches = branches.Select(x => new CareerLookupItemDto
+            {
+                Id = x.Id,
+                NameAr = x.Name,
+                NameEn = x.Name
+            }).ToList()
+        };
     }
 
     [Authorize(AlumniPermissions.Career.Register)]

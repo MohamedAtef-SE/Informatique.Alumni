@@ -24,6 +24,7 @@ public class BlogAppService : AlumniAppService, IBlogAppService
 {
     private readonly IPostRepository _postRepository;
     private readonly IRepository<PostComment, Guid> _commentRepository;
+    private readonly IRepository<ArticleCategory, Guid> _categoryRepository;
     private readonly HtmlSanitizerService _sanitizer;
     private readonly IDistributedCache<CommentRateLimitCacheItem> _commentLimitCache;
     private readonly AlumniApplicationMappers _alumniMappers;
@@ -32,6 +33,7 @@ public class BlogAppService : AlumniAppService, IBlogAppService
     public BlogAppService(
         IPostRepository postRepository,
         IRepository<PostComment, Guid> commentRepository,
+        IRepository<ArticleCategory, Guid> categoryRepository,
         HtmlSanitizerService sanitizer,
         IDistributedCache<CommentRateLimitCacheItem> commentLimitCache,
         AlumniApplicationMappers alumniMappers,
@@ -39,6 +41,7 @@ public class BlogAppService : AlumniAppService, IBlogAppService
     {
         _postRepository = postRepository;
         _commentRepository = commentRepository;
+        _categoryRepository = categoryRepository;
         _sanitizer = sanitizer;
         _commentLimitCache = commentLimitCache;
         _alumniMappers = alumniMappers;
@@ -51,15 +54,17 @@ public class BlogAppService : AlumniAppService, IBlogAppService
         var post = new BlogPost(
             GuidGenerator.Create(),
             input.Title,
+            input.Slug,
             input.Summary,
             _sanitizer.Sanitize(input.Content),
             CurrentUser.GetId(),
-            input.Category,
+            input.CategoryId,
             input.Tags
         )
         {
             IsPublished = input.IsPublished,
-            IsFeatured = input.IsFeatured
+            IsFeatured = input.IsFeatured,
+            CoverImageBlobName = input.CoverImageUrl
         };
 
         await _postRepository.InsertAsync(post);
@@ -71,12 +76,14 @@ public class BlogAppService : AlumniAppService, IBlogAppService
     {
         var post = await _postRepository.GetAsync(id);
         post.Title = input.Title;
+        post.Slug = input.Slug;
         post.Summary = input.Summary;
         post.Content = _sanitizer.Sanitize(input.Content);
-        post.Category = input.Category;
+        post.CategoryId = input.CategoryId;
         post.Tags = input.Tags;
         post.IsPublished = input.IsPublished;
         post.IsFeatured = input.IsFeatured;
+        post.CoverImageBlobName = input.CoverImageUrl;
 
         await _postRepository.UpdateAsync(post);
         return _alumniMappers.MapToDto(post);
@@ -91,7 +98,7 @@ public class BlogAppService : AlumniAppService, IBlogAppService
         
         var dto = _alumniMappers.MapToDto(post);
         var author = await _userRepository.FindAsync(post.AuthorId);
-        dto.AuthorName = author != null ? author.Name + " " + author.Surname : "Unknown";
+        dto.AuthorName = author != null ? $"{author.Name} {author.Surname}".Trim() : "Unknown";
         
         return dto;
     }
@@ -99,15 +106,15 @@ public class BlogAppService : AlumniAppService, IBlogAppService
     [AllowAnonymous]
     public async Task<PagedResultDto<BlogPostDto>> GetListAsync(PostSearchInputDto input)
     {
-        var count = await _postRepository.GetCountAsync(input.Category, input.Keyword, input.MinDate, input.MaxDate, true, input.IsFeatured, input.Tag);
-        var items = await _postRepository.GetListAsync(input.Category, input.Keyword, input.MinDate, input.MaxDate, true, input.IsFeatured, input.Tag, input.SkipCount, input.MaxResultCount, input.Sorting);
+        var count = await _postRepository.GetCountAsync(input.CategoryId, input.Keyword, input.MinDate, input.MaxDate, true, input.IsFeatured, input.Tag);
+        var items = await _postRepository.GetListAsync(input.CategoryId, input.Keyword, input.MinDate, input.MaxDate, true, input.IsFeatured, input.Tag, input.SkipCount, input.MaxResultCount, input.Sorting);
         
         var dtos = _alumniMappers.MapToDtos(items);
 
         // Populate Author Names
         var authorIds = items.Select(x => x.AuthorId).Distinct().ToList();
         var authors = await _userRepository.GetListByIdsAsync(authorIds);
-        var authorDictionary = authors.ToDictionary(x => x.Id, x => x.Name + " " + x.Surname);
+        var authorDictionary = authors.ToDictionary(x => x.Id, x => $"{x.Name} {x.Surname}".Trim());
 
         foreach (var dto in dtos)
         {
@@ -118,6 +125,20 @@ public class BlogAppService : AlumniAppService, IBlogAppService
         }
 
         return new PagedResultDto<BlogPostDto>(count, dtos);
+    }
+
+    [AllowAnonymous]
+    public async Task<ListResultDto<ArticleCategoryLookupDto>> GetCategoryLookupAsync()
+    {
+        var categories = await _categoryRepository.GetListAsync(x => x.IsActive);
+        return new ListResultDto<ArticleCategoryLookupDto>(
+            categories.Select(x => new ArticleCategoryLookupDto
+            {
+                Id = x.Id,
+                NameAr = x.NameAr,
+                NameEn = x.NameEn
+            }).ToList()
+        );
     }
 
     [Authorize(AlumniPermissions.Magazine.ManagePosts)]

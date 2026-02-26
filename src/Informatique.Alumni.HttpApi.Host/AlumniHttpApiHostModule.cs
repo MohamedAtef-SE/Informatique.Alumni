@@ -136,6 +136,21 @@ public class AlumniHttpApiHostModule : AbpModule
         ConfigureSwagger(context, configuration);
         ConfigureVirtualFileSystem(context);
         ConfigureCors(context, configuration);
+
+        Configure<Volo.Abp.AspNetCore.ExceptionHandling.AbpExceptionHttpStatusCodeOptions>(options =>
+        {
+            options.Map("Alumni:Event:001", System.Net.HttpStatusCode.BadRequest);
+            options.Map("Alumni:Event:002", System.Net.HttpStatusCode.BadRequest);
+            options.Map("Alumni:Event:003", System.Net.HttpStatusCode.BadRequest);
+            options.Map("Alumni:Event:004", System.Net.HttpStatusCode.BadRequest);
+            options.Map("Alumni:Event:005", System.Net.HttpStatusCode.BadRequest);
+            options.Map("Alumni:Event:006", System.Net.HttpStatusCode.BadRequest);
+            options.Map("Alumni:Event:007", System.Net.HttpStatusCode.BadRequest);
+            options.Map("Alumni:Event:008", System.Net.HttpStatusCode.BadRequest);
+            options.Map("Alumni:Event:009", System.Net.HttpStatusCode.BadRequest);
+            options.Map("Alumni:Event:010", System.Net.HttpStatusCode.BadRequest);
+            options.Map("Events:InvalidSubscriptionDate", System.Net.HttpStatusCode.BadRequest);
+        });
     }
 
     private void ConfigureAuthentication(ServiceConfigurationContext context)

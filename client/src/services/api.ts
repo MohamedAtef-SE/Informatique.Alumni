@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useLoaderStore } from '../stores/useLoaderStore';
 import { useSessionStore } from '../stores/useSessionStore';
+import i18n from '../i18n';
 
 // Default to localhost if environment variable is not set
 export const BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:44386';
@@ -41,18 +42,27 @@ export const api = axios.create({
 // Request Interceptor for Auth & Loader
 api.interceptors.request.use(
     (config) => {
-        // Show loader for all requests unless explicitly skipped (e.g., background polling)
-        // We can add a custom config property later if needed
-        useLoaderStore.getState().showLoader();
+        // Show loader for all requests unless explicitly skipped (e.g., background polling or blob downloads)
+        if (config.responseType !== 'blob' && !(config as any).skipLoader) {
+            useLoaderStore.getState().showLoader();
+        }
 
         const token = getAccessToken();
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+
+        // Pass the current language to the backend
+        if (i18n.language) {
+            config.headers['Accept-Language'] = i18n.language;
+        }
+
         return config;
     },
     (error) => {
-        useLoaderStore.getState().hideLoader();
+        if (error.config?.responseType !== 'blob' && !(error.config as any)?.skipLoader) {
+            useLoaderStore.getState().hideLoader();
+        }
         return Promise.reject(error);
     }
 );
@@ -60,11 +70,15 @@ api.interceptors.request.use(
 // Response Interceptor for Errors & Loader
 api.interceptors.response.use(
     (response) => {
-        useLoaderStore.getState().hideLoader();
+        if (response.config.responseType !== 'blob' && !(response.config as any).skipLoader) {
+            useLoaderStore.getState().hideLoader();
+        }
         return response;
     },
     (error) => {
-        useLoaderStore.getState().hideLoader();
+        if (error.config?.responseType !== 'blob' && !(error.config as any)?.skipLoader) {
+            useLoaderStore.getState().hideLoader();
+        }
         // Handle 401/403
         if (error.response?.status === 401) {
             console.warn('Unauthorized - Token may be expired or invalid');

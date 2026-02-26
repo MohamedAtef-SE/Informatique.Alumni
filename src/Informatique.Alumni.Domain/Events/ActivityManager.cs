@@ -32,6 +32,13 @@ public class ActivityManager : DomainService
         List<(DateTime Start, DateTime End, int Capacity)> timeslots,
         List<(Guid CompanyId, Guid ParticipationTypeId)> participatingCompanies)
     {
+        // 0. Validate Unique Code
+        if (await _eventRepository.AnyAsync(x => x.Code == code))
+        {
+            throw new BusinessException(AlumniDomainErrorCodes.AssociationEvent.DuplicateCode)
+                .WithData("Code", code);
+        }
+
         // 1. Create Core Entity (Validates Fees internally via SetFees)
         var @event = new AssociationEvent(
             GuidGenerator.Create(),
@@ -98,6 +105,13 @@ public class ActivityManager : DomainService
         List<(DateTime Start, DateTime End, int Capacity)> timeslots,
         List<(Guid CompanyId, Guid ParticipationTypeId)> participatingCompanies)
     {
+        // 0. Validate Unique Code
+        if (@event.Code != code && await _eventRepository.AnyAsync(x => x.Code == code))
+        {
+            throw new BusinessException(AlumniDomainErrorCodes.AssociationEvent.DuplicateCode)
+                .WithData("Code", code);
+        }
+
         // 1. Update Core Properties
         @event.Update(
             nameAr,

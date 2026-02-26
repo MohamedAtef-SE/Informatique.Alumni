@@ -4,6 +4,17 @@
     "AppName": "Alumni",
     "Menu:Home": "Home",
     "LongWelcomeMessage": "Welcome to the application. This is a startup project based on the ABP framework. For more information visit",
-    "Welcome": "Welcome"
+    "Welcome": "Welcome",
+    "Alumni:Event:001": "Invalid event capacity specified.",
+    "Alumni:Event:002": "This event is already published.",
+    "Alumni:Event:003": "This event is not published.",
+    "Alumni:Event:004": "Agenda item date is outside the event's date range.",
+    "Alumni:Event:005": "Event agenda item not found.",
+    "Alumni:Event:006": "Invalid fee amount specified. A paid event must have a fee greater than zero.",
+    "Alumni:Event:007": "Fee amount must be zero for free events.",
+    "Alumni:Event:008": "Start time must be before end time.",
+    "Alumni:Event:009": "At least one timeslot must be defined before publishing.",
+    "Alumni:Event:010": "An event with this code already exists.",
+    "Events:InvalidSubscriptionDate": "The deadline for subscription must be before or equal to the start time of the earliest timeslot."
   }
 }

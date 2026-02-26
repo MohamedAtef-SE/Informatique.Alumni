@@ -10,6 +10,10 @@ export interface CareerServiceDto extends FullAuditedEntityDto<string> {
     feeAmount: number;
     lastSubscriptionDate: string;
     subscribedCount: number;
+    serviceTypeId?: string;
+    branchId?: string;
+    serviceType?: { id: string; nameEn: string; nameAr: string };
+    branch?: { id: string; name: string; nameEn?: string; nameAr?: string };
     timeslots: CareerServiceTimeslotDto[];
 }
 
@@ -34,6 +38,7 @@ export interface CreateCareerServiceDto {
     feeAmount: number;
     lastSubscriptionDate: string;
     serviceTypeId: string;
+    branchId: string;
     timeslots: CreateCareerServiceTimeslotDto[];
 }
 
@@ -64,4 +69,15 @@ export interface AlumniCareerSubscriptionDto {
     paymentStatus: string;
     amountPaid: number;
     registrationDate: string;
+}
+
+export interface CareerLookupItemDto {
+    id: string;
+    nameAr: string;
+    nameEn: string;
+}
+
+export interface CareerLookupsDto {
+    serviceTypes: CareerLookupItemDto[];
+    branches: CareerLookupItemDto[];
 }

@@ -1,0 +1,24 @@
+  Determining projects to restore...
+d:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1902: Package 'HtmlSanitizer' 9.0.889 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-j92c-7v7g-gj3f
+d:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1902: Package 'HtmlSanitizer' 9.0.889 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-j92c-7v7g-gj3f [d:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+  All projects are up-to-date for restore.
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1902: Package 'HtmlSanitizer' 9.0.889 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-j92c-7v7g-gj3f [d:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1902: Package 'HtmlSanitizer' 9.0.889 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-j92c-7v7g-gj3f [d:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+  Informatique.Alumni.Domain.Shared -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain.Shared\bin\Debug\net10.0\Informatique.Alumni.Domain.Shared.dll
+  Informatique.Alumni.Domain -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\bin\Debug\net10.0\Informatique.Alumni.Domain.dll
+  Informatique.Alumni.EntityFrameworkCore -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\bin\Debug\net10.0\Informatique.Alumni.EntityFrameworkCore.dll
+  Informatique.Alumni.Application.Contracts -> d:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application.Contracts\bin\Debug\net10.0\Informatique.Alumni.Application.Contracts.dll
+  Informatique.Alumni.HttpApi -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\bin\Debug\net10.0\Informatique.Alumni.HttpApi.dll
+  Informatique.Alumni.Application -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\bin\Debug\net10.0\Informatique.Alumni.Application.dll
+  Informatique.Alumni.HttpApi.Host -> D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\bin\Debug\net10.0\Informatique.Alumni.HttpApi.Host.dll
+
+Build succeeded.
+
+d:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1902: Package 'HtmlSanitizer' 9.0.889 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-j92c-7v7g-gj3f
+d:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1902: Package 'HtmlSanitizer' 9.0.889 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-j92c-7v7g-gj3f [d:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1902: Package 'HtmlSanitizer' 9.0.889 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-j92c-7v7g-gj3f [d:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1902: Package 'HtmlSanitizer' 9.0.889 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-j92c-7v7g-gj3f [d:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+    4 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:04.50

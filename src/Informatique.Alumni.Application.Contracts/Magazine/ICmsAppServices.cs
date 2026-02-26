@@ -22,6 +22,7 @@ public interface IBlogAppService : IApplicationService
     Task<BlogPostDto> UpdatePostAsync(Guid id, CreateUpdateBlogPostDto input);
     Task<BlogPostDto> GetAsync(Guid id);
     Task<PagedResultDto<BlogPostDto>> GetListAsync(PostSearchInputDto input);
+    Task<ListResultDto<ArticleCategoryLookupDto>> GetCategoryLookupAsync();
     Task DeletePostAsync(Guid id);
 
     Task<PostCommentDto> AddCommentAsync(Guid postId, CreatePostCommentDto input);
@@ -32,7 +33,7 @@ public interface IBlogAppService : IApplicationService
 
 public class PostSearchInputDto : PagedAndSortedResultRequestDto
 {
-    public string? Category { get; set; }
+    public Guid? CategoryId { get; set; }
     public string? Keyword { get; set; }
     public bool? IsFeatured { get; set; }
     public string? Tag { get; set; }

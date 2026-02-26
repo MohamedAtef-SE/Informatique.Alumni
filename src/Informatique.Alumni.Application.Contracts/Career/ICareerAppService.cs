@@ -23,4 +23,7 @@ public interface ICareerAppService : IApplicationService
     // Employee Dashboard - Participant Management
     Task<List<CareerParticipantDto>> GetParticipantsAsync(CareerParticipantFilterDto filter);
     Task RemoveParticipantAsync(Guid subscriptionId, string cancellationReason);
+
+    // Lookups
+    Task<CareerLookupsDto> GetLookupsAsync();
 }

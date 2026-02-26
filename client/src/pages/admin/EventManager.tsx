@@ -1,24 +1,45 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminService } from '../../services/adminService';
-import { Plus, Edit, Trash2, Globe, Search, Calendar, MapPin } from 'lucide-react';
+import { Plus, Edit, Trash2, Globe, Calendar, MapPin } from 'lucide-react';
 import type { EventListDto } from '../../types/events';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/Table';
 import { Button } from '../../components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
-import { cn } from '../../utils/cn';
 import { toast } from 'sonner';
+import { PageHeader } from '../../components/admin/PageHeader';
+import { DataTableShell } from '../../components/admin/DataTableShell';
+import { StatusBadge } from '../../components/admin/StatusBadge';
+import { CreateEventModal } from '../../components/admin/events/CreateEventModal';
+import { EditEventModal } from '../../components/admin/events/EditEventModal';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 
 const EventManager = () => {
     const queryClient = useQueryClient();
     const [filter, setFilter] = useState('');
+    const [page, setPage] = useState(1);
+    const pageSize = 10;
+    const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all');
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [editingEventId, setEditingEventId] = useState<string | null>(null);
+    const [confirmAction, setConfirmAction] = useState<{
+        type: 'publish' | 'delete';
+        eventId: string;
+        eventName: string;
+    } | null>(null);
 
-    const { data } = useQuery({
-        queryKey: ['admin-events', filter],
-        queryFn: () => adminService.getEvents({ filter, maxResultCount: 50 })
+    const { data, isLoading } = useQuery({
+        queryKey: ['admin-events', filter, page, statusFilter],
+        queryFn: async () => {
+            // Client-side filtering for status if backend doesn't support it directly in search
+            // Assuming backend supports basic filtering string
+            const result = await adminService.getEvents({
+                filter,
+                skipCount: (page - 1) * pageSize,
+                maxResultCount: pageSize
+            });
+            return result;
+        }
     });
-
-
 
     const publishMutation = useMutation({
         mutationFn: adminService.publishEvent,
@@ -42,129 +63,182 @@ const EventManager = () => {
         }
     });
 
-    const handleDelete = (id: string) => {
-        if (confirm('Are you sure you want to delete this event? This cannot be undone.')) {
-            deleteMutation.mutate(id);
-        }
+    const handleDelete = (id: string, name: string) => {
+        setConfirmAction({ type: 'delete', eventId: id, eventName: name });
     };
 
-    const handlePublish = (id: string) => {
-        if (confirm('Are you sure you want to publish this event? It will be visible to all alumni.')) {
-            publishMutation.mutate(id);
-        }
+    const handlePublish = (id: string, name: string) => {
+        setConfirmAction({ type: 'publish', eventId: id, eventName: name });
     };
+
+    const executeConfirmedAction = () => {
+        if (!confirmAction) return;
+        if (confirmAction.type === 'delete') {
+            deleteMutation.mutate(confirmAction.eventId);
+        } else {
+            publishMutation.mutate(confirmAction.eventId);
+        }
+        setConfirmAction(null);
+    };
+
+    const filteredItems = data?.items.filter(item => {
+        if (statusFilter === 'all') return true;
+        if (statusFilter === 'published') return item.isPublished;
+        if (statusFilter === 'draft') return !item.isPublished;
+        return true;
+    });
 
     return (
-        <div className="space-y-8 animate-fade-in">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h1 className="text-3xl font-heading font-bold text-white">
-                        Event Manager
-                    </h1>
-                    <p className="text-slate-400 mt-1">Create and manage events for the alumni community.</p>
-                </div>
-                <Button className="shadow-neon">
-                    <Plus className="w-4 h-4 mr-2" /> New Event
-                </Button>
+        <div className="space-y-8 animate-in fade-in duration-500">
+            <PageHeader
+                title="Event Manager"
+                description="Create and manage events for the alumni community."
+                action={
+                    <Button onClick={() => setIsCreateModalOpen(true)} className="shadow-neon">
+                        <Plus className="w-4 h-4 mr-2" /> New Event
+                    </Button>
+                }
+            />
+
+            {/* Status Tabs */}
+            <div className="flex space-x-2 border-b border-white/10 pb-4">
+                {[
+                    { label: 'All Events', value: 'all' },
+                    { label: 'Published', value: 'published' },
+                    { label: 'Drafts', value: 'draft' }
+                ].map((tab) => (
+                    <Button
+                        key={tab.label}
+                        variant={statusFilter === tab.value ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => {
+                            setStatusFilter(tab.value as any);
+                            setPage(1);
+                        }}
+                    >
+                        {tab.label}
+                    </Button>
+                ))}
             </div>
 
-            <Card variant="glass">
-                <CardHeader className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center border-b border-white/5 pb-6">
-                    <CardTitle>Events List</CardTitle>
-                    <div className="relative group w-full md:w-72">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-accent transition-colors" />
-                        <input
-                            type="text"
-                            placeholder="Search events..."
-                            className="w-full bg-slate-900/50 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
-                            value={filter}
-                            onChange={(e) => setFilter(e.target.value)}
-                        />
-                    </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                    <Table>
-                        <TableHeader>
-                            <TableRow className="hover:bg-transparent border-white/5">
-                                <TableHead className="w-[30%]">Event Name</TableHead>
-                                <TableHead>Date</TableHead>
-                                <TableHead>Location</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
+            <DataTableShell
+                searchPlaceholder="Search events..."
+                onSearch={setFilter}
+                pagination={{
+                    currentPage: page,
+                    totalPages: Math.ceil((data?.totalCount || 0) / pageSize),
+                    onPageChange: setPage
+                }}
+            >
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="w-[30%]">Event Name</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Location</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {isLoading ? (
+                            <TableRow>
+                                <TableCell colSpan={5} className="h-32 text-center text-slate-400">Loading events...</TableCell>
                             </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {data?.items.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="h-32 text-center text-slate-500">
-                                        No events found.
+                        ) : filteredItems?.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={5} className="h-32 text-center text-slate-500">
+                                    No events found.
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            filteredItems?.map((event: EventListDto) => (
+                                <TableRow key={event.id}>
+                                    <TableCell>
+                                        <div className="text-slate-900 dark:text-slate-200 font-medium">{event.nameEn}</div>
+                                        <div className="text-xs text-slate-500 mt-0.5">{event.code}</div>
                                     </TableCell>
-                                </TableRow>
-                            ) : (
-                                data?.items.map((event: EventListDto) => (
-                                    <TableRow key={event.id}>
-                                        <TableCell>
-                                            <div className="text-white font-medium">{event.nameEn}</div>
-                                            <div className="text-xs text-slate-500 mt-0.5">{event.code}</div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-2 text-slate-300">
-                                                <Calendar className="w-4 h-4 text-slate-500" />
-                                                {new Date(event.lastSubscriptionDate).toLocaleDateString()}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-2 text-slate-300">
-                                                <MapPin className="w-4 h-4 text-slate-500" />
-                                                {event.location}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <span className={cn(
-                                                "px-2.5 py-1 rounded-full text-xs font-bold border",
-                                                event.isPublished
-                                                    ? "bg-emerald-500/20 text-emerald-500 border-emerald-500/20"
-                                                    : "bg-amber-500/20 text-amber-500 border-amber-500/20"
-                                            )}>
-                                                {event.isPublished ? 'Published' : 'Draft'}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <div className="flex justify-end gap-2">
-                                                {!event.isPublished && (
-                                                    <Button
-                                                        size="icon"
-                                                        variant="ghost"
-                                                        className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/20"
-                                                        onClick={() => handlePublish(event.id)}
-                                                        disabled={publishMutation.isPending}
-                                                        title="Publish"
-                                                    >
-                                                        <Globe className="w-4 h-4" />
-                                                    </Button>
-                                                )}
-                                                <Button size="icon" variant="ghost" className="text-slate-400 hover:text-white hover:bg-white/10" title="Edit">
-                                                    <Edit className="w-4 h-4" />
-                                                </Button>
+                                    <TableCell>
+                                        <div className="flex items-center gap-2 text-slate-500">
+                                            <Calendar className="w-4 h-4 text-slate-400" />
+                                            {event.startDate && !event.startDate.startsWith('0001-01-01')
+                                                ? new Date(event.startDate).toLocaleDateString()
+                                                : (event.lastSubscriptionDate && !event.lastSubscriptionDate.startsWith('0001-01-01') ? new Date(event.lastSubscriptionDate).toLocaleDateString() : 'N/A')}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center gap-2 text-slate-500">
+                                            <MapPin className="w-4 h-4 text-slate-400" />
+                                            {event.location}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <StatusBadge variant={event.isPublished ? 'success' : 'warning'}>
+                                            {event.isPublished ? 'Published' : 'Draft'}
+                                        </StatusBadge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <div className="flex justify-end gap-2">
+                                            {!event.isPublished && (
                                                 <Button
                                                     size="icon"
                                                     variant="ghost"
-                                                    className="text-red-400 hover:text-red-300 hover:bg-red-500/20"
-                                                    onClick={() => handleDelete(event.id)}
-                                                    disabled={deleteMutation.isPending}
-                                                    title="Delete"
+                                                    className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                                                    onClick={() => handlePublish(event.id, event.nameEn)}
+                                                    disabled={publishMutation.isPending}
+                                                    title="Publish"
                                                 >
-                                                    <Trash2 className="w-4 h-4" />
+                                                    <Globe className="w-4 h-4" />
                                                 </Button>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
+                                            )}
+                                            <Button
+                                                size="icon"
+                                                variant="ghost"
+                                                className="text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                                                title="Edit"
+                                                onClick={() => setEditingEventId(event.id)}
+                                            >
+                                                <Edit className="w-4 h-4" />
+                                            </Button>
+                                            <Button
+                                                size="icon"
+                                                variant="ghost"
+                                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                onClick={() => handleDelete(event.id, event.nameEn)}
+                                                disabled={deleteMutation.isPending}
+                                                title="Delete"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+            </DataTableShell>
+
+            <CreateEventModal open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen} />
+            <EditEventModal
+                open={!!editingEventId}
+                onOpenChange={(open) => { if (!open) setEditingEventId(null); }}
+                eventId={editingEventId}
+            />
+            <ConfirmDialog
+                open={!!confirmAction}
+                onOpenChange={(open) => { if (!open) setConfirmAction(null); }}
+                title={confirmAction?.type === 'delete' ? 'Delete Event' : 'Publish Event'}
+                description={
+                    confirmAction?.type === 'delete'
+                        ? `Are you sure you want to delete "${confirmAction?.eventName}"? This action cannot be undone.`
+                        : `Are you sure you want to publish "${confirmAction?.eventName}"? It will become visible to all alumni.`
+                }
+                confirmLabel={confirmAction?.type === 'delete' ? 'Delete' : 'Publish'}
+                variant={confirmAction?.type === 'delete' ? 'danger' : 'default'}
+                onConfirm={executeConfirmedAction}
+                isLoading={deleteMutation.isPending || publishMutation.isPending}
+            />
         </div>
     );
 };

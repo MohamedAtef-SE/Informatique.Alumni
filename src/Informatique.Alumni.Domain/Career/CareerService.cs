@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Volo.Abp.Domain.Entities.Auditing;
 using Volo.Abp;
+using Informatique.Alumni.Branches;
 
 namespace Informatique.Alumni.Career;
 
@@ -21,6 +22,7 @@ public class CareerService : FullAuditedAggregateRoot<Guid>
     public Guid BranchId { get; private set; }
     
     public virtual CareerServiceType? ServiceType { get; set; }
+    public virtual Branch? Branch { get; set; }
     public ICollection<CareerServiceTimeslot> Timeslots { get; private set; }
 
     private CareerService() { }
@@ -56,16 +58,31 @@ public class CareerService : FullAuditedAggregateRoot<Guid>
         NameEn = Check.NotNullOrWhiteSpace(nameEn, nameof(nameEn), 128);
     }
 
+    public void SetDetails(
+        string code,
+        string description,
+        DateTime lastSubscriptionDate,
+        Guid serviceTypeId,
+        Guid branchId)
+    {
+        Code = Check.NotNullOrWhiteSpace(code, nameof(code));
+        Description = description;
+        LastSubscriptionDate = lastSubscriptionDate;
+        ServiceTypeId = serviceTypeId;
+        BranchId = branchId;
+    }
+
+
     public void SetFinancials(bool hasFees, decimal feeAmount)
     {
         HasFees = hasFees;
         if (HasFees && feeAmount <= 0)
         {
-            throw new BusinessException("Career:FeeAmountMustBePositive");
+            throw new UserFriendlyException("A paid service must have a fee greater than zero.", "Career:FeeAmountMustBePositive");
         }
         if (!HasFees && feeAmount != 0)
         {
-            throw new BusinessException("Career:FeeAmountMustBeZero");
+            throw new UserFriendlyException("Fee amount must be zero for free services.", "Career:FeeAmountMustBeZero");
         }
         FeeAmount = feeAmount;
     }

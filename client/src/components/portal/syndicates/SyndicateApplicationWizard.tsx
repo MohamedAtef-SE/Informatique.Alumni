@@ -96,7 +96,7 @@ export default function SyndicateApplicationWizard({ onClose, onSuccess, existin
             toast.success(t('services.syndicates.upload_success'));
             queryClient.invalidateQueries({ queryKey: ['syndicate-status'] });
         },
-        onError: () => toast.error(t('services.syndicates.upload_fail'))
+        onError: (err: any) => toast.error(err?.response?.data?.error?.message || t('services.syndicates.upload_fail'))
     });
 
     const payMutation = useMutation({

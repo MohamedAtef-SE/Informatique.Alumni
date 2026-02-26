@@ -19,7 +19,7 @@ public class EfCorePostRepository : EfCoreRepository<AlumniDbContext, BlogPost, 
     }
 
     public async Task<List<BlogPost>> GetListAsync(
-        string? category = null,
+        Guid? categoryId = null,
         string? keyword = null,
         DateTime? minDate = null,
         DateTime? maxDate = null,
@@ -32,13 +32,13 @@ public class EfCorePostRepository : EfCoreRepository<AlumniDbContext, BlogPost, 
         CancellationToken cancellationToken = default)
     {
         var query = await GetQueryableAsync();
-        query = ApplyFilter(query, category, keyword, minDate, maxDate, isPublished, isFeatured, tag);
+        query = ApplyFilter(query, categoryId, keyword, minDate, maxDate, isPublished, isFeatured, tag);
         query = query.OrderBy(string.IsNullOrWhiteSpace(sorting) ? "CreationTime DESC" : sorting);
         return await query.PageBy(skipCount, maxResultCount).ToListAsync(cancellationToken);
     }
 
     public async Task<long> GetCountAsync(
-        string? category = null,
+        Guid? categoryId = null,
         string? keyword = null,
         DateTime? minDate = null,
         DateTime? maxDate = null,
@@ -48,13 +48,13 @@ public class EfCorePostRepository : EfCoreRepository<AlumniDbContext, BlogPost, 
         CancellationToken cancellationToken = default)
     {
         var query = await GetQueryableAsync();
-        query = ApplyFilter(query, category, keyword, minDate, maxDate, isPublished, isFeatured, tag);
+        query = ApplyFilter(query, categoryId, keyword, minDate, maxDate, isPublished, isFeatured, tag);
         return await query.LongCountAsync(cancellationToken);
     }
 
     protected IQueryable<BlogPost> ApplyFilter(
         IQueryable<BlogPost> query,
-        string? category,
+        Guid? categoryId,
         string? keyword,
         DateTime? minDate,
         DateTime? maxDate,
@@ -63,7 +63,7 @@ public class EfCorePostRepository : EfCoreRepository<AlumniDbContext, BlogPost, 
         string? tag)
     {
         return query
-            .WhereIf(!string.IsNullOrWhiteSpace(category), x => x.Category == category)
+            .WhereIf(categoryId.HasValue, x => x.CategoryId == categoryId.Value)
             .WhereIf(!string.IsNullOrWhiteSpace(keyword), x => x.Title.Contains(keyword) || x.Summary.Contains(keyword))
             .WhereIf(minDate.HasValue, x => x.CreationTime >= minDate.Value)
             .WhereIf(maxDate.HasValue, x => x.CreationTime <= maxDate.Value)

@@ -1,18 +1,20 @@
 import type { EntityDto, PagedAndSortedResultRequestDto } from './common';
 
 export const MembershipRequestStatus = {
-    Pending: 0,
-    Approved: 1,
-    Rejected: 2,
-    Paid: 3,
-    CardPrinted: 4,
-    CardDelivered: 5
+    Pending: 1,
+    Paid: 2,
+    Approved: 3,
+    Rejected: 4,
+    InProgress: 5,
+    ReadyForPickup: 6,
+    OutForDelivery: 7,
+    Delivered: 8
 } as const;
 export type MembershipRequestStatus = typeof MembershipRequestStatus[keyof typeof MembershipRequestStatus];
 
 export const DeliveryMethod = {
-    Pickup: 0,
-    Courier: 1
+    OfficePickup: 1,
+    HomeDelivery: 2
 } as const;
 export type DeliveryMethod = typeof DeliveryMethod[keyof typeof DeliveryMethod];
 
@@ -23,6 +25,13 @@ export interface SubscriptionFeeDto extends EntityDto<string> {
     seasonStartDate: string;
     seasonEndDate: string;
     isActive: boolean;
+}
+
+export interface EligibilityCheckDto {
+    checkName: string;
+    status: 'Pass' | 'Fail' | 'Warning';
+    message: string;
+    icon: string;
 }
 
 export interface AssociationRequestDto extends EntityDto<string> {
@@ -36,6 +45,17 @@ export interface AssociationRequestDto extends EntityDto<string> {
     remainingAmount: number;
     deliveryFee: number;
     deliveryMethod: DeliveryMethod;
+
+    // Alumni Identity
+    alumniName: string;
+    alumniNationalId: string;
+    alumniPhotoUrl?: string;
+    collegeName?: string;
+    graduationYear?: number;
+
+    // Eligibility
+    eligibilityChecks: EligibilityCheckDto[];
+    eligibilitySummary: 'AllClear' | 'NeedsReview' | 'CannotApprove';
 }
 
 export interface MembershipRequestFilterDto extends PagedAndSortedResultRequestDto {

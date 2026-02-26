@@ -23,6 +23,8 @@ export interface EventListDto extends FullAuditedEntityDto<string> {
     branchName?: string;
     activityTypeName?: string;
     coverImageUrl?: string;
+    startDate?: string;
+    endDate?: string;
 }
 
 export interface EventDetailDto extends EventListDto {

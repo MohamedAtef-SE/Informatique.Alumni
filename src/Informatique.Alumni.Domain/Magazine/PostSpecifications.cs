@@ -6,16 +6,16 @@ namespace Informatique.Alumni.Magazine;
 
 public class BlogPostByCategorySpecification : Specification<BlogPost>
 {
-    public string Category { get; }
+    public Guid? CategoryId { get; }
 
-    public BlogPostByCategorySpecification(string category)
+    public BlogPostByCategorySpecification(Guid? categoryId)
     {
-        Category = category;
+        CategoryId = categoryId;
     }
 
     public override System.Linq.Expressions.Expression<Func<BlogPost, bool>> ToExpression()
     {
-        return post => post.Category == Category;
+        return post => post.CategoryId == CategoryId;
     }
 }
 

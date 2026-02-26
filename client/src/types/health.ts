@@ -57,3 +57,18 @@ export interface HealthStatsDto {
     verifiedQuality: string;
     activeOffersCount: number;
 }
+export interface CreateMedicalPartnerDto {
+    name: string;
+    description?: string;
+    type: number;
+    address: string;
+    contactNumber: string;
+    website?: string;
+    city?: string;
+    region?: string;
+    email?: string;
+    hotlineNumber?: string;
+    category?: string;
+}
+
+export interface UpdateMedicalPartnerDto extends CreateMedicalPartnerDto { }
