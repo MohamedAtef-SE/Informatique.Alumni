@@ -1,0 +1,3 @@
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1902: Package 'HtmlSanitizer' 9.0.889 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-j92c-7v7g-gj3f
+Build started...
+Build failed. Use dotnet build to see the errors.

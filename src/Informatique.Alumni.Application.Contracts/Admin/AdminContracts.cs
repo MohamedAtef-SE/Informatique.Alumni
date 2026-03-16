@@ -148,12 +148,15 @@ public class GuidanceAdminDto : EntityDto<Guid>
 {
     public Guid AlumniId { get; set; }
     public string AlumniName { get; set; } = string.Empty;
+    public string AlumniEmail { get; set; } = string.Empty;
     public Guid AdvisorId { get; set; }
     public string AdvisorName { get; set; } = string.Empty;
+    public string AdvisorEmail { get; set; } = string.Empty;
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
     public string Subject { get; set; } = string.Empty;
     public string Notes { get; set; }
+    public string? MeetingLink { get; set; }
     public int Status { get; set; } // enum
     public DateTime CreationTime { get; set; }
 }
@@ -166,9 +169,14 @@ public class GuidanceAdminGetListInput : PagedAndSortedResultRequestDto
     public DateTime? MaxDate { get; set; }
 }
 
+public class ApproveGuidanceRequestDto
+{
+    public string? MeetingLink { get; set; }
+}
+
 public interface IGuidanceAdminAppService : IApplicationService
 {
     Task<PagedResultDto<GuidanceAdminDto>> GetListAsync(GuidanceAdminGetListInput input);
-    Task ApproveRequestAsync(Guid id);
+    Task ApproveRequestAsync(Guid id, ApproveGuidanceRequestDto input);
     Task RejectRequestAsync(Guid id);
 }

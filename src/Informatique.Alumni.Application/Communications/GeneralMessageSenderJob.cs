@@ -19,7 +19,7 @@ public class GeneralMessageSenderJob : AsyncBackgroundJob<GeneralMessageSenderJo
 {
     private readonly IRepository<AlumniProfile, Guid> _profileRepository;
     private readonly IEmailSender _emailSender;
-    private readonly ISmsSender _smsSender;
+    private readonly Informatique.Alumni.Infrastructure.SMS.ISmsSender _smsSender;
     private readonly IRepository<CommunicationLog, Guid> _logRepository;
     private readonly IRepository<Informatique.Alumni.Membership.AssociationRequest, Guid> _membershipRepository;
     private readonly IGuidGenerator _guidGenerator;
@@ -28,7 +28,7 @@ public class GeneralMessageSenderJob : AsyncBackgroundJob<GeneralMessageSenderJo
     public GeneralMessageSenderJob(
         IRepository<AlumniProfile, Guid> profileRepository,
         IEmailSender emailSender,
-        ISmsSender smsSender,
+        Informatique.Alumni.Infrastructure.SMS.ISmsSender smsSender,
         IRepository<CommunicationLog, Guid> logRepository,
         IRepository<Informatique.Alumni.Membership.AssociationRequest, Guid> membershipRepository,
         IGuidGenerator guidGenerator,
@@ -47,10 +47,14 @@ public class GeneralMessageSenderJob : AsyncBackgroundJob<GeneralMessageSenderJo
     public override async Task ExecuteAsync(GeneralMessageSenderJobArgs args)
     {
         // 1. Re-build Query (Simplistic duplication of logic for now)
-        var query = await _profileRepository.GetQueryableAsync();
+        // Ensure Emails, Mobiles, and Educations are loaded to avoid skipped broadcasts
+        var query = await _profileRepository.WithDetailsAsync(x => x.Emails, x => x.Mobiles, x => x.Educations);
         
         // Filter Logic (Same as AppService)
-        query = query.Where(p => p.BranchId == args.Filter.BranchId);
+        if (args.Filter.BranchId.HasValue && args.Filter.BranchId.Value != Guid.Empty)
+        {
+            query = query.Where(p => p.BranchId == args.Filter.BranchId.Value);
+        }
         
         if (args.Filter.GraduationYear.HasValue)
         {
@@ -113,35 +117,35 @@ public class GeneralMessageSenderJob : AsyncBackgroundJob<GeneralMessageSenderJo
         // 2. Resolve Primary Contact
         if (args.Channel == CommunicationChannel.Email)
         {
-            var primaryEmail = alumni.Emails.FirstOrDefault(e => e.IsPrimary);
-            if (primaryEmail == null)
+            var primaryEmail = alumni.Emails?.FirstOrDefault(e => e.IsPrimary);
+            if (primaryEmail == null || string.IsNullOrWhiteSpace(primaryEmail.Email))
             {
-                Logger.LogWarning($"Alumni {alumni.Id} has no primary email. Skipping.");
-                await LogAsync(args.SenderId, alumni.Id, args.Channel, args.Subject, args.Body, "Skipped", "No Primary Email");
+                Logger.LogWarning($"Alumni {alumni.Id} has no valid primary email. Skipping.");
+                await LogAsync(args.SenderId, alumni.Id, args.Channel, args.Subject, args.Body, "Skipped", "No Valid Primary Email");
                 return;
             }
             targetAddress = primaryEmail.Email; // Correct Property
             
             // Send Email
-            await _emailSender.QueueAsync(targetAddress, args.Subject, args.Body); 
+            await _emailSender.SendAsync(targetAddress, args.Subject, args.Body); 
         }
         else // SMS
         {
-            var primaryMobile = alumni.Mobiles.FirstOrDefault(m => m.IsPrimary);
-            if (primaryMobile == null)
+            var primaryMobile = alumni.Mobiles?.FirstOrDefault(m => m.IsPrimary);
+            if (primaryMobile == null || string.IsNullOrWhiteSpace(primaryMobile.MobileNumber))
             {
-                Logger.LogWarning($"Alumni {alumni.Id} has no primary mobile. Skipping.");
-                await LogAsync(args.SenderId, alumni.Id, args.Channel, args.Subject, args.Body, "Skipped", "No Primary Mobile");
+                Logger.LogWarning($"Alumni {alumni.Id} has no valid primary mobile. Skipping.");
+                await LogAsync(args.SenderId, alumni.Id, args.Channel, args.Subject, args.Body, "Skipped", "No Valid Primary Mobile");
                 return;
             }
             targetAddress = primaryMobile.MobileNumber; // Correct Property
 
             // Send SMS
-            await _smsSender.SendAsync(new SmsMessage(targetAddress, args.Body));
+            await _smsSender.SendAsync(targetAddress, args.Body);
         }
 
         // 3. Log Success
-        await LogAsync(args.SenderId, alumni.Id, args.Channel, args.Subject, args.Body, "Sent", null);
+        await LogAsync(args.SenderId, alumni.Id, args.Channel, args.Subject, args.Body, "Success", null);
     }
 
     private async Task LogAsync(Guid senderId, Guid recipientId, CommunicationChannel channel, string subject, string content, string status, string? error)

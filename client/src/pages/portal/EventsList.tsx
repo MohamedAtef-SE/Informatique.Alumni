@@ -144,12 +144,14 @@ const TripsTab = () => {
                             </div>
                             <div className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
                                 <Calendar className="w-4 h-4 text-emerald-500" />
-                                <span>{new Date(trip.dateFrom).toLocaleDateString()}</span>
+                                <span>{trip.startDate ? new Date(trip.startDate).toLocaleDateString() : 'TBD'}</span>
                             </div>
                         </div>
-                        <Button className="mt-6 w-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20">
-                            {t('events.trip_details_btn')}
-                        </Button>
+                        <Link to="/portal/trips" className="mt-6 w-full">
+                            <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20">
+                                {t('events.trip_details_btn')}
+                            </Button>
+                        </Link>
                     </CardContent>
                 </Card>
             ))}

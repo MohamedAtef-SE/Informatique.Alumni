@@ -10,8 +10,9 @@ import type { UpdateCertificateStatusDto } from '../types/certificates';
 import type { SyndicateStatus } from '../types/syndicates';
 import type { MedicalPartnerDto, CreateMedicalPartnerDto, UpdateMedicalPartnerDto } from '../types/health';
 import type { BranchDto, CreateUpdateBranchDto } from '../types/organization';
-import type { AlumniTripDto, CreateTripDto } from '../types/trips';
+import type { TripAdminDto, TripRequestAdminDto, CreateTripInput } from '../types/trips';
 import type { DashboardStatsDto } from '../types/admin';
+import type { CurrencyDto, LookupItemDto } from '../types/lookups';
 
 export const adminService = {
     // Membership Management
@@ -270,35 +271,82 @@ export const adminService = {
         await api.delete(`/api/app/branch/${id}`);
     },
 
-    // Trips
+    // Trips — Admin (uses TripAdminAppService → /api/app/trip-admin/*)
     getTrips: async (input: PagedAndSortedResultRequestDto & { filter?: string }) => {
-        const response = await api.get<PagedResultDto<AlumniTripDto>>('/api/app/trip/active-trips', { params: input });
+        const response = await api.get<PagedResultDto<TripAdminDto>>('/api/app/trip-admin/trips', { params: input });
         return response.data;
     },
-    createTrip: async (input: CreateTripDto) => {
-        const response = await api.post<AlumniTripDto>('/api/app/trip', input);
+    createTrip: async (input: CreateTripInput) => {
+        const response = await api.post<TripAdminDto>('/api/app/trip/trip', input);
         return response.data;
     },
     deleteTrip: async (id: string) => {
-        await api.delete(`/api/app/trip/${id}`);
+        await api.delete(`/api/app/trip-admin/${id}/trip`);
     },
-
-    // Guidance
-    getAdvisingRequests: async (input: PagedAndSortedResultRequestDto & { status?: number }) => {
-        const response = await api.get('/api/app/advising', { params: input });
+    activateTrip: async (id: string) => {
+        await api.post(`/api/app/trip-admin/${id}/activate-trip`);
+    },
+    deactivateTrip: async (id: string) => {
+        await api.post(`/api/app/trip-admin/${id}/deactivate-trip`);
+    },
+    getTripRequests: async (tripId: string, input: PagedAndSortedResultRequestDto) => {
+        const response = await api.get<PagedResultDto<TripRequestAdminDto>>(`/api/app/trip-admin/requests/${tripId}`, { params: input });
         return response.data;
     },
-    updateAdvisingStatus: async (id: string, input: any) => {
-        const response = await api.put(`/api/app/advising/${id}/status`, input);
+    approveTripRequest: async (requestId: string) => {
+        await api.post(`/api/app/trip-admin/approve-request/${requestId}`);
+    },
+    rejectTripRequest: async (requestId: string) => {
+        await api.post(`/api/app/trip-admin/reject-request/${requestId}`);
+    },
+
+    // Lookups (AllowAnonymous — no auth required)
+    getCurrencies: async (): Promise<CurrencyDto[]> => {
+        const response = await api.get<CurrencyDto[]>('/api/app/lookup/currencies');
+        return response.data;
+    },
+    getTripTypes: async (): Promise<LookupItemDto[]> => {
+        const response = await api.get<LookupItemDto[]>('/api/app/lookup/trip-types');
+        return response.data;
+    },
+
+    // Guidance (Admin)
+    getAdvisingRequests: async (input: PagedAndSortedResultRequestDto & { status?: number }) => {
+        const response = await api.get('/api/app/guidance-admin', { params: input });
+        return response.data;
+    },
+    approveAdvisingRequest: async (id: string, meetingLink?: string) => {
+        const response = await api.post(`/api/app/guidance-admin/${id}/approve-request`, { meetingLink });
+        return response.data;
+    },
+    rejectAdvisingRequest: async (id: string, _notes?: string) => {
+        // Backend currently ignores reason and sets "Rejected by admin" natively
+        const response = await api.post(`/api/app/guidance-admin/${id}/reject-request`);
         return response.data;
     },
 
     // Communication
     sendMessage: async (input: any) => {
-        await api.post('/api/app/communication/message', input);
+        await api.post('/api/app/communications/send-message', input);
     },
     getRecipientsCount: async (input: any) => {
-        const response = await api.post('/api/app/communication/recipients-count', input);
+        const response = await api.post('/api/app/communications/get-recipients-count', input);
+        return response.data;
+    },
+    getDistinctGraduationYears: async (): Promise<number[]> => {
+        const response = await api.get('/api/app/communications/distinct-graduation-years');
+        return response.data;
+    },
+    getCommunicationLogs: async (input: {
+        filterText?: string;
+        channel?: string;
+        status?: string;
+        recipientId?: string;
+        skipCount?: number;
+        maxResultCount?: number;
+        sorting?: string;
+    }) => {
+        const response = await api.post('/api/app/communications/search-logs', input);
         return response.data;
     },
 

@@ -29,7 +29,7 @@ interface CreatePostModalProps {
 }
 
 export function CreatePostModal({ open, onOpenChange }: CreatePostModalProps) {
-    const { t, i18n } = useTranslation();
+    const { i18n } = useTranslation();
     const queryClient = useQueryClient();
     const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<PostFormValues>({
         // @ts-ignore
@@ -67,7 +67,7 @@ export function CreatePostModal({ open, onOpenChange }: CreatePostModalProps) {
         }
     });
 
-    const onSubmit = (data: PostFormValues) => {
+    const onSubmit = (data: any) => {
         const dto: CreateBlogPostDto = {
             ...data,
             coverImageUrl: data.coverImageUrl || undefined,

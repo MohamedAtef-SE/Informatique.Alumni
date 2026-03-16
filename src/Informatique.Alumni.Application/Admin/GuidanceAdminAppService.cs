@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Volo.Abp.Emailing;
 using Informatique.Alumni.Guidance;
 using Informatique.Alumni.Permissions;
 using Informatique.Alumni.Profiles;
@@ -18,14 +19,18 @@ public class GuidanceAdminAppService : AlumniAppService, IGuidanceAdminAppServic
     private readonly IRepository<AlumniProfile, Guid> _profileRepository;
     private readonly IIdentityUserRepository _userRepository;
 
+    private readonly Volo.Abp.EventBus.Local.ILocalEventBus _localEventBus;
+
     public GuidanceAdminAppService(
         IRepository<AdvisingRequest, Guid> requestRepository,
         IRepository<AlumniProfile, Guid> profileRepository,
-        IIdentityUserRepository userRepository)
+        IIdentityUserRepository userRepository,
+        Volo.Abp.EventBus.Local.ILocalEventBus localEventBus)
     {
         _requestRepository = requestRepository;
         _profileRepository = profileRepository;
         _userRepository = userRepository;
+        _localEventBus = localEventBus;
     }
 
     public async Task<PagedResultDto<GuidanceAdminDto>> GetListAsync(GuidanceAdminGetListInput input)
@@ -60,36 +65,62 @@ public class GuidanceAdminAppService : AlumniAppService, IGuidanceAdminAppServic
 
         var requests = await AsyncExecuter.ToListAsync(queryable);
 
-        // Batch resolve Alumni Profiles
-        var alumniIds = requests.Select(x => x.AlumniId).Distinct().ToList();
-        var alumniProfiles = await _profileRepository.GetListAsync(x => alumniIds.Contains(x.Id));
+        // Batch resolve Profiles for both Alumni and Advisors
+        var profileIds = requests.Select(x => x.AlumniId)
+                                 .Union(requests.Select(x => x.AdvisorId))
+                                 .Distinct()
+                                 .ToList();
+                                 
+        var profiles = await _profileRepository.GetListAsync(x => profileIds.Contains(x.Id));
         
-        // Resolve Alumni User Ids to get Names
-        var alumniUserIds = alumniProfiles.Select(p => p.UserId).Distinct().ToList();
-        
-        // Resolve Advisor IDs (assuming AdvisorId is User ID)
-        var advisorIds = requests.Select(x => x.AdvisorId).Distinct().ToList();
-
-        var allUserIds = alumniUserIds.Union(advisorIds).Distinct().ToList();
-        var users = await _userRepository.GetListByIdsAsync(allUserIds);
+        // Resolve Identity User Ids to get Names
+        var userIds = profiles.Select(p => p.UserId).Distinct().ToList();
+        var users = await _userRepository.GetListByIdsAsync(userIds);
 
         var items = requests.Select(r =>
         {
-            var profile = alumniProfiles.FirstOrDefault(p => p.Id == r.AlumniId);
-            var alumniUser = profile != null ? users.FirstOrDefault(u => u.Id == profile.UserId) : null;
-            var advisorUser = users.FirstOrDefault(u => u.Id == r.AdvisorId);
+            var alumniProfile = profiles.FirstOrDefault(p => p.Id == r.AlumniId);
+            var alumniUser = alumniProfile != null ? users.FirstOrDefault(u => u.Id == alumniProfile.UserId) : null;
+            
+            var advisorProfile = profiles.FirstOrDefault(p => p.Id == r.AdvisorId);
+            var advisorUser = advisorProfile != null ? users.FirstOrDefault(u => u.Id == advisorProfile.UserId) : null;
+
+            var alumniName = "Unknown Alumni";
+            if (alumniUser != null)
+            {
+                if (alumniUser.ExtraProperties.TryGetValue("Name", out var nObj) && nObj != null)
+                    alumniName = nObj.ToString();
+                else if (!string.IsNullOrWhiteSpace(alumniUser.Name))
+                    alumniName = $"{alumniUser.Name} {alumniUser.Surname}".Trim();
+                else
+                    alumniName = alumniUser.UserName ?? "Unknown Alumni";
+            }
+
+            var advName = "Unknown Advisor";
+            if (advisorUser != null)
+            {
+                if (advisorUser.ExtraProperties.TryGetValue("Name", out var nObj) && nObj != null)
+                    advName = nObj.ToString();
+                else if (!string.IsNullOrWhiteSpace(advisorUser.Name))
+                    advName = $"{advisorUser.Name} {advisorUser.Surname}".Trim();
+                else
+                    advName = advisorUser.UserName ?? "Unknown Advisor";
+            }
 
             return new GuidanceAdminDto
             {
                 Id = r.Id,
                 AlumniId = r.AlumniId,
-                AlumniName = alumniUser != null ? $"{alumniUser.Name} {alumniUser.Surname}" : "Unknown Alumni",
+                AlumniName = alumniName,
+                AlumniEmail = alumniUser?.Email ?? string.Empty,
                 AdvisorId = r.AdvisorId,
-                AdvisorName = advisorUser != null ? $"{advisorUser.Name} {advisorUser.Surname}" : "Unknown Advisor",
+                AdvisorName = advName,
+                AdvisorEmail = advisorUser?.Email ?? string.Empty,
                 StartTime = r.StartTime,
                 EndTime = r.EndTime,
                 Subject = r.Subject,
                 Notes = r.AdminNotes,
+                MeetingLink = r.MeetingLink,
                 Status = (int)r.Status,
                 CreationTime = r.CreationTime
             };
@@ -98,17 +129,37 @@ public class GuidanceAdminAppService : AlumniAppService, IGuidanceAdminAppServic
         return new PagedResultDto<GuidanceAdminDto>(totalCount, items);
     }
 
-    public async Task ApproveRequestAsync(Guid id)
+    public async Task ApproveRequestAsync(Guid id, ApproveGuidanceRequestDto input)
     {
         var request = await _requestRepository.GetAsync(id);
-        request.Approve();
+        var oldStatus = request.Status;
+        
+        request.Approve(input.MeetingLink);
         await _requestRepository.UpdateAsync(request);
+
+        await _localEventBus.PublishAsync(new AdvisingRequestStatusChangedEto
+        {
+            RequestId = request.Id,
+            AlumniId = request.AlumniId,
+            OldStatus = oldStatus,
+            NewStatus = request.Status
+        });
     }
 
     public async Task RejectRequestAsync(Guid id)
     {
         var request = await _requestRepository.GetAsync(id);
+        var oldStatus = request.Status;
+
         request.Reject("Rejected by admin");
         await _requestRepository.UpdateAsync(request);
+
+        await _localEventBus.PublishAsync(new AdvisingRequestStatusChangedEto
+        {
+            RequestId = request.Id,
+            AlumniId = request.AlumniId,
+            OldStatus = oldStatus,
+            NewStatus = request.Status
+        });
     }
 }

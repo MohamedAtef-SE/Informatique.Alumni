@@ -249,12 +249,13 @@ namespace Informatique.Alumni.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Address")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
 
                     b.Property<string>("Code")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -279,6 +280,10 @@ namespace Informatique.Alumni.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("DeletionTime");
 
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
                     b.Property<string>("ExternalId")
                         .HasColumnType("nvarchar(max)");
 
@@ -286,6 +291,10 @@ namespace Informatique.Alumni.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("ExtraProperties");
+
+                    b.Property<string>("FacebookPage")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
@@ -301,10 +310,31 @@ namespace Informatique.Alumni.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("LastModifierId");
 
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("float");
+
+                    b.Property<string>("LinkedInPage")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("float");
+
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<Guid?>("PresidentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("WhatsAppGroup")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
 
                     b.HasKey("Id");
 
@@ -1437,6 +1467,48 @@ namespace Informatique.Alumni.Migrations
                     b.ToTable("AppCommunicationLogs", (string)null);
                 });
 
+            modelBuilder.Entity("Informatique.Alumni.Currencies.Currency", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<decimal>("ExchangeRateFromUSD")
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<string>("FlagEmoji")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<bool>("IsBase")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastSyncedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("Symbol")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("AppCurrencies", (string)null);
+                });
+
             modelBuilder.Entity("Informatique.Alumni.Dashboard.DailyStats", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2309,6 +2381,9 @@ namespace Informatique.Alumni.Migrations
                     b.Property<Guid?>("LastModifierId")
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("LastModifierId");
+
+                    b.Property<string>("MeetingLink")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("datetime2");
@@ -3707,7 +3782,8 @@ namespace Informatique.Alumni.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<bool>("IsPrimary")
                         .HasColumnType("bit");
@@ -3716,7 +3792,7 @@ namespace Informatique.Alumni.Migrations
 
                     b.HasIndex("AlumniProfileId");
 
-                    b.ToTable("ContactEmail");
+                    b.ToTable("AppContactEmails", (string)null);
                 });
 
             modelBuilder.Entity("Informatique.Alumni.Profiles.ContactMobile", b =>
@@ -3732,13 +3808,14 @@ namespace Informatique.Alumni.Migrations
 
                     b.Property<string>("MobileNumber")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AlumniProfileId");
 
-                    b.ToTable("ContactMobile");
+                    b.ToTable("AppContactMobiles", (string)null);
                 });
 
             modelBuilder.Entity("Informatique.Alumni.Profiles.ContactPhone", b =>
@@ -3754,13 +3831,14 @@ namespace Informatique.Alumni.Migrations
 
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AlumniProfileId");
 
-                    b.ToTable("ContactPhone");
+                    b.ToTable("AppContactPhones", (string)null);
                 });
 
             modelBuilder.Entity("Informatique.Alumni.Profiles.Education", b =>

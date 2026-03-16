@@ -15,6 +15,7 @@ public class AdvisingRequest : FullAuditedAggregateRoot<Guid>
     public string? Description { get; set; }
     public AdvisingRequestStatus Status { get; private set; }
     public string? AdminNotes { get; private set; }
+    public string? MeetingLink { get; private set; }
 
     private AdvisingRequest() { }
 
@@ -30,10 +31,11 @@ public class AdvisingRequest : FullAuditedAggregateRoot<Guid>
         Status = AdvisingRequestStatus.Pending; // Requirement: Pending
     }
 
-    public void Approve()
+    public void Approve(string? meetingLink = null)
     {
         EnsureStatusIsPending();
         Status = AdvisingRequestStatus.Approved;
+        MeetingLink = meetingLink;
     }
 
     public void Reject(string reason)

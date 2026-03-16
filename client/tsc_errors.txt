@@ -1,0 +1,14 @@
+src/components/admin/content/CreatePostModal.tsx(32,13): error TS6133: 't' is declared but its value is never read.
+src/components/admin/content/CreatePostModal.tsx(89,46): error TS2345: Argument of type '(data: PostFormValues) => void' is not assignable to parameter of type 'SubmitHandler<TFieldValues>'.
+  Types of parameters 'data' and 'data' are incompatible.
+    Type 'TFieldValues' is not assignable to type '{ title: string; slug: string; content: string; isPublished: boolean; summary?: string | undefined; coverImageUrl?: string | undefined; tags?: string | undefined; categoryId?: string | undefined; }'.
+      Type 'FieldValues' is missing the following properties from type '{ title: string; slug: string; content: string; isPublished: boolean; summary?: string | undefined; coverImageUrl?: string | undefined; tags?: string | undefined; categoryId?: string | undefined; }': title, slug, content, isPublished
+src/components/admin/content/EditPostModal.tsx(34,13): error TS6133: 't' is declared but its value is never read.
+src/components/admin/content/EditPostModal.tsx(99,46): error TS2345: Argument of type '(data: PostFormValues) => void' is not assignable to parameter of type 'SubmitHandler<TFieldValues>'.
+  Types of parameters 'data' and 'data' are incompatible.
+    Type 'TFieldValues' is not assignable to type '{ title: string; slug: string; content: string; isPublished: boolean; summary?: string | undefined; coverImageUrl?: string | undefined; tags?: string | undefined; categoryId?: string | undefined; }'.
+      Type 'FieldValues' is missing the following properties from type '{ title: string; slug: string; content: string; isPublished: boolean; summary?: string | undefined; coverImageUrl?: string | undefined; tags?: string | undefined; categoryId?: string | undefined; }': title, slug, content, isPublished
+src/components/admin/health/EditMedicalPartnerModal.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/pages/admin/CommunicationCenter.tsx(174,45): error TS2322: Type 'boolean' is not assignable to type 'string'.
+src/pages/admin/TripsManager.tsx(5,11): error TS6133: 'Plane' is declared but its value is never read.
+src/pages/portal/PortalHome.tsx(682,7): error TS6133: 'UpcomingEventsList' is declared but its value is never read.

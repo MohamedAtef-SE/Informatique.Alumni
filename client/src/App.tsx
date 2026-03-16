@@ -19,6 +19,7 @@ import Gallery from './pages/portal/Gallery';
 import Profile from './pages/portal/Profile';
 import Calendar from './pages/portal/Calendar';
 import Magazine from './pages/portal/Magazine';
+import TripsList from './pages/portal/TripsList';
 import AdminLayout from './components/layouts/AdminLayout';
 import AdminGuard from './components/auth/AdminGuard';
 import AlumniGuard from './components/auth/AlumniGuard';
@@ -67,6 +68,7 @@ function App() {
             <Route path="profile" element={<Profile />} />
             <Route path="calendar" element={<Calendar />} />
             <Route path="magazine" element={<Magazine />} />
+            <Route path="trips" element={<TripsList />} />
           </Route>
         </Route>
 

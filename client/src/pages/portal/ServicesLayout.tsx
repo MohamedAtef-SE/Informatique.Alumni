@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { servicesAppService } from '../../services/servicesService';
 import { alumniService } from '../../services/alumniService';
 import { fileService } from '../../services/fileService';
-import { Newspaper, CreditCard, Award, Gift, QrCode, FileBadge, Building2, HeartPulse, Plus, Upload, Loader2 } from 'lucide-react';
+import { Newspaper, CreditCard, Award, Gift, QrCode, FileBadge, Building2, HeartPulse, Plus, Upload, Loader2, Info } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuth } from 'react-oidc-context';
 import ErrorModal from '../../components/common/ErrorModal';
@@ -160,8 +160,10 @@ const ServicesLayout = () => {
                                                     <div
                                                         className="bg-slate-100 border border-slate-200 p-2 rounded text-center font-mono text-sm text-[var(--color-text-primary)] cursor-pointer hover:bg-slate-200 transition-colors relative overflow-hidden group/code"
                                                         onClick={() => {
-                                                            navigator.clipboard.writeText(discount.promoCode);
-                                                            toast.success(t('common.copied', 'Copied to clipboard'));
+                                                            if (discount.promoCode) {
+                                                                navigator.clipboard.writeText(discount.promoCode);
+                                                                toast.success(t('common.copied', 'Copied to clipboard'));
+                                                            }
                                                         }}
                                                     >
                                                         <span className="blur-[4px] group-hover/code:blur-0 transition-all duration-300 select-none">
@@ -563,6 +565,19 @@ function CertificatesSection() {
                                         />
                                     </div>
 
+                                )}
+
+                                {selectedDefId && definitions?.items?.find((d: any) => d.id === selectedDefId)?.requiredDocuments && (
+                                    <div className="mt-4 p-3 bg-blue-50/50 border border-blue-100 rounded-lg text-sm relative">
+                                        <div className="flex items-center gap-1.5 text-blue-800 font-semibold mb-2 text-xs uppercase tracking-wide">
+                                            <Info className="w-3.5 h-3.5" />
+                                            {t('services.certificates.requirements', 'Requirement Rules')}
+                                        </div>
+                                        <div
+                                            className="prose prose-sm max-w-none text-slate-700 prose-p:my-1 prose-ul:my-1 prose-li:my-0.5"
+                                            dangerouslySetInnerHTML={{ __html: definitions.items.find((d: any) => d.id === selectedDefId)?.requiredDocuments || '' }}
+                                        />
+                                    </div>
                                 )}
 
                                 <div>

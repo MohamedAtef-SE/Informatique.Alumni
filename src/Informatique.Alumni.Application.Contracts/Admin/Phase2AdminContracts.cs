@@ -123,6 +123,9 @@ public class TripAdminDto : EntityDto<Guid>
     public TripType TripType { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
+    public string Location { get; set; } = string.Empty;
+    public decimal PricePerPerson { get; set; }
+    public int? MaxCapacity { get; set; }
     public bool IsActive { get; set; }
     public int RequestCount { get; set; }
     public DateTime CreationTime { get; set; }
@@ -132,6 +135,9 @@ public class TripRequestAdminDto : EntityDto<Guid>
 {
     public Guid TripId { get; set; }
     public Guid AlumniId { get; set; }
+    public string AlumniName { get; set; } = string.Empty;
+    public string AlumniEmail { get; set; } = string.Empty;
+    public string PhoneNumber { get; set; } = string.Empty;
     public int GuestCount { get; set; }
     public decimal TotalAmount { get; set; }
     public TripRequestStatus Status { get; set; }
@@ -151,6 +157,7 @@ public interface ITripAdminAppService : IApplicationService
     Task RejectRequestAsync(Guid requestId);
     Task ActivateTripAsync(Guid id);
     Task DeactivateTripAsync(Guid id);
+    Task DeleteTripAsync(Guid id);
 }
 
 // ================== Gallery Admin ==================

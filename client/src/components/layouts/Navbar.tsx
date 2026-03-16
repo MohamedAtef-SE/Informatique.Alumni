@@ -217,7 +217,9 @@ const Navbar = () => {
                                     >
                                         <div className="px-4 py-3 border-b border-[var(--color-border)]">
                                             <p className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{user?.name}</p>
-                                            <p className="text-xs text-[var(--color-text-secondary)] truncate">{user?.email}</p>
+                                            <p className="text-xs text-[var(--color-text-secondary)] truncate">
+                                                {profile?.emails?.find((e: any) => e.isPrimary)?.email || user?.email}
+                                            </p>
                                         </div>
                                         <Link to="/portal/profile" className="flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-secondary)] hover:text-[var(--color-text-primary)] transition-colors">
                                             <UserCircle className="w-4 h-4" /> {t('nav.profile', 'My Profile')}

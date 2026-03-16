@@ -8,6 +8,10 @@ using Volo.Abp.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.TenantManagement;
 using Informatique.Alumni.Profiles;
+using Informatique.Alumni.Currencies;
+using Volo.Abp.BackgroundWorkers;
+using System.Threading.Tasks;
+using Volo.Abp;
 
 namespace Informatique.Alumni;
 
@@ -27,5 +31,10 @@ public class AlumniApplicationModule : AbpModule
     {
         context.Services.AddTransient<AlumniApplicationMappers>();
         context.Services.AddTransient<IStudentSystemIntegrationService, SqlStudentSystemIntegrationService>();
+    }
+
+    public override async Task OnApplicationInitializationAsync(ApplicationInitializationContext context)
+    {
+        await context.AddBackgroundWorkerAsync<ExchangeRateSyncWorker>();
     }
 }
