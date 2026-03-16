@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Authorization;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Domain.Repositories;
 
+using Volo.Abp.Identity;
+
 namespace Informatique.Alumni.Admin;
 
 [Authorize(AlumniPermissions.Admin.TripManage)]
@@ -14,13 +16,16 @@ public class TripAdminAppService : AlumniAppService, ITripAdminAppService
 {
     private readonly IRepository<AlumniTrip, Guid> _tripRepository;
     private readonly IRepository<TripRequest, Guid> _requestRepository;
+    private readonly IIdentityUserRepository _userRepository;
 
     public TripAdminAppService(
         IRepository<AlumniTrip, Guid> tripRepository,
-        IRepository<TripRequest, Guid> requestRepository)
+        IRepository<TripRequest, Guid> requestRepository,
+        IIdentityUserRepository userRepository)
     {
         _tripRepository = tripRepository;
         _requestRepository = requestRepository;
+        _userRepository = userRepository;
     }
 
     public async Task<PagedResultDto<TripAdminDto>> GetTripsAsync(TripAdminGetListInput input)
@@ -51,6 +56,9 @@ public class TripAdminAppService : AlumniAppService, ITripAdminAppService
             TripType = t.Type,
             StartDate = t.DateFrom,
             EndDate = t.DateTo,
+            Location = t.Location,
+            PricePerPerson = t.PricePerPerson ?? 0,
+            MaxCapacity = t.MaxCapacity,
             IsActive = t.IsActive,
             RequestCount = reqQueryable.Count(r => r.TripId == t.Id),
             CreationTime = t.CreationTime
@@ -71,15 +79,29 @@ public class TripAdminAppService : AlumniAppService, ITripAdminAppService
             .OrderByDescending(x => x.CreationTime)
             .PageBy(input);
 
-        var items = queryable.ToList().Select(r => new TripRequestAdminDto
+        var requestEntities = queryable.ToList();
+        
+        // Fetch associative user data from Identity
+        var userIds = requestEntities.Select(x => x.AlumniId).Distinct().ToList();
+        var users = (await _userRepository.GetListByIdsAsync(userIds))
+            .ToDictionary(u => u.Id, u => u);
+
+        var items = requestEntities.Select(r => 
         {
-            Id = r.Id,
-            TripId = r.TripId,
-            AlumniId = r.AlumniId,
-            GuestCount = r.GuestCount,
-            TotalAmount = r.TotalAmount,
-            Status = r.Status,
-            CreationTime = r.CreationTime
+            users.TryGetValue(r.AlumniId, out var user);
+            return new TripRequestAdminDto
+            {
+                Id = r.Id,
+                TripId = r.TripId,
+                AlumniId = r.AlumniId,
+                AlumniName = user?.Name ?? user?.UserName ?? "Unknown User",
+                AlumniEmail = user?.Email ?? "-",
+                PhoneNumber = user?.PhoneNumber ?? "-",
+                GuestCount = r.GuestCount,
+                TotalAmount = r.TotalAmount,
+                Status = r.Status,
+                CreationTime = r.CreationTime
+            };
         }).ToList();
 
         return new PagedResultDto<TripRequestAdminDto>(totalCount, items);
@@ -88,14 +110,14 @@ public class TripAdminAppService : AlumniAppService, ITripAdminAppService
     public async Task ApproveRequestAsync(Guid requestId)
     {
         var request = await _requestRepository.GetAsync(requestId);
-        request.Status = TripRequestStatus.Approved;
+        request.Approve();
         await _requestRepository.UpdateAsync(request);
     }
 
     public async Task RejectRequestAsync(Guid requestId)
     {
         var request = await _requestRepository.GetAsync(requestId);
-        request.Status = TripRequestStatus.Rejected;
+        request.Reject();
         await _requestRepository.UpdateAsync(request);
     }
 
@@ -111,5 +133,10 @@ public class TripAdminAppService : AlumniAppService, ITripAdminAppService
         var trip = await _tripRepository.GetAsync(id);
         trip.Deactivate();
         await _tripRepository.UpdateAsync(trip);
+    }
+
+    public async Task DeleteTripAsync(Guid id)
+    {
+        await _tripRepository.DeleteAsync(id);
     }
 }

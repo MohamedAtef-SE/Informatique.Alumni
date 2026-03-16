@@ -325,6 +325,45 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
         }
     }
 
+    private async Task RepairMissingContactsAsync()
+    {
+        var profiles = await _profileRepository.GetListAsync(includeDetails: true);
+        var users = await _userRepository.GetListAsync();
+
+        bool hasUpdates = false;
+
+        foreach (var profile in profiles)
+        {
+            var user = users.FirstOrDefault(u => u.Id == profile.UserId);
+            if (user == null) continue;
+
+            if (profile.Emails == null || !profile.Emails.Any())
+            {
+                var emailId = _guidGenerator.Create();
+                var primaryEmail = new Informatique.Alumni.Profiles.ContactEmail(emailId, profile.Id, user.Email ?? "no-email@alumni.local", true);
+                profile.AddEmail(primaryEmail);
+                profile.SetPrimaryEmail(primaryEmail.Id);
+                hasUpdates = true;
+            }
+
+            if (profile.Mobiles == null || !profile.Mobiles.Any())
+            {
+                var mobileId = _guidGenerator.Create();
+                var numToUse = string.IsNullOrWhiteSpace(profile.MobileNumber) ? "+201000000000" : profile.MobileNumber;
+                var primaryMobile = new Informatique.Alumni.Profiles.ContactMobile(mobileId, profile.Id, numToUse, true);
+                profile.AddMobile(primaryMobile);
+                profile.SetPrimaryMobile(primaryMobile.Id);
+                hasUpdates = true;
+            }
+        }
+
+        if (hasUpdates)
+        {
+            await _profileRepository.UpdateManyAsync(profiles);
+            Console.WriteLine($"--- REPAIRED MISSING CONTACT DETAILS FOR {profiles.Count} ALUMNI ---");
+        }
+    }
+
     public async Task SeedAsync(DataSeedContext context)
     {
         // Only run in Development
@@ -339,6 +378,11 @@ public class DevDataSeederContributor : IDataSeedContributor, ITransientDependen
 
         // --- NEW: Recreate Multiple Alumni (1-5) ---
         await SeedMultipleAlumniAsync();
+
+        // Run emergency repair for Missing Contacts table migration upgrade
+        await RepairMissingContactsAsync();
+
+        if (await _userRepository.GetCountAsync() > 25) return;
 
         await SeedJobsAsync();
         await SeedEventsAsync();

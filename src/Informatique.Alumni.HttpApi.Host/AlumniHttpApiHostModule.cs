@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
@@ -40,6 +41,8 @@ using Volo.Abp.OpenIddict;
 using Volo.Abp.Swashbuckle;
 using Volo.Abp.Studio.Client.AspNetCore;
 using Volo.Abp.Security.Claims;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Volo.Abp.Emailing;
 
 namespace Informatique.Alumni;
 
@@ -53,7 +56,8 @@ namespace Informatique.Alumni;
     typeof(AlumniEntityFrameworkCoreModule),
     typeof(AbpAccountWebOpenIddictModule),
     typeof(AbpSwashbuckleModule),
-    typeof(AbpAspNetCoreSerilogModule)
+    typeof(AbpAspNetCoreSerilogModule),
+    typeof(AbpEmailingModule)
     )]
 public class AlumniHttpApiHostModule : AbpModule
 {
@@ -101,6 +105,9 @@ public class AlumniHttpApiHostModule : AbpModule
     {
         var configuration = context.Services.GetConfiguration();
         var hostingEnvironment = context.Services.GetHostingEnvironment();
+
+        // [Antigravity Fix]: Force actual email sending in Development to bypass NullEmailSender
+        context.Services.Replace(Microsoft.Extensions.DependencyInjection.ServiceDescriptor.Transient<Volo.Abp.Emailing.IEmailSender, Volo.Abp.Emailing.Smtp.SmtpEmailSender>());
 
         if (!configuration.GetValue<bool>("App:DisablePII"))
         {

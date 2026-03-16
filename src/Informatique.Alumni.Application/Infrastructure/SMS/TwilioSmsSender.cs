@@ -1,87 +1,78 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.CircuitBreaker;
 using Twilio;
 using Twilio.Rest.Api.V2010.Account;
 using Twilio.Types;
 using Volo.Abp.DependencyInjection;
-using Volo.Abp.EventBus.Distributed;
-using Volo.Abp.Sms;
-using Informatique.Alumni.Infrastructure.SMS; // Keep utilizing the explicit namespace for the custom interface
 
 namespace Informatique.Alumni.Infrastructure.SMS;
 
 public class TwilioSmsSender : ISmsSender, ITransientDependency
 {
-    private readonly IDistributedEventBus _eventBus;
     private readonly IConfiguration _configuration;
-    
+    private readonly ILogger<TwilioSmsSender> _logger;
+
     // Circuit Breaker Policy: Breaks after 3 failures, waits 1 minute before retrying
     private static readonly AsyncCircuitBreakerPolicy _circuitBreaker = Policy
         .Handle<Exception>()
         .CircuitBreakerAsync(
-            exceptionsAllowedBeforeBreaking: 3, 
+            exceptionsAllowedBeforeBreaking: 3,
             durationOfBreak: TimeSpan.FromMinutes(1)
         );
 
     public TwilioSmsSender(
-        IDistributedEventBus eventBus,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ILogger<TwilioSmsSender> logger)
     {
-        _eventBus = eventBus;
         _configuration = configuration;
+        _logger = logger;
     }
 
     public async Task SendAsync(string phoneNumber, string message)
     {
-        bool isSuccess = false;
-        string? errorMessage = null;
+        var accountSid = _configuration["Twilio:AccountSid"];
+        var authToken  = _configuration["Twilio:AuthToken"];
+        var fromNumber = _configuration["Twilio:FromNumber"];
+
+        if (string.IsNullOrWhiteSpace(accountSid) ||
+            accountSid.StartsWith("REPLACE", StringComparison.OrdinalIgnoreCase) ||
+            string.IsNullOrWhiteSpace(authToken)   ||
+            authToken.StartsWith("REPLACE",  StringComparison.OrdinalIgnoreCase))
+        {
+            var msg = "Twilio credentials are not configured in appsettings.json. SMS cannot be sent until AccountSid, AuthToken, and FromNumber are set.";
+            _logger.LogError(msg);
+            throw new InvalidOperationException(msg);
+        }
 
         try
         {
             await _circuitBreaker.ExecuteAsync(async () =>
             {
-                var accountSid = _configuration["Twilio:AccountSid"];
-                var authToken = _configuration["Twilio:AuthToken"];
-                var fromNumber = _configuration["Twilio:FromNumber"];
-
-                if (string.IsNullOrWhiteSpace(accountSid) || string.IsNullOrWhiteSpace(authToken))
-                {
-                    throw new InvalidOperationException("Twilio credentials are not configured.");
-                }
-
                 TwilioClient.Init(accountSid, authToken);
 
-                await MessageResource.CreateAsync(
-                    to: new PhoneNumber(phoneNumber),
+                var result = await MessageResource.CreateAsync(
+                    to:   new PhoneNumber(phoneNumber),
                     from: !string.IsNullOrWhiteSpace(fromNumber) ? new PhoneNumber(fromNumber) : null,
                     body: message
                 );
-            });
 
-            isSuccess = true;
+                _logger.LogInformation("SMS sent to {Phone} — Twilio SID: {Sid}, Status: {Status}",
+                    phoneNumber, result.Sid, result.Status);
+            });
         }
-        catch (BrokenCircuitException)
+        catch (BrokenCircuitException bce)
         {
-            errorMessage = "SMS Provider Circuit is Open (Too many failures). Dispatching aborted.";
-            // In a real system, you might fallback to another provider here
+            _logger.LogError(bce, "SMS Circuit Breaker is OPEN — too many consecutive Twilio failures.");
+            throw; // Re-throw so the job logs Failed
         }
         catch (Exception ex)
         {
-            errorMessage = ex.Message;
-        }
-        finally
-        {
-            // Log the attempt (Success or Failure)
-            await _eventBus.PublishAsync(new SmsSentEto(
-                phoneNumber,
-                message,
-                "Twilio",
-                isSuccess,
-                errorMessage
-            ));
+            _logger.LogError(ex, "Failed to send SMS to {Phone} via Twilio.", phoneNumber);
+            throw; // Re-throw so the job logs Failed instead of Success
         }
     }
 }

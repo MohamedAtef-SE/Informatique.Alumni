@@ -8,8 +8,8 @@ namespace Informatique.Alumni.Communications;
 /// </summary>
 public class AlumniCommunicationFilterDto
 {
-    // Mandatory
-    public Guid BranchId { get; set; }
+    // Optional Branch
+    public Guid? BranchId { get; set; }
     public int? GraduationYear { get; set; }
     public int? GraduationSemester { get; set; }
 
@@ -59,4 +59,26 @@ public class GeneralMessageSenderJobArgs
     public string[]? AttachmentUrls { get; set; }
     public Guid SenderId { get; set; }
     public Guid? TenantId { get; set; }
+}
+
+public class CommunicationLogDto : Volo.Abp.Application.Dtos.EntityDto<Guid>
+{
+    public Guid SenderId { get; set; }
+    public Guid? RecipientId { get; set; }
+    public string Channel { get; set; } = string.Empty;
+    public string Subject { get; set; } = string.Empty;
+    public string Content { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public string? ErrorMessage { get; set; }
+    public string? AlumniName { get; set; }
+    public string? TargetAddress { get; set; }
+    public DateTime CreationTime { get; set; }
+}
+
+public class GetCommunicationLogInputDto : Volo.Abp.Application.Dtos.PagedAndSortedResultRequestDto
+{
+    public string? FilterText { get; set; }
+    public string? Channel { get; set; }
+    public string? Status { get; set; }
+    public Guid? RecipientId { get; set; }
 }

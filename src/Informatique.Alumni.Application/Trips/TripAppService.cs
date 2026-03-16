@@ -59,7 +59,7 @@ public class TripAppService : AlumniAppService, ITripAppService
             input.Destination,
             0m, // AdminFees
             input.MaxCapacity > 0,
-            input.MaxCapacity
+            input.MaxCapacity ?? 0
         );
         
         // Use Update method to set description and other fields
@@ -68,8 +68,8 @@ public class TripAppService : AlumniAppService, ITripAppService
             input.Destination,
             input.StartDate,
             input.EndDate,
-            input.MaxCapacity,
-            input.PricePerPerson,
+            input.MaxCapacity ?? 0,
+            input.PricePerPerson ?? 0m,
             input.Description ?? string.Empty
         );
         

@@ -41,6 +41,7 @@ using Informatique.Alumni.Delivery;
 using Informatique.Alumni.Communications;
 using Informatique.Alumni.EntityFrameworkCore.Syndicates;
 using Informatique.Alumni.EntityFrameworkCore.Membership;
+using Informatique.Alumni.Currencies;
 
 namespace Informatique.Alumni.EntityFrameworkCore;
 
@@ -69,6 +70,9 @@ public class AlumniDbContext :
     public DbSet<AlumniProfile> AlumniProfiles { get; set; }
     public DbSet<Experience> Experiences { get; set; }
     public DbSet<Education> Educations { get; set; }
+    public DbSet<ContactEmail> ContactEmails { get; set; }
+    public DbSet<ContactMobile> ContactMobiles { get; set; }
+    public DbSet<ContactPhone> ContactPhones { get; set; }
     public DbSet<College> Colleges { get; set; }
     public DbSet<Major> Majors { get; set; }
     public DbSet<Nationality> Nationalities { get; set; } // Added for Reporting
@@ -141,10 +145,11 @@ public class AlumniDbContext :
     public DbSet<CvCourse> CvCourses { get; set; }
     public DbSet<CvPracticalTraining> CvPracticalTrainings { get; set; }
     
-    // Dashboard & Trips
+    // Dashboard, Trips & Lookups
     public DbSet<DailyStats> DailyDashboardStats { get; set; }
     public DbSet<AlumniTrip> AlumniTrips { get; set; }
     public DbSet<TripRequest> TripRequests { get; set; }
+    public DbSet<Currency> Currencies { get; set; }
 
     // Infrastructure
     public DbSet<SmsDeliveryLog> SmsLogs { get; set; }
@@ -226,8 +231,27 @@ public class AlumniDbContext :
         {
             b.ToTable(AlumniConsts.DbTablePrefix + "Branches", AlumniConsts.DbSchema);
             b.ConfigureByConvention();
-            b.Property(x => x.Name).IsRequired().HasMaxLength(128);
-            b.Property(x => x.Code).IsRequired().HasMaxLength(32);
+            b.Property(x => x.Name).IsRequired().HasMaxLength(BranchConsts.MaxNameLength);
+            b.Property(x => x.Code).IsRequired().HasMaxLength(BranchConsts.MaxCodeLength);
+            b.Property(x => x.Address).HasMaxLength(BranchConsts.MaxAddressLength);
+            b.Property(x => x.Email).HasMaxLength(BranchConsts.MaxEmailLength);
+            b.Property(x => x.PhoneNumber).HasMaxLength(BranchConsts.MaxPhoneNumberLength);
+            b.Property(x => x.LinkedInPage).HasMaxLength(BranchConsts.MaxUrlLength);
+            b.Property(x => x.FacebookPage).HasMaxLength(BranchConsts.MaxUrlLength);
+            b.Property(x => x.WhatsAppGroup).HasMaxLength(BranchConsts.MaxUrlLength);
+        });
+
+        // Currency Lookup Table
+        builder.Entity<Currency>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "Currencies", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Code).IsRequired().HasMaxLength(CurrencyConsts.MaxCodeLength);
+            b.Property(x => x.Name).IsRequired().HasMaxLength(CurrencyConsts.MaxNameLength);
+            b.Property(x => x.Symbol).IsRequired().HasMaxLength(CurrencyConsts.MaxSymbolLength);
+            b.Property(x => x.FlagEmoji).HasMaxLength(CurrencyConsts.MaxFlagLength);
+            b.Property(x => x.ExchangeRateFromUSD).HasColumnType("decimal(18,6)");
+            b.HasIndex(x => x.Code).IsUnique();
         });
 
         builder.Entity<CertificateDefinition>(b =>
@@ -293,6 +317,34 @@ public class AlumniDbContext :
             b.Property(x => x.IsNotable).HasDefaultValue(false);
             b.Property(x => x.RejectionReason).HasMaxLength(1024);
             b.HasIndex(x => x.Status);
+
+            b.HasMany(x => x.Emails).WithOne().HasForeignKey(x => x.AlumniProfileId).IsRequired();
+            b.HasMany(x => x.Mobiles).WithOne().HasForeignKey(x => x.AlumniProfileId).IsRequired();
+            b.HasMany(x => x.Phones).WithOne().HasForeignKey(x => x.AlumniProfileId).IsRequired();
+        });
+
+        builder.Entity<ContactEmail>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "ContactEmails", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Email).IsRequired().HasMaxLength(256);
+            b.HasIndex(x => x.AlumniProfileId);
+        });
+
+        builder.Entity<ContactMobile>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "ContactMobiles", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.MobileNumber).IsRequired().HasMaxLength(32);
+            b.HasIndex(x => x.AlumniProfileId);
+        });
+
+        builder.Entity<ContactPhone>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "ContactPhones", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.PhoneNumber).IsRequired().HasMaxLength(32);
+            b.HasIndex(x => x.AlumniProfileId);
         });
 
         builder.Entity<Experience>(b =>

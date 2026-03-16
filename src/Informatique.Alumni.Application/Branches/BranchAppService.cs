@@ -59,4 +59,46 @@ public class BranchAppService :
             }
         );
     }
+
+    protected override Task<BranchDto> MapToGetOutputDtoAsync(Branch entity)
+    {
+        return Task.FromResult(_alumniMappers.MapToDto(entity));
+    }
+
+    protected override Task<List<BranchDto>> MapToGetListOutputDtosAsync(List<Branch> entities)
+    {
+        return Task.FromResult(_alumniMappers.MapToDtos(entities));
+    }
+
+    protected override Task<Branch> MapToEntityAsync(CreateUpdateBranchDto createInput)
+    {
+        var entity = new Branch(GuidGenerator.Create(), createInput.Code, createInput.Name, createInput.Address);
+        entity.SetDetails(
+            createInput.PresidentId,
+            createInput.Email,
+            createInput.PhoneNumber,
+            createInput.LinkedInPage,
+            createInput.FacebookPage,
+            createInput.WhatsAppGroup,
+            createInput.Latitude,
+            createInput.Longitude
+        );
+        return Task.FromResult(entity);
+    }
+
+    protected override Task MapToEntityAsync(CreateUpdateBranchDto updateInput, Branch entity)
+    {
+        entity.Update(updateInput.Name, updateInput.Code, updateInput.Address);
+        entity.SetDetails(
+            updateInput.PresidentId,
+            updateInput.Email,
+            updateInput.PhoneNumber,
+            updateInput.LinkedInPage,
+            updateInput.FacebookPage,
+            updateInput.WhatsAppGroup,
+            updateInput.Latitude,
+            updateInput.Longitude
+        );
+        return Task.CompletedTask;
+    }
 }

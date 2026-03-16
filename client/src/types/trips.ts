@@ -42,3 +42,46 @@ export interface TripRequestDto extends FullAuditedEntityDto<string> {
     status: TripRequestStatus;
     totalParticipants: number;
 }
+
+// ── Admin-facing types (TripAdminAppService) ─────────────────────────────────
+
+export interface TripAdminDto {
+    id: string;
+    nameAr: string;
+    nameEn: string;
+    tripType: number;
+    startDate: string;
+    endDate: string;
+    location: string;
+    pricePerPerson: number;
+    maxCapacity: number | null;
+    isActive: boolean;
+    requestCount: number;
+    creationTime: string;
+}
+
+export interface TripRequestAdminDto {
+    id: string;
+    tripId: string;
+    alumniId: string;
+    alumniName: string;
+    alumniEmail: string;
+    phoneNumber: string;
+    guestCount: number;
+    totalAmount: number;
+    status: TripRequestStatus;
+    creationTime: string;
+}
+
+export interface CreateTripInput {
+    title: string;
+    description?: string;
+    destination: string;
+    tripType: number;
+    startDate: string;
+    endDate: string;
+    maxCapacity: number;
+    pricePerPerson: number;
+    isActive: boolean;
+    type?: number;
+}

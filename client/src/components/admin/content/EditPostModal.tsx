@@ -31,7 +31,7 @@ interface EditPostModalProps {
 }
 
 export function EditPostModal({ open, onOpenChange, post }: EditPostModalProps) {
-    const { t, i18n } = useTranslation();
+    const { i18n } = useTranslation();
     const queryClient = useQueryClient();
     const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<PostFormValues>({
         // @ts-ignore
@@ -75,7 +75,7 @@ export function EditPostModal({ open, onOpenChange, post }: EditPostModalProps) 
         }
     });
 
-    const onSubmit = (data: PostFormValues) => {
+    const onSubmit = (data: any) => {
         if (!post) return;
 
         const dto: UpdateBlogPostDto = {

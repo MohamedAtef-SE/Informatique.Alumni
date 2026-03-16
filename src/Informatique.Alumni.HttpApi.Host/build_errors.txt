@@ -1,0 +1,7 @@
+d:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Guidance\EventHandlers\AdvisingRequestStatusChangedEventHandler.cs(81,100): error CS0023: Operator '?' cannot be applied to operand of type 'DateTime' [d:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj]
+
+Build FAILED.
+    166 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:05.92

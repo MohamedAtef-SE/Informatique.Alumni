@@ -22,17 +22,20 @@ public class AlumniProfileAppService : AlumniAppService, IAlumniProfileAppServic
     private readonly IStudentSystemIntegrationService _studentSystemIntegration;
     private readonly AlumniApplicationMappers _alumniMappers;
     private readonly IBlobContainer<ProfilePictureContainer> _blobContainer;
+    private readonly Volo.Abp.Identity.IdentityUserManager _userManager;
 
     public AlumniProfileAppService(
         IRepository<AlumniProfile, Guid> profileRepository,
         IStudentSystemIntegrationService studentSystemIntegration,
         AlumniApplicationMappers alumniMappers,
-        IBlobContainer<ProfilePictureContainer> blobContainer)
+        IBlobContainer<ProfilePictureContainer> blobContainer,
+        Volo.Abp.Identity.IdentityUserManager userManager)
     {
         _profileRepository = profileRepository;
         _studentSystemIntegration = studentSystemIntegration;
         _alumniMappers = alumniMappers;
         _blobContainer = blobContainer;
+        _userManager = userManager;
     }
 
     public async Task<AlumniProfileDto> GetMineAsync()
@@ -423,6 +426,18 @@ public class AlumniProfileAppService : AlumniAppService, IAlumniProfileAppServic
 
         await _profileRepository.UpdateAsync(profile);
         
+        // 4. Trigger IdentitySync for Primary Email Update
+        var primaryEmail = profile.Emails.FirstOrDefault(e => e.IsPrimary)?.Email;
+        if (!string.IsNullOrEmpty(primaryEmail))
+        {
+            var user = await _userManager.GetByIdAsync(CurrentUser.GetId());
+            if (user != null && !string.Equals(user.Email, primaryEmail, StringComparison.OrdinalIgnoreCase))
+            {
+                await _userManager.SetEmailAsync(user, primaryEmail);
+                await _userManager.UpdateAsync(user);
+            }
+        }
+
         return await GetMyProfileAsync(); // Return updated view
     }
 

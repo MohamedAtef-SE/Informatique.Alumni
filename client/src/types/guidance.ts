@@ -1,11 +1,11 @@
 import type { FullAuditedEntityDto, PagedAndSortedResultRequestDto } from './common';
 
 export const AdvisingRequestStatus = {
-    Pending: 0,
-    Approved: 1,
-    Rejected: 2,
-    Cancelled: 3,
-    Completed: 4
+    Pending: 1,  // Was 0
+    Approved: 2, // Was 1
+    Rejected: 3, // Was 2
+    Completed: 4,
+    Cancelled: 5
 } as const;
 export type AdvisingRequestStatus = typeof AdvisingRequestStatus[keyof typeof AdvisingRequestStatus];
 
@@ -29,4 +29,19 @@ export interface AdvisingRequestFilterDto extends PagedAndSortedResultRequestDto
 export interface UpdateAdvisingStatusDto {
     status: AdvisingRequestStatus;
     notes?: string;
+}
+
+export interface GuidanceAdminDto extends FullAuditedEntityDto<string> {
+    alumniId: string;
+    alumniName: string;
+    alumniEmail: string;
+    advisorId: string;
+    advisorName: string;
+    advisorEmail: string;
+    startTime: string;
+    endTime: string;
+    subject: string;
+    notes: string;
+    meetingLink?: string;
+    status: AdvisingRequestStatus;
 }
