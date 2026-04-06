@@ -18,17 +18,20 @@ public class CertificateDefinitionAppService : ApplicationService, ICertificateD
     private readonly IRepository<CertificateDefinition, Guid> _repository;
     private readonly CertificateDefinitionManager _definitionManager;
     private readonly Informatique.Alumni.Membership.MembershipManager _membershipManager;
+    private readonly IRepository<Informatique.Alumni.Profiles.AlumniProfile, Guid> _profileRepository;
     private readonly AlumniApplicationMappers _mappers;
 
     public CertificateDefinitionAppService(
         IRepository<CertificateDefinition, Guid> repository,
         CertificateDefinitionManager definitionManager,
         Informatique.Alumni.Membership.MembershipManager membershipManager,
+        IRepository<Informatique.Alumni.Profiles.AlumniProfile, Guid> profileRepository,
         AlumniApplicationMappers mappers)
     {
         _repository = repository;
         _definitionManager = definitionManager;
         _membershipManager = membershipManager;
+        _profileRepository = profileRepository;
         _mappers = mappers;
     }
 
@@ -112,8 +115,20 @@ public class CertificateDefinitionAppService : ApplicationService, ICertificateD
             throw new Volo.Abp.Authorization.AbpAuthorizationException("User must be logged in.");
         }
 
-        // Check if user has ACTIVE membership
-        var isEligible = await _membershipManager.IsMembershipValidAsync(currentUserId.Value);
+        // Resolve the AlumniProfile to obtain the correct Domain ID
+        var profile = await _profileRepository.FirstOrDefaultAsync(p => p.UserId == currentUserId.Value);
+        if (profile == null)
+        {
+            return new CertificateAvailabilityDto
+            {
+                IsEligible = false,
+                IneligibilityReason = "Profile Incomplete",
+                Items = new List<CertificateDefinitionDto>()
+            };
+        }
+
+        // Check if user has ACTIVE membership using their actual Profile.Id
+        var isEligible = await _membershipManager.IsMembershipValidAsync(profile.Id);
 
         if (!isEligible)
         {

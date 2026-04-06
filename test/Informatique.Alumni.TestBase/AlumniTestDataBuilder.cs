@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.MultiTenancy;
@@ -8,7 +8,6 @@ namespace Informatique.Alumni;
 public class AlumniTestDataSeedContributor : IDataSeedContributor, ITransientDependency
 {
     private readonly ICurrentTenant _currentTenant;
-
     public AlumniTestDataSeedContributor(ICurrentTenant currentTenant)
     {
         _currentTenant = currentTenant;

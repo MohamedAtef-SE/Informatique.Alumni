@@ -125,6 +125,9 @@ const EditProfileModal = ({ isOpen, onClose, profile }: EditProfileModalProps) =
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['my-profile'] });
+            // Reset local file state
+            setSelectedFile(null);
+            setPreviewUrl(null);
             toast.success(t('my_profile.toast.update_success'));
             onClose();
         },

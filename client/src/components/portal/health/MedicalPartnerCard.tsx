@@ -25,12 +25,18 @@ export const MedicalPartnerCard = ({ partner, onViewOffers }: MedicalPartnerCard
     };
 
     const getCategoryIcon = (partner: MedicalPartnerDto) => {
-        if (partner.type === MedicalPartnerType.Pharmacy) return <Pill className="w-12 h-12" />;
-        if (partner.type === MedicalPartnerType.Hospital) return <Building2 className="w-12 h-12" />;
-        if (partner.type === MedicalPartnerType.Lab) return <FlaskConical className="w-12 h-12" />;
-        if (partner.category?.toLowerCase().includes('dental')) return <Stethoscope className="w-12 h-12" />;
-        if (partner.category?.toLowerCase().includes('optic')) return <Eye className="w-12 h-12" />;
-
+        const baseType = partner.medicalCategoryBaseType;
+        const name = (partner.medicalCategoryName || '').toLowerCase();
+        
+        // Dynamic icons based on base type + specific keyword matches
+        if (baseType === 1) return <Pill className="w-12 h-12" />; // Pharmacy
+        if (baseType === 2) return <Building2 className="w-12 h-12" />; // Hospital
+        if (baseType === 3) return <FlaskConical className="w-12 h-12" />; // Lab
+        if (baseType === 4 || name.includes('dental') || name.includes('clinic')) 
+            return <Stethoscope className="w-12 h-12" />; // Clinic/Dental/Doctor
+        if (name.includes('optic') || name.includes('eye')) 
+            return <Eye className="w-12 h-12" />; // Optical
+        
         return <LayoutGrid className="w-12 h-12" />;
     };
 
@@ -53,9 +59,9 @@ export const MedicalPartnerCard = ({ partner, onViewOffers }: MedicalPartnerCard
                     </div>
                 )}
 
-                {/* Category Badge */}
+                {/* Category Badge - Strictly Dynamic */}
                 <div className="absolute top-3 right-3 bg-[var(--color-accent)]/10 text-[var(--color-accent)] border border-[var(--color-accent)]/20 px-2 py-0.5 rounded-full text-xs font-medium">
-                    {partner.category || getPartnerTypeLabel(partner.type)}
+                    {partner.medicalCategoryName || getPartnerTypeLabel(partner.medicalCategoryBaseType || partner.type)}
                 </div>
             </div>
 
@@ -74,7 +80,9 @@ export const MedicalPartnerCard = ({ partner, onViewOffers }: MedicalPartnerCard
                 <div className="space-y-2 text-sm text-[var(--color-text-secondary)]">
                     <div className="flex items-start gap-2">
                         <MapPin className="w-4 h-4 mt-0.5 text-[var(--color-text-muted)] shrink-0" />
-                        <span className="line-clamp-1">{partner.city ? `${partner.city}, ${partner.region || ''}` : partner.address}</span>
+                        <span className="line-clamp-1">
+                            {[partner.city, partner.address].filter(Boolean).join(', ') || 'N/A'}
+                        </span>
                     </div>
                     {partner.hotlineNumber && (
                         <div className="flex items-center gap-2">

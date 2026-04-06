@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminService } from '../../services/adminService';
 import { CertificateRequestStatus, CertificateLanguage, type CertificateRequestDto } from '../../types/certificates';
-import { FileBadge, Check, Truck, Package, Loader2, CreditCard, User, Mail, Hash } from 'lucide-react';
+import { FileBadge, Check, Truck, Package, CreditCard, User, Mail, Hash, FileText, Eye } from 'lucide-react';
 import { PageHeader } from '../../components/admin/PageHeader';
 import { DataTableShell } from '../../components/admin/DataTableShell';
 import { StatusBadge } from '../../components/admin/StatusBadge';
@@ -11,6 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { toast } from 'sonner';
 import { ReasonModal } from '../../components/admin/ReasonModal';
 import { ReviewCertificateModal } from '../../components/admin/certificates/ReviewCertificateModal';
+import { CertificateTypeManagementDrawer } from '../../components/admin/certificates/CertificateTypeManagementDrawer';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 
 const CertificatesManager = () => {
     const queryClient = useQueryClient();
@@ -20,9 +22,15 @@ const CertificatesManager = () => {
 
     const [rejectId, setRejectId] = useState<string | null>(null);
     const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+    
+    // Type Management
+    const [isTypeDrawerOpen, setIsTypeDrawerOpen] = useState(false);
 
     // Review Modal
     const [selectedRequest, setSelectedRequest] = useState<CertificateRequestDto | null>(null);
+    
+    // Status Confirmation
+    const [pendingStatusChange, setPendingStatusChange] = useState<{ id: string, status: CertificateRequestStatus, action: string, description: string } | null>(null);
 
     const { data, isLoading } = useQuery({
         queryKey: ['admin-certificates', statusFilter, page],
@@ -61,12 +69,26 @@ const CertificatesManager = () => {
             return;
         }
 
-        const action = newStatus === CertificateRequestStatus.Processing ? 'Start processing' :
+        const action = newStatus === CertificateRequestStatus.Processing ? 'Start Processing' :
             newStatus === CertificateRequestStatus.ReadyForPickup ? 'Mark as Ready' :
-                newStatus === CertificateRequestStatus.Delivered ? 'Mark as Delivered' : 'Update';
+                newStatus === CertificateRequestStatus.OutForDelivery ? 'Mark Out for Delivery' :
+                    newStatus === CertificateRequestStatus.Delivered ? 'Mark as Delivered' : 'Update Status';
+        
+        const description = newStatus === CertificateRequestStatus.Processing ? 'This will notify the alumni that their request is being prepared.' :
+            newStatus === CertificateRequestStatus.ReadyForPickup ? 'The alumni will be notified that their certificate is ready for pickup.' :
+                newStatus === CertificateRequestStatus.OutForDelivery ? 'The alumni will be notified that their certificate is out for delivery with the courier.' :
+                    newStatus === CertificateRequestStatus.Delivered ? 'This will mark the request as complete and archive it.' : 'Are you sure you want to change the status?';
 
-        if (confirm(`${action} for this request?`)) {
-            updateStatusMutation.mutate({ id, status: newStatus });
+        setPendingStatusChange({ id, status: newStatus, action, description });
+    };
+
+    const confirmStatusChange = () => {
+        if (pendingStatusChange) {
+            updateStatusMutation.mutate({ 
+                id: pendingStatusChange.id, 
+                status: pendingStatusChange.status 
+            });
+            setPendingStatusChange(null);
         }
     };
 
@@ -84,6 +106,15 @@ const CertificatesManager = () => {
             <PageHeader
                 title="Certificate Requests"
                 description="Manage official document requests and status workflow."
+                action={
+                    <Button 
+                        onClick={() => setIsTypeDrawerOpen(true)}
+                        className="shadow-neon group px-6 h-11 transition-all duration-300 hover:scale-[1.02]"
+                    >
+                        <FileText className="w-4.5 h-4.5 mr-2.5 opacity-90 group-hover:rotate-12 transition-transform" />
+                        <span className="tracking-wide">Certificate Types</span>
+                    </Button>
+                }
             />
 
             {/* Status Tabs */}
@@ -133,7 +164,7 @@ const CertificatesManager = () => {
                     <TableBody>
                         {isLoading ? (
                             <TableRow>
-                                <TableCell colSpan={5} className="h-32 text-center text-slate-400">Loading requests...</TableCell>
+                                <TableCell colSpan={7} className="h-32 text-center text-slate-400">Loading requests...</TableCell>
                             </TableRow>
                         ) : displayItems.length === 0 ? (
                             <TableRow>
@@ -237,18 +268,40 @@ const CertificatesManager = () => {
                                     </TableCell>
                                     <TableCell className="text-right align-top">
                                         <div className="flex justify-end gap-2 items-center">
-                                            {req.status === CertificateRequestStatus.PendingPayment && (
-                                                <Button size="sm" variant="ghost" className="h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50" onClick={() => setSelectedRequest(req)}>
-                                                    <Loader2 className="w-4 h-4 mr-1" /> Review
-                                                </Button>
-                                            )}
+                                            <Button 
+                                                size="sm" 
+                                                variant="ghost" 
+                                                className="h-8 text-slate-500 hover:text-primary hover:bg-slate-100" 
+                                                onClick={() => setSelectedRequest(req)}
+                                                title="View Details"
+                                            >
+                                                <Eye className="w-4 h-4 mr-1" /> Details
+                                            </Button>
+
                                             {req.status === CertificateRequestStatus.Processing && (
-                                                <Button size="sm" variant="outline" className="h-8 bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100 shadow-sm" onClick={() => handleStatusChange(req.id, CertificateRequestStatus.ReadyForPickup)}>
-                                                    <Package className="w-3 h-3 mr-1" /> Ready
+                                                <Button 
+                                                    size="sm" 
+                                                    variant="outline" 
+                                                    className="h-8 bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100 shadow-sm" 
+                                                    onClick={() => handleStatusChange(
+                                                        req.id, 
+                                                        req.deliveryMethod === 1 ? CertificateRequestStatus.ReadyForPickup : CertificateRequestStatus.OutForDelivery
+                                                    )}
+                                                >
+                                                    {req.deliveryMethod === 1 ? (
+                                                        <><Package className="w-3 h-3 mr-1" /> Ready</>
+                                                    ) : (
+                                                        <><Truck className="w-3 h-3 mr-1" /> Ship</>
+                                                    )}
                                                 </Button>
                                             )}
-                                            {req.status === CertificateRequestStatus.ReadyForPickup && (
-                                                <Button size="sm" variant="outline" className="h-8 bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100 shadow-sm" onClick={() => handleStatusChange(req.id, CertificateRequestStatus.Delivered)}>
+                                            {(req.status === CertificateRequestStatus.ReadyForPickup || req.status === CertificateRequestStatus.OutForDelivery) && (
+                                                <Button 
+                                                    size="sm" 
+                                                    variant="outline" 
+                                                    className="h-8 bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100 shadow-sm" 
+                                                    onClick={() => handleStatusChange(req.id, CertificateRequestStatus.Delivered)}
+                                                >
                                                     <Check className="w-3 h-3 mr-1" /> Delivered
                                                 </Button>
                                             )}
@@ -284,6 +337,21 @@ const CertificatesManager = () => {
                 }}
                 isApproving={updateStatusMutation.isPending}
                 isRejecting={updateStatusMutation.isPending}
+            />
+
+            <CertificateTypeManagementDrawer 
+                open={isTypeDrawerOpen} 
+                onOpenChange={setIsTypeDrawerOpen} 
+            />
+
+            <ConfirmDialog
+                open={!!pendingStatusChange}
+                onOpenChange={(open) => !open && setPendingStatusChange(null)}
+                title={pendingStatusChange?.action || 'Confirm Action'}
+                description={pendingStatusChange?.description || ''}
+                onConfirm={confirmStatusChange}
+                confirmLabel="Confirm"
+                isLoading={updateStatusMutation.isPending}
             />
         </div>
     );

@@ -1,6 +1,7 @@
-using System;
 using Informatique.Alumni.Profiles;
+using Informatique.Alumni.Guidance;
 using Volo.Abp.Application.Dtos;
+using System;
 
 namespace Informatique.Alumni.Admin;
 
@@ -30,9 +31,18 @@ public class AlumniAdminDto : EntityDto<Guid>
     // Admin Fields
     public AlumniStatus Status { get; set; }
     public bool IsVip { get; set; }
+    public bool IsAdvisor { get; set; }
     public bool IsNotable { get; set; }
     public IdCardStatus IdCardStatus { get; set; }
     public string? RejectionReason { get; set; }
+
+    // Advisory Fields
+    public AdvisoryWorkflowStatus AdvisoryStatus { get; set; }
+    public string? AdvisoryBio { get; set; }
+    public int AdvisoryExperienceYears { get; set; }
+    public string? AdvisoryRejectionReason { get; set; }
+    public System.Collections.Generic.List<string> ExpertiseNames { get; set; } = new();
+
     public decimal WalletBalance { get; set; }
     public int ViewCount { get; set; }
     public bool ShowInDirectory { get; set; }
@@ -53,8 +63,10 @@ public class AlumniAdminListDto : EntityDto<Guid>
     public string MobileNumber { get; set; } = string.Empty;
     public AlumniStatus Status { get; set; }
     public bool IsVip { get; set; }
+    public bool IsAdvisor { get; set; }
     public bool IsNotable { get; set; }
     public IdCardStatus IdCardStatus { get; set; }
+    public AdvisoryWorkflowStatus AdvisoryStatus { get; set; }
     public DateTime CreationTime { get; set; }
 }
 

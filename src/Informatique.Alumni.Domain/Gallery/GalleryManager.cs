@@ -23,6 +23,7 @@ public class GalleryManager : DomainService
 
     public async Task<GalleryAlbum> CreateAsync(
         string title,
+        string? description,
         DateTime? date,
         List<(string Url, GalleryMediaType Type, string FileName)> mediaItems)
     {
@@ -45,7 +46,7 @@ public class GalleryManager : DomainService
         }
 
         // 2. Create Entity
-        var album = new GalleryAlbum(GuidGenerator.Create(), title, albumDate);
+        var album = new GalleryAlbum(GuidGenerator.Create(), title, albumDate, description);
 
         // 3. Add Media Items
         foreach (var item in mediaItems)

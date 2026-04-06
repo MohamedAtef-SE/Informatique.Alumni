@@ -21,3 +21,11 @@ public class SessionRequestedEto
     public Guid AdvisingRequestId { get; set; }
     public DateTime RequestedTime { get; set; }
 }
+
+[EventName("Informatique.Alumni.Guidance.AdvisoryApplicationStatusChanged")]
+public class AdvisoryApplicationStatusChangedEto
+{
+    public Guid AlumniId { get; set; }
+    public AdvisoryWorkflowStatus Status { get; set; }
+    public string? RejectionReason { get; set; }
+}

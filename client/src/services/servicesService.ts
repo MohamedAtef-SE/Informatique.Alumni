@@ -44,6 +44,11 @@ export const servicesAppService = {
         return response.data;
     },
 
+    processMembershipCheckout: async () => {
+        const response = await api.post('/api/app/membership-payment/process-digital-checkout');
+        return response.data;
+    },
+
     getCard: async () => {
         const response = await api.get<CardPrintDto>('/api/app/membership/my-card');
         return response.data;
@@ -64,6 +69,14 @@ export const servicesAppService = {
     },
     requestCertificate: async (input: any) => {
         const response = await api.post('/api/app/certificate-request', input);
+        return response.data;
+    },
+    payCertificate: async (id: string, amount: number) => {
+        // Simulating the Stripe integration payload
+        const response = await api.post(`/api/app/certificate-request/${id}/record-gateway-payment`, {
+            amount: amount,
+            paymentReference: `txn_cert_${Math.random().toString(36).substring(7)}`
+        });
         return response.data;
     },
 
@@ -104,6 +117,10 @@ export const servicesAppService = {
     },
     getHealthStats: async () => {
         const response = await api.get('/api/app/medical-partner/stats'); // Standard REST convention for GetStatsAsync mapping
+        return response.data;
+    },
+    getMedicalCategories: async () => {
+        const response = await api.get('/api/app/medical-category');
         return response.data;
     }
 };

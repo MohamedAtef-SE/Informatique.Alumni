@@ -70,7 +70,7 @@ public class JobAppService : AlumniAppService, IJobAppService
     [Authorize]
     public async Task ApplyAsync(Guid jobId)
     {
-        var alumniId = CurrentUser.GetId();
+        var alumniId = await GetCurrentAlumniProfileIdAsync();
         
         // Validate job exists
         var job = await _jobRepository.FirstOrDefaultAsync(j => j.Id == jobId && j.IsActive);

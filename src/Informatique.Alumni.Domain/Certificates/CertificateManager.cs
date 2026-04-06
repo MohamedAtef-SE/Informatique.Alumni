@@ -94,9 +94,8 @@ public class CertificateManager : DomainService
                 throw new BusinessException(AlumniDomainErrorCodes.CertificateRequest.DeliveryAddressRequired);
             }
             
-            // TODO: Calculate delivery fee based on address/zone (integrate with Wasla API)
-            // For now, use a fixed delivery fee
-            deliveryFee = 50m; // Example: 50 EGP delivery fee
+            // Integrate with Wasla API or use configured fixed fee
+            deliveryFee = _configuration.GetValue<decimal>("Settings:CertificateDeliveryFee", 50m);
         }
         else if (deliveryMethod == DeliveryMethod.BranchPickup)
         {
@@ -110,7 +109,8 @@ public class CertificateManager : DomainService
         }
 
         // ================== BUSINESS RULE #3: Wallet Deduction Logic ==================
-        var profile = await _profileRepository.FirstOrDefaultAsync(x => x.UserId == alumniId);
+        // Since alumniId specifically represents the Profile.Id, query the physical entity mapping!
+        var profile = await _profileRepository.FirstOrDefaultAsync(x => x.Id == alumniId);
         if (profile == null)
         {
             throw new BusinessException(AlumniDomainErrorCodes.AlumniProfile.ProfileNotFound)

@@ -27,6 +27,8 @@ public class MembershipAppService : AlumniAppService, IMembershipAppService
     private readonly IRepository<AlumniProfile, Guid> _profileRepository;
     private readonly IBlobContainer<AlumniBlobContainer> _blobContainer;
     private readonly Volo.Abp.Identity.IIdentityUserRepository _identityUserRepository;
+    private readonly IRepository<College, Guid> _collegeRepository;
+    private readonly IRepository<Major, Guid> _majorRepository;
 
     public MembershipAppService(
         IRepository<SubscriptionFee, Guid> feeRepository,
@@ -36,7 +38,9 @@ public class MembershipAppService : AlumniAppService, IMembershipAppService
         AlumniApplicationMappers alumniMappers,
         IRepository<AlumniProfile, Guid> profileRepository,
         IBlobContainer<AlumniBlobContainer> blobContainer,
-        Volo.Abp.Identity.IIdentityUserRepository identityUserRepository)
+        Volo.Abp.Identity.IIdentityUserRepository identityUserRepository,
+        IRepository<College, Guid> collegeRepository,
+        IRepository<Major, Guid> majorRepository)
     {
         _feeRepository = feeRepository;
         _requestRepository = requestRepository;
@@ -46,6 +50,8 @@ public class MembershipAppService : AlumniAppService, IMembershipAppService
         _profileRepository = profileRepository;
         _blobContainer = blobContainer;
         _identityUserRepository = identityUserRepository;
+        _collegeRepository = collegeRepository;
+        _majorRepository = majorRepository;
     }
 
     // ... (existing methods) ...
@@ -111,13 +117,33 @@ public class MembershipAppService : AlumniAppService, IMembershipAppService
              photoUrl = photoUrl.Replace("/api/app/alumni-profile/photo/", "/api/profile-photo/");
         }
 
-        if (!string.IsNullOrEmpty(photoUrl) && 
-            !photoUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) && 
-            !photoUrl.StartsWith("/"))
+        // Return only the clean path/blob name so the frontend helper can handle base URL consistently
+        if (!string.IsNullOrEmpty(photoUrl) && photoUrl.StartsWith("/api/profile-photo/"))
         {
-            // Assuming we have an endpoint to serve profile photos by blob name
-            // Adjust the path if necessary based on your API
-            photoUrl = $"/api/profile-photo/{photoUrl}";
+            photoUrl = photoUrl.Substring("/api/profile-photo/".Length);
+        }
+
+        // Resolve names for ID card
+        string collegeName = education?.InstitutionName ?? "N/A";
+        string majorName = "N/A";
+
+        if (education != null)
+        {
+            if (education.CollegeId.HasValue)
+            {
+                var college = await _collegeRepository.FindAsync(education.CollegeId.Value);
+                if (college != null) collegeName = college.Name;
+            }
+
+            if (education.MajorId.HasValue)
+            {
+                var major = await _majorRepository.FindAsync(education.MajorId.Value);
+                if (major != null) majorName = major.Name;
+            }
+            else if (!string.IsNullOrEmpty(education.Degree))
+            {
+                majorName = education.Degree;
+            }
         }
 
         return new CardPrintDto
@@ -127,8 +153,8 @@ public class MembershipAppService : AlumniAppService, IMembershipAppService
             AlumniNationalId = profile.NationalId,
             AlumniPhotoUrl = photoUrl ?? string.Empty,
             Degree = education?.Degree ?? "N/A",
-            CollegeName = education?.InstitutionName ?? "N/A",
-            MajorName = education?.Degree ?? "N/A", // Fallback to Degree if MajorId unavailable
+            CollegeName = collegeName,
+            MajorName = majorName,
             GradYear = education?.GraduationYear ?? 0,
             IsActive = request.Status >= MembershipRequestStatus.Paid
         };

@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Informatique.Alumni.Permissions;
+using Informatique.Alumni.Guidance;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http;
+using Informatique.Alumni.Branches;
 
 using Volo.Abp;
 using Volo.Abp.Application.Services;
@@ -12,6 +15,8 @@ using Volo.Abp.Domain.Entities;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Users;
 using Volo.Abp.BlobStoring;
+using Informatique.Alumni.Payment;
+using Informatique.Alumni.Events;
 
 namespace Informatique.Alumni.Profiles;
 
@@ -23,468 +28,204 @@ public class AlumniProfileAppService : AlumniAppService, IAlumniProfileAppServic
     private readonly AlumniApplicationMappers _alumniMappers;
     private readonly IBlobContainer<ProfilePictureContainer> _blobContainer;
     private readonly Volo.Abp.Identity.IdentityUserManager _userManager;
+    private readonly IRepository<Branch, Guid> _branchRepository;
+    private readonly IRepository<Major, Guid> _majorRepository;
+    private readonly IRepository<College, Guid> _collegeRepository;
+    private readonly IRepository<PaymentTransaction, Guid> _paymentRepository;
+    private readonly IRepository<AlumniEventRegistration, Guid> _registrationRepository;
+    private readonly IRepository<AssociationEvent, Guid> _eventRepository;
 
     public AlumniProfileAppService(
         IRepository<AlumniProfile, Guid> profileRepository,
         IStudentSystemIntegrationService studentSystemIntegration,
         AlumniApplicationMappers alumniMappers,
         IBlobContainer<ProfilePictureContainer> blobContainer,
-        Volo.Abp.Identity.IdentityUserManager userManager)
+        Volo.Abp.Identity.IdentityUserManager userManager,
+        IRepository<Branch, Guid> branchRepository,
+        IRepository<Major, Guid> majorRepository,
+        IRepository<College, Guid> collegeRepository,
+        IRepository<PaymentTransaction, Guid> paymentRepository,
+        IRepository<AlumniEventRegistration, Guid> registrationRepository,
+        IRepository<AssociationEvent, Guid> eventRepository)
     {
         _profileRepository = profileRepository;
         _studentSystemIntegration = studentSystemIntegration;
         _alumniMappers = alumniMappers;
         _blobContainer = blobContainer;
         _userManager = userManager;
+        _branchRepository = branchRepository;
+        _majorRepository = majorRepository;
+        _collegeRepository = collegeRepository;
+        _paymentRepository = paymentRepository;
+        _registrationRepository = registrationRepository;
+        _eventRepository = eventRepository;
     }
 
-    public async Task<AlumniProfileDto> GetMineAsync()
+    public async Task<AlumniMyProfileDto> GetMyProfileAsync()
     {
         var profile = await GetOrCreateProfileAsync(CurrentUser.GetId());
-        return _alumniMappers.MapToDto(profile);
+        var dto = _alumniMappers.MapToDto(profile);
+
+        var user = await _userManager.FindByIdAsync(profile.UserId.ToString());
+        if (user != null)
+        {
+            dto.Name = $"{user.Name} {user.Surname}".Trim();
+            dto.NameAr = string.IsNullOrEmpty(user.Name) ? dto.Name : user.Name;
+            dto.NameEn = string.IsNullOrEmpty(user.Name) ? dto.Name : user.Name;
+        }
+
+        var branches = await _branchRepository.GetListAsync();
+        var majors = await _majorRepository.GetListAsync();
+        var colleges = await _collegeRepository.GetListAsync();
+
+        dto.Educations = profile.Educations.Select(e => new AlumniEducationDto
+        {
+            Id = e.Id,
+            InstitutionName = e.InstitutionName,
+            Degree = e.Degree,
+            GraduationYear = e.GraduationYear,
+            GraduationSemester = e.GraduationSemester,
+            College = colleges.FirstOrDefault(c => c.Id == e.CollegeId)?.Name ?? "N/A",
+            Major = majors.FirstOrDefault(m => m.Id == e.MajorId)?.Name ?? "N/A"
+        }).ToList();
+
+        return dto;
     }
 
-    public async Task<AlumniProfileDto> UpdateMineAsync(UpdateAlumniProfileDto input)
+    public async Task<AlumniMyProfileDto> UpdateMyProfileAsync(UpdateMyProfileDto input)
     {
-        // SECURITY: Resource ownership is enforced by using CurrentUser.GetId()
-        // This ensures users can only update their own profile
-        // DTO does not contain UserId field to prevent tampering
         var profile = await GetOrCreateProfileAsync(CurrentUser.GetId());
         
-        // Use domain method instead of mapper
-        profile.UpdateBasicInfo(input.MobileNumber, input.Bio, input.JobTitle);
+        // Use domain methods for direct updates
+        profile.UpdateBasicInfo(profile.MobileNumber, input.Bio, input.JobTitle); 
+        profile.UpdateAddress(input.Address, input.City, input.Country);
+        profile.UpdateProfessionalInfo(input.Company, input.JobTitle);
+        profile.UpdateSocialLinks(input.FacebookUrl, input.LinkedinUrl);
         
         await _profileRepository.UpdateAsync(profile);
         return _alumniMappers.MapToDto(profile);
     }
 
-    public async Task<AlumniProfileDto> AddExperienceAsync(CreateUpdateExperienceDto input)
+    public async Task<string> UploadPhotoAsync(IFormFile file)
     {
-        var profile = await GetOrCreateProfileAsync(CurrentUser.GetId(), true);
-        
-        var experience = new Experience(GuidGenerator.Create(), profile.Id, input.CompanyName, input.JobTitle, input.StartDate);
-        experience.Update(input.CompanyName, input.JobTitle, input.StartDate, input.EndDate, input.Description);
-        
-        profile.AddExperience(experience);
-        await _profileRepository.UpdateAsync(profile);
-        
-        return _alumniMappers.MapToDto(profile);
-    }
-
-    public async Task<AlumniProfileDto> UpdateExperienceAsync(Guid id, CreateUpdateExperienceDto input)
-    {
-        var profile = await GetOrCreateProfileAsync(CurrentUser.GetId(), true);
-        var experience = profile.Experiences.FirstOrDefault(x => x.Id == id);
-        
-        if (experience == null)
+        if (file == null || file.Length == 0)
         {
-            throw new EntityNotFoundException(typeof(Experience), id);
+            throw new UserFriendlyException("File is empty.");
         }
-        
-        // Use the Update method
-        experience.Update(input.CompanyName, input.JobTitle, input.StartDate, input.EndDate, input.Description);
-        
-        await _profileRepository.UpdateAsync(profile);
-        return _alumniMappers.MapToDto(profile);
-    }
 
-    public async Task<AlumniProfileDto> RemoveExperienceAsync(Guid id)
-    {
-        var profile = await GetOrCreateProfileAsync(CurrentUser.GetId(), true);
-        profile.RemoveExperience(id);
-        await _profileRepository.UpdateAsync(profile);
-        return _alumniMappers.MapToDto(profile);
-    }
+        var profile = await GetOrCreateProfileAsync(CurrentUser.GetId());
+        var blobName = $"profiles/{profile.Id}_{GuidGenerator.Create()}.png";
 
-    public async Task<AlumniProfileDto> AddEducationAsync(CreateUpdateEducationDto input)
-    {
-        var profile = await GetOrCreateProfileAsync(CurrentUser.GetId(), true);
-        
-        var education = new Education(GuidGenerator.Create(), profile.Id, input.InstitutionName, input.Degree, input.GraduationYear);
-        
-        profile.AddEducation(education);
-        await _profileRepository.UpdateAsync(profile);
-        
-        return _alumniMappers.MapToDto(profile);
-    }
-
-    public async Task<AlumniProfileDto> UpdateEducationAsync(Guid id, CreateUpdateEducationDto input)
-    {
-        var profile = await GetOrCreateProfileAsync(CurrentUser.GetId(), true);
-        var education = profile.Educations.FirstOrDefault(x => x.Id == id);
-        
-        if (education == null)
+        using (var stream = file.OpenReadStream())
         {
-            throw new EntityNotFoundException(typeof(Education), id);
+            await _blobContainer.SaveAsync(blobName, stream, overrideExisting: true);
         }
-        
-        // Use the Update method
-        education.Update(input.InstitutionName, input.Degree, input.GraduationYear);
-        
+
+        profile.SetPhotoUrl(blobName);
         await _profileRepository.UpdateAsync(profile);
-        return _alumniMappers.MapToDto(profile);
+
+        return blobName;
     }
 
-    public async Task<AlumniProfileDto> RemoveEducationAsync(Guid id)
+    public async Task ApplyAsAdvisorAsync(ApplyAsAdvisorDto input)
     {
-        var profile = await GetOrCreateProfileAsync(CurrentUser.GetId(), true);
-        profile.RemoveEducation(id);
+        var profile = await GetOrCreateProfileAsync(CurrentUser.GetId());
+        profile.ApplyForAdvisory(input.Bio, input.ExperienceYears, input.ExpertiseIds);
         await _profileRepository.UpdateAsync(profile);
-        return _alumniMappers.MapToDto(profile);
     }
 
-    [Authorize(AlumniPermissions.Profiles.ViewAll)]
-    public async Task<AlumniProfileDto> GetByUserIdAsync(Guid userId)
+    public async Task<AdvisoryStatusDto> GetAdvisoryStatusAsync()
     {
-        var profile = await _profileRepository.WithDetailsAsync(x => x.Experiences, x => x.Educations)
-            .ContinueWith(t => t.Result.FirstOrDefault(x => x.UserId == userId));
+        var profile = await GetOrCreateProfileAsync(CurrentUser.GetId());
+        return new AdvisoryStatusDto
+        {
+            Status = profile.AdvisoryStatus,
+            Bio = profile.AdvisoryBio,
+            ExperienceYears = profile.AdvisoryExperienceYears,
+            RejectionReason = profile.AdvisoryRejectionReason,
+            ExpertiseIds = profile.AdvisoryExpertises.Select(x => x.AdvisoryCategoryId).ToList()
+        };
+    }
 
+    public async Task<AlumniMyProfileDto> TopUpWalletAsync(decimal amount)
+    {
+        if (amount <= 0)
+        {
+            throw new UserFriendlyException("Top-up amount must be greater than zero.");
+        }
+
+        var profile = await GetOrCreateProfileAsync(CurrentUser.GetId());
+        
+        // 1. Update Profile Balance
+        profile.AddCredit(amount);
+        await _profileRepository.UpdateAsync(profile);
+
+        // 2. Create Transaction Ledger Entry
+        var transaction = new PaymentTransaction(
+            id: GuidGenerator.Create(),
+            orderId: profile.Id, // Linking to profile for now
+            amount: amount,
+            currency: "EGP",
+            gatewayTransactionId: "TXN-" + GuidGenerator.Create().ToString("N").ToUpper().Substring(0, 10)
+        );
+        transaction.MarkAsCompleted(transaction.GatewayTransactionId);
+        
+        await _paymentRepository.InsertAsync(transaction);
+        
+        return await GetMyProfileAsync();
+    }
+
+    public async Task<List<WalletActivityDto>> GetWalletActivityAsync()
+    {
+        var alumniId = (await GetOrCreateProfileAsync(CurrentUser.GetId())).Id;
+        var activity = new List<WalletActivityDto>();
+
+        // 1. Get Top-ups (Deposits)
+        var transactions = await _paymentRepository.GetListAsync(x => x.OrderId == alumniId && x.Status == PaymentStatus.Completed);
+        activity.AddRange(transactions.Select(x => new WalletActivityDto
+        {
+            Id = x.Id,
+            Amount = x.Amount,
+            Description = "Wallet Top-up",
+            TransactionDate = x.CreationTime,
+            Type = "Deposit"
+        }));
+
+        // 2. Get Event Payments (Withdrawals)
+        var registrations = await _registrationRepository.GetListAsync(x => x.AlumniId == alumniId && x.PaidAmount > 0);
+        if (registrations.Any())
+        {
+            var eventIds = registrations.Select(r => r.EventId).Distinct().ToList();
+            var events = await _eventRepository.GetListAsync(x => eventIds.Contains(x.Id));
+
+            activity.AddRange(registrations.Select(x => new WalletActivityDto
+            {
+                Id = x.Id,
+                Amount = x.PaidAmount ?? 0,
+                Description = events.FirstOrDefault(e => e.Id == x.EventId)?.NameEn ?? "Event Registration",
+                TransactionDate = x.CreationTime,
+                Type = "Payment"
+            }));
+        }
+
+        return activity.OrderByDescending(x => x.TransactionDate).Take(10).ToList();
+    }
+
+    private async Task<AlumniProfile> GetOrCreateProfileAsync(Guid userId)
+    {
+        var profileQuery = await _profileRepository.WithDetailsAsync(
+            x => x.Educations,
+            x => x.Experiences,
+            x => x.Emails,
+            x => x.Mobiles,
+            x => x.Phones
+        );
+
+        var profile = profileQuery.FirstOrDefault(x => x.UserId == userId);
         if (profile == null)
         {
             throw new UserFriendlyException("Profile not found.");
         }
-
-        return _alumniMappers.MapToDto(profile);
-    }
-
-    /// <summary>
-    /// Get academic history from Legacy Student Information System (Read-Only).
-    /// Business Rules: 
-    /// 1. Data fetched on-demand from Legacy SIS (not stored locally)
-    /// 2. Read-Only access - no edit/update/delete operations allowed
-    /// 3. Alumni can ONLY view their own data (CurrentUser filter)
-    /// 4. Multi-Qualification support (BSc, MSc, PhD, etc.)
-    /// </summary>
-    [Authorize]
-    public async Task<AcademicHistoryDto> GetMyAcademicHistoryAsync()
-    {
-        // SECURITY: Get current user's profile to retrieve student ID
-        var profile = await GetOrCreateProfileAsync(CurrentUser.GetId(), includeDetails: false);
-        
-        // TODO: Map AlumniProfile to Legacy SIS Student ID
-        // For now, using profile ID as student ID (should be mapped from legacy system)
-        var studentId = profile.Id.ToString();
-        
-        // Fetch academic transcript from Legacy SIS (Adapter Pattern)
-        var qualifications = await _studentSystemIntegration.GetStudentTranscriptAsync(studentId);
-        
-        // Map Domain Objects (SisQualification) to Application DTOs
-        var qualificationDtos = qualifications.Select(q => new QualificationHistoryDto
-        {
-            QualificationId = q.QualificationId,
-            DegreeName = q.DegreeName,
-            Major = q.Major,
-            College = q.College,
-            GraduationYear = q.GraduationYear,
-            CumulativeGPA = q.CumulativeGPA,
-            Semesters = q.Semesters.Select(s => new SemesterRecordDto
-            {
-                SemesterCode = s.SemesterCode,
-                SemesterName = s.SemesterName,
-                Year = s.Year,
-                SemesterNumber = s.SemesterNumber,
-                SemesterGPA = s.SemesterGPA,
-                TotalCredits = s.TotalCredits,
-                Courses = s.Courses.Select(c => new CourseGradeDto
-                {
-                    CourseCode = c.CourseCode,
-                    CourseName = c.CourseName,
-                    Credits = c.Credits,
-                    Grade = c.Grade,
-                    GradePoint = c.GradePoint,
-                    InstructorName = c.InstructorName
-                }).ToList()
-            }).ToList()
-        }).ToList();
-        
-        // Return structured multi-qualification data
-        return new AcademicHistoryDto
-        {
-            Qualifications = qualificationDtos
-        };
-    }
-
-    private async Task<AlumniProfile> GetOrCreateProfileAsync(Guid userId, bool includeDetails = true)
-    {
-        AlumniProfile? profile;
-        
-        if (includeDetails)
-        {
-            var queryable = await _profileRepository.WithDetailsAsync(
-                x => x.Experiences, 
-                x => x.Educations,
-                x => x.Emails,
-                x => x.Mobiles,
-                x => x.Phones
-            );
-            profile = queryable.FirstOrDefault(x => x.UserId == userId);
-        }
-        else
-        {
-            profile = await _profileRepository.FirstOrDefaultAsync(x => x.UserId == userId);
-        }
-
-        if (profile == null)
-        {
-            // Resource-based Auth Check (Implicit: current user can only create their own profile)
-            if (userId != CurrentUser.GetId())
-            {
-                throw new UnauthorizedAccessException("Cannot manage another user's profile.");
-            }
-
-            profile = new AlumniProfile(GuidGenerator.Create(), userId, string.Empty, string.Empty);
-            await _profileRepository.InsertAsync(profile);
-        }
-
         return profile;
     }
-
-    /// <summary>
-    /// Get Graduate's own profile with combined Read-Only SIS data and Editable Profile data.
-    /// </summary>
-    public async Task<AlumniMyProfileDto> GetMyProfileAsync()
-    {
-        var profile = await GetOrCreateProfileAsync(CurrentUser.GetId());
-        
-        // 1. Map Editable Data
-        var dto = new AlumniMyProfileDto
-        {
-            // Editable Fields
-            Address = profile.Address,
-            City = profile.City,
-            Country = profile.Country,
-            Bio = profile.Bio,
-            JobTitle = profile.JobTitle,
-            Company = profile.Company,
-
-            PhotoUrl = !string.IsNullOrEmpty(profile.PhotoUrl) && profile.PhotoUrl.Contains("/api/app/alumni-profile/photo/") 
-                ? profile.PhotoUrl.Replace("/api/app/alumni-profile/photo/", "/api/profile-photo/") 
-                : profile.PhotoUrl,
-
-            FacebookUrl = profile.FacebookUrl,
-            LinkedinUrl = profile.LinkedinUrl,
-            
-            // Contacts
-            Emails = profile.Emails.Select(e => new ContactEmailDto { Id = e.Id, Email = e.Email, IsPrimary = e.IsPrimary }).ToList(),
-            Mobiles = profile.Mobiles.Select(m => new ContactMobileDto { Id = m.Id, MobileNumber = m.MobileNumber, IsPrimary = m.IsPrimary }).ToList(),
-            Phones = profile.Phones.Select(p => new ContactPhoneDto { Id = p.Id, PhoneNumber = p.PhoneNumber, Label = p.Label }).ToList()
-        };
-
-        // 2. Fetch Read-Only Data from SIS
-        // Assuming Profile ID maps to SIS Student ID (or retrieve mapping)
-        var studentId = profile.Id.ToString(); 
-        try 
-        {
-            // Fetch Basic Info & Academic History
-            // Note: In a real scenario, GetStudentTranscriptAsync returns academic history.
-            // We might need another method for Basic Info if not included, but for now we assume we get what we can.
-            // Converting existing Academic History retrieval logic:
-            
-            Logger.LogInformation($"[AlumniProfileAppService] Fetching SIS data for StudentId: {studentId}");
-            var qualifications = await _studentSystemIntegration.GetStudentTranscriptAsync(studentId);
-            Logger.LogInformation($"[AlumniProfileAppService] SIS data fetched. Count: {qualifications.Count}");
-            
-            if (qualifications.Any())
-            {
-                var mainQual = qualifications.First(); // Use primary qualification for basic info
-                // Map Read-Only SIS Data
-                dto.AlumniId = mainQual.QualificationId; // Or StudentId
-                dto.AcademicHistory = qualifications.Select(q => new QualificationHistoryDto
-                {
-                    QualificationId = q.QualificationId,
-                    DegreeName = q.DegreeName,
-                    Major = q.Major,
-                    College = q.College,
-                    GraduationYear = q.GraduationYear,
-                    CumulativeGPA = q.CumulativeGPA, 
-                    // Semesters excluded for summary view, or included if needed
-                }).ToList();
-            }
-        }
-        catch(Exception ex)
-        {
-            // Fail gracefully if SIS is down, show partial data
-            Logger.LogError(ex, "[AlumniProfileAppService] Failed to fetch SIS data.");
-        }
-
-        // Fill Read-Only name fields from ABP CurrentUser
-        dto.NameEn = CurrentUser.Name ?? CurrentUser.UserName ?? "Alumni";
-        dto.NameAr = CurrentUser.SurName ?? dto.NameEn; // Use Surname for Arabic name if set, otherwise fallback
-        dto.ViewCount = profile.ViewCount;
-        
-        return dto;
-    }
-
-    /// <summary>
-    /// Update Graduate's editable profile data.
-    /// STRICTLY separates Editable vs Read-Only.
-    /// </summary>
-    public async Task<AlumniMyProfileDto> UpdateMyProfileAsync(UpdateMyProfileDto input)
-    {
-        var profile = await GetOrCreateProfileAsync(CurrentUser.GetId());
-
-        // 1. Update Basic Editable Fields
-        Logger.LogInformation("UpdateMyProfileAsync: Updating Profile for User {UserId}. Company: {Company}, Facebook: {Facebook}", CurrentUser.GetId(), input.Company, input.FacebookUrl);
-        
-        profile.UpdateAddress(input.Address, input.City, input.Country);
-        profile.UpdateBasicInfo(profile.MobileNumber, input.Bio, input.JobTitle);
-        profile.UpdateProfessionalInfo(input.Company, input.JobTitle);
-        profile.UpdateSocialLinks(input.FacebookUrl, input.LinkedinUrl);
-
-        // 2. Update Contacts (Sync Collections)
-        
-        // Emails
-        // Remove deleted
-        var inputEmailIds = input.Emails.Where(e => e.Id != Guid.Empty).Select(e => e.Id).ToList();
-        var emailsToRemove = profile.Emails.Where(e => !inputEmailIds.Contains(e.Id)).ToList();
-        foreach(var email in emailsToRemove) profile.RemoveEmail(email.Id);
-        
-        // Add/Update
-        foreach (var emailDto in input.Emails)
-        {
-            if (emailDto.Id == Guid.Empty)
-            {
-                var newEmail = new ContactEmail(GuidGenerator.Create(), profile.Id, emailDto.Email, emailDto.IsPrimary);
-                profile.AddEmail(newEmail);
-            }
-            else
-            {
-                var existing = profile.Emails.FirstOrDefault(e => e.Id == emailDto.Id);
-                if (existing != null)
-                {
-                    existing.UpdateEmail(emailDto.Email); // Assuming UpdateEmail exists
-                    if (emailDto.IsPrimary) profile.SetPrimaryEmail(existing.Id); // Will handle unmarking others
-                }
-            }
-        }
-        
-        // Ensure one primary if any exist
-        if (profile.Emails.Any() && !profile.Emails.Any(e => e.IsPrimary))
-        {
-            profile.SetPrimaryEmail(profile.Emails.First().Id);
-        }
-
-        // Mobiles
-        var inputMobileIds = input.Mobiles.Where(m => m.Id != Guid.Empty).Select(m => m.Id).ToList();
-        var mobilesToRemove = profile.Mobiles.Where(m => !inputMobileIds.Contains(m.Id)).ToList();
-        foreach(var mobile in mobilesToRemove) profile.RemoveMobile(mobile.Id);
-
-        foreach (var mobileDto in input.Mobiles)
-        {
-            if (mobileDto.Id == Guid.Empty)
-            {
-                var newMobile = new ContactMobile(GuidGenerator.Create(), profile.Id, mobileDto.MobileNumber, mobileDto.IsPrimary);
-                profile.AddMobile(newMobile);
-            }
-            else
-            {
-                var existing = profile.Mobiles.FirstOrDefault(m => m.Id == mobileDto.Id);
-                if (existing != null)
-                {
-                    existing.UpdateNumber(mobileDto.MobileNumber);
-                    if (mobileDto.IsPrimary) profile.SetPrimaryMobile(existing.Id);
-                }
-            }
-        }
-        
-        // Phones
-        var inputPhoneIds = input.Phones.Where(p => p.Id != Guid.Empty).Select(p => p.Id).ToList();
-        var phonesToRemove = profile.Phones.Where(p => !inputPhoneIds.Contains(p.Id)).ToList();
-        foreach(var phone in phonesToRemove) profile.RemovePhone(phone.Id);
-        
-        foreach (var phoneDto in input.Phones)
-        {
-             if (phoneDto.Id == Guid.Empty)
-             {
-                 var newPhone = new ContactPhone(GuidGenerator.Create(), profile.Id, phoneDto.PhoneNumber, phoneDto.Label);
-                 profile.AddPhone(newPhone);
-             }
-             else
-             {
-                 var existing = profile.Phones.FirstOrDefault(p => p.Id == phoneDto.Id);
-                 if (existing != null)
-                 {
-                     existing.UpdatePhone(phoneDto.PhoneNumber, phoneDto.Label);
-                 }
-             }
-        }
-
-        // 3. Handle Photo (Mock Upload)
-        if (input.ProfilePhoto != null && input.ProfilePhoto.Length > 0)
-        {
-            // In a real implementation with byte[] upload support, we would upload here.
-            // However, the frontend uses the dedicated UploadPhotoAsync endpoint with IFormFile.
-            // So we just ignore this field to prevent overwriting the URL with a placeholder.
-            // If we wanted to support byte[] upload:
-            /*
-            var blobName = $"{profile.Id}/{Guid.NewGuid()}.jpg";
-            await _blobContainer.SaveAsync(blobName, input.ProfilePhoto, overrideExisting: true);
-            var photoUrl = $"/api/profile-photo/{blobName}";
-            profile.SetPhotoUrl(photoUrl);
-            */
-        }
-
-        await _profileRepository.UpdateAsync(profile);
-        
-        // 4. Trigger IdentitySync for Primary Email Update
-        var primaryEmail = profile.Emails.FirstOrDefault(e => e.IsPrimary)?.Email;
-        if (!string.IsNullOrEmpty(primaryEmail))
-        {
-            var user = await _userManager.GetByIdAsync(CurrentUser.GetId());
-            if (user != null && !string.Equals(user.Email, primaryEmail, StringComparison.OrdinalIgnoreCase))
-            {
-                await _userManager.SetEmailAsync(user, primaryEmail);
-                await _userManager.UpdateAsync(user);
-            }
-        }
-
-        return await GetMyProfileAsync(); // Return updated view
-    }
-
-    /// <summary>
-    /// Upload profile photo to blob storage.
-    /// </summary>
-    public async Task<string> UploadPhotoAsync(Microsoft.AspNetCore.Http.IFormFile file)
-    {
-        if (file == null || file.Length == 0)
-        {
-            throw new UserFriendlyException("No file provided.");
-        }
-
-        // Validate file type
-        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-        var extension = System.IO.Path.GetExtension(file.FileName).ToLowerInvariant();
-        if (!allowedExtensions.Contains(extension))
-        {
-            throw new UserFriendlyException($"Invalid file type. Allowed types: {string.Join(", ", allowedExtensions)}");
-        }
-
-        // Validate file size (max 5MB)
-        const int maxSize = 5 * 1024 * 1024;
-        if (file.Length > maxSize)
-        {
-            throw new UserFriendlyException("File size exceeds 5MB limit.");
-        }
-
-        var profile = await GetOrCreateProfileAsync(CurrentUser.GetId());
-        
-        // Generate blob name with folder structure
-        var blobName = $"{profile.Id}/{Guid.NewGuid()}{extension}";
-        
-        // Upload to blob storage
-        using var stream = file.OpenReadStream();
-        await _blobContainer.SaveAsync(blobName, stream, overrideExisting: true);
-        
-        // Generate URL path
-        // IMPORTANT: The route must match the GetPhotoAsync [HttpGet] template
-        var photoUrl = $"/api/profile-photo/{blobName}";
-        
-        // Update profile with new photo URL
-        profile.SetPhotoUrl(photoUrl);
-        await _profileRepository.UpdateAsync(profile);
-        
-        return photoUrl;
-    }
-
 }
-

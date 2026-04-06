@@ -71,6 +71,7 @@ public class CreateCertificateItemDto
     public Guid CertificateDefinitionId { get; set; }
     public Guid? QualificationId { get; set; }
     public CertificateLanguage Language { get; set; }
+    public string? AttachmentUrl { get; set; }
 }
 
 public class ProcessCertificateRequestDto

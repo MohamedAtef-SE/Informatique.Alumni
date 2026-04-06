@@ -1,0 +1,102 @@
+
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841156:2026-03-25 16:56:30.045 +02:00 [DBG] The event OpenIddict.Server.OpenIddictServerEvents+ProcessRequestContext was successfully processed by OpenIddict.Server.AspNetCore.OpenIddictServerAspNetCoreHandlers+ValidateTransportSecurityRequirement.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841157:2026-03-25 16:56:30.045 +02:00 [DBG] The event OpenIddict.Server.OpenIddictServerEvents+ProcessRequestContext was successfully processed by OpenIddict.Server.AspNetCore.OpenIddictServerAspNetCoreHandlers+ValidateHostHeader.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841158:2026-03-25 16:56:30.045 +02:00 [DBG] The event OpenIddict.Validation.OpenIddictValidationEvents+ProcessRequestContext was successfully processed by OpenIddict.Validation.AspNetCore.OpenIddictValidationAspNetCoreHandlers+ResolveRequestUri.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841159:2026-03-25 16:56:30.045 +02:00 [DBG] The event OpenIddict.Validation.OpenIddictValidationEvents+ProcessAuthenticationContext was successfully processed by OpenIddict.Validation.AspNetCore.OpenIddictValidationAspNetCoreHandlers+ValidateHostHeader.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841160:2026-03-25 16:56:30.045 +02:00 [DBG] The event OpenIddict.Validation.OpenIddictValidationEvents+ProcessAuthenticationContext was successfully processed by OpenIddict.Validation.OpenIddictValidationHandlers+EvaluateValidatedTokens.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841161:2026-03-25 16:56:30.045 +02:00 [DBG] The event OpenIddict.Validation.OpenIddictValidationEvents+ProcessAuthenticationContext was successfully processed by OpenIddict.Validation.AspNetCore.OpenIddictValidationAspNetCoreHandlers+ExtractAccessTokenFromAuthorizationHeader.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841162:2026-03-25 16:56:30.045 +02:00 [DBG] The event OpenIddict.Validation.OpenIddictValidationEvents+ProcessAuthenticationContext was successfully processed by OpenIddict.Validation.AspNetCore.OpenIddictValidationAspNetCoreHandlers+ExtractAccessTokenFromBodyForm.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841163:2026-03-25 16:56:30.045 +02:00 [DBG] The event OpenIddict.Validation.OpenIddictValidationEvents+ProcessAuthenticationContext was successfully processed by OpenIddict.Validation.AspNetCore.OpenIddictValidationAspNetCoreHandlers+ExtractAccessTokenFromQueryString.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841164:2026-03-25 16:56:30.045 +02:00 [DBG] The event OpenIddict.Validation.OpenIddictValidationEvents+ProcessAuthenticationContext was successfully processed by OpenIddict.Validation.OpenIddictValidationHandlers+ValidateRequiredTokens.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841165:2026-03-25 16:56:30.045 +02:00 [DBG] The event OpenIddict.Validation.OpenIddictValidationEvents+ProcessAuthenticationContext was marked as rejected by OpenIddict.Validation.OpenIddictValidationHandlers+ValidateRequiredTokens.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841166:2026-03-25 16:56:30.045 +02:00 [DBG] AuthenticationScheme: OpenIddict.Validation.AspNetCore was not authenticated.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841167:2026-03-25 16:56:30.045 +02:00 [DBG] Starting resolving tenant...
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841168:2026-03-25 16:56:30.045 +02:00 [DBG] Trying to resolve tenant through 'CurrentUser'...
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841169:2026-03-25 16:56:30.045 +02:00 [DBG] Trying to resolve tenant through 'QueryString'...
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841170:2026-03-25 16:56:30.045 +02:00 [DBG] Trying to resolve tenant through 'Route'...
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841171:2026-03-25 16:56:30.045 +02:00 [DBG] Trying to resolve tenant through 'Header'...
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841172:2026-03-25 16:56:30.045 +02:00 [DBG] Trying to resolve tenant through 'Cookie'...
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841173:2026-03-25 16:56:30.045 +02:00 [DBG] No tenant resolved.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841174:2026-03-25 16:56:30.046 +02:00 [INF] Executing endpoint 'Health checks'
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841175:2026-03-25 16:56:30.049 +02:00 [INF] Executed endpoint 'Health checks'
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841176:2026-03-25 16:56:30.050 +02:00 [INF] Request finished HTTP/1.1 GET https://localhost:44386/health-status - 200 null application/json 6.6342ms
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841177:2026-03-25 16:56:30.050 +02:00 [INF] Received HTTP response headers after 7.3085ms - 200
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841178:2026-03-25 16:56:30.050 +02:00 [INF] End processing HTTP request after 7.3886ms - 200
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841179:2026-03-25 16:56:30.050 +02:00 [DBG] HealthReportCollector - health report execution history saved.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841180:2026-03-25 16:56:30.050 +02:00 [DBG] HealthReport history already exists and is in the same state, updating the values.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841181:2026-03-25 16:56:30.050 +02:00 [DBG] HealthReportCollector has completed.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841182:2026-03-25 16:56:30.050 +02:00 [DBG] HealthCheck collector HostedService executed successfully.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841183:2026-03-25 16:56:31.363 +02:00 [WRN] ---------- RemoteServiceErrorInfo ----------
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841192:2026-03-25 16:56:31.364 +02:00 [WRN] Exception of type 'Volo.Abp.BusinessException' was thrown.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841204:2026-03-25 16:56:31.364 +02:00 [WRN] Code:Alumni:AlreadyActive
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841205:2026-03-25 16:56:31.366 +02:00 [INF] Executing ObjectResult, writing value of type 'Volo.Abp.Http.RemoteServiceErrorResponse'.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841206:2026-03-25 16:56:31.366 +02:00 [INF] Executed action Informatique.Alumni.Payments.MembershipPaymentAppService.ProcessDigitalCheckoutAsync (Informatique.Alumni.Application) in 2014.461ms
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841207:2026-03-25 16:56:31.366 +02:00 [INF] Executed endpoint 'Informatique.Alumni.Payments.MembershipPaymentAppService.ProcessDigitalCheckoutAsync (Informatique.Alumni.Application)'
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841208:2026-03-25 16:56:31.384 +02:00 [INF] Request finished HTTP/2 POST https://localhost:44386/api/app/membership-payment/process-digital-checkout - 403 null application/json; charset=utf-8 2038.5196ms
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841209:2026-03-25 16:56:40.053 +02:00 [DBG] Executing HealthCheck collector HostedService.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841210:2026-03-25 16:56:40.053 +02:00 [INF] Start processing HTTP request GET https://localhost:44386/health-status
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841211:2026-03-25 16:56:40.053 +02:00 [INF] Sending HTTP request GET https://localhost:44386/health-status
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841212:2026-03-25 16:56:40.053 +02:00 [INF] Request starting HTTP/1.1 GET https://localhost:44386/health-status - null null
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841213:2026-03-25 16:56:40.054 +02:00 [DBG] The event OpenIddict.Server.OpenIddictServerEvents+ProcessRequestContext was successfully processed by OpenIddict.Server.AspNetCore.OpenIddictServerAspNetCoreHandlers+ResolveRequestUri.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841214:2026-03-25 16:56:40.054 +02:00 [DBG] The event OpenIddict.Server.OpenIddictServerEvents+ProcessRequestContext was successfully processed by OpenIddict.Server.OpenIddictServerHandlers+InferEndpointType.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841215:2026-03-25 16:56:40.054 +02:00 [DBG] The event OpenIddict.Server.OpenIddictServerEvents+ProcessRequestContext was successfully processed by OpenIddict.Server.AspNetCore.OpenIddictServerAspNetCoreHandlers+ValidateTransportSecurityRequirement.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841216:2026-03-25 16:56:40.054 +02:00 [DBG] The event OpenIddict.Server.OpenIddictServerEvents+ProcessRequestContext was successfully processed by OpenIddict.Server.AspNetCore.OpenIddictServerAspNetCoreHandlers+ValidateHostHeader.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841217:2026-03-25 16:56:40.054 +02:00 [DBG] The event OpenIddict.Validation.OpenIddictValidationEvents+ProcessRequestContext was successfully processed by OpenIddict.Validation.AspNetCore.OpenIddictValidationAspNetCoreHandlers+ResolveRequestUri.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841218:2026-03-25 16:56:40.054 +02:00 [DBG] The event OpenIddict.Validation.OpenIddictValidationEvents+ProcessAuthenticationContext was successfully processed by OpenIddict.Validation.AspNetCore.OpenIddictValidationAspNetCoreHandlers+ValidateHostHeader.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841219:2026-03-25 16:56:40.054 +02:00 [DBG] The event OpenIddict.Validation.OpenIddictValidationEvents+ProcessAuthenticationContext was successfully processed by OpenIddict.Validation.OpenIddictValidationHandlers+EvaluateValidatedTokens.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841220:2026-03-25 16:56:40.054 +02:00 [DBG] The event OpenIddict.Validation.OpenIddictValidationEvents+ProcessAuthenticationContext was successfully processed by OpenIddict.Validation.AspNetCore.OpenIddictValidationAspNetCoreHandlers+ExtractAccessTokenFromAuthorizationHeader.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841221:2026-03-25 16:56:40.054 +02:00 [DBG] The event OpenIddict.Validation.OpenIddictValidationEvents+ProcessAuthenticationContext was successfully processed by OpenIddict.Validation.AspNetCore.OpenIddictValidationAspNetCoreHandlers+ExtractAccessTokenFromBodyForm.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841222:2026-03-25 16:56:40.054 +02:00 [DBG] The event OpenIddict.Validation.OpenIddictValidationEvents+ProcessAuthenticationContext was successfully processed by OpenIddict.Validation.AspNetCore.OpenIddictValidationAspNetCoreHandlers+ExtractAccessTokenFromQueryString.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841223:2026-03-25 16:56:40.054 +02:00 [DBG] The event OpenIddict.Validation.OpenIddictValidationEvents+ProcessAuthenticationContext was successfully processed by OpenIddict.Validation.OpenIddictValidationHandlers+ValidateRequiredTokens.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841224:2026-03-25 16:56:40.054 +02:00 [DBG] The event OpenIddict.Validation.OpenIddictValidationEvents+ProcessAuthenticationContext was marked as rejected by OpenIddict.Validation.OpenIddictValidationHandlers+ValidateRequiredTokens.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841225:2026-03-25 16:56:40.054 +02:00 [DBG] AuthenticationScheme: OpenIddict.Validation.AspNetCore was not authenticated.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841226:2026-03-25 16:56:40.054 +02:00 [DBG] Starting resolving tenant...
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841227:2026-03-25 16:56:40.054 +02:00 [DBG] Trying to resolve tenant through 'CurrentUser'...
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841228:2026-03-25 16:56:40.054 +02:00 [DBG] Trying to resolve tenant through 'QueryString'...
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841229:2026-03-25 16:56:40.054 +02:00 [DBG] Trying to resolve tenant through 'Route'...
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841230:2026-03-25 16:56:40.054 +02:00 [DBG] Trying to resolve tenant through 'Header'...
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841231:2026-03-25 16:56:40.054 +02:00 [DBG] Trying to resolve tenant through 'Cookie'...
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841232:2026-03-25 16:56:40.054 +02:00 [DBG] No tenant resolved.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841233:2026-03-25 16:56:40.054 +02:00 [INF] Executing endpoint 'Health checks'
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841234:2026-03-25 16:56:40.059 +02:00 [INF] Executed endpoint 'Health checks'
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841235:2026-03-25 16:56:40.059 +02:00 [INF] Request finished HTTP/1.1 GET https://localhost:44386/health-status - 200 null application/json 5.4784ms
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841236:2026-03-25 16:56:40.059 +02:00 [INF] Received HTTP response headers after 5.7285ms - 200
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841237:2026-03-25 16:56:40.059 +02:00 [INF] End processing HTTP request after 5.7775ms - 200
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841238:2026-03-25 16:56:40.059 +02:00 [DBG] HealthReportCollector - health report execution history saved.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841239:2026-03-25 16:56:40.059 +02:00 [DBG] HealthReport history already exists and is in the same state, updating the values.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841240:2026-03-25 16:56:40.059 +02:00 [DBG] HealthReportCollector has completed.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841241:2026-03-25 16:56:40.059 +02:00 [DBG] HealthCheck collector HostedService executed successfully.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841242:2026-03-25 16:56:50.066 +02:00 [DBG] Executing HealthCheck collector HostedService.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841243:2026-03-25 16:56:50.068 +02:00 [INF] Start processing HTTP request GET https://localhost:44386/health-status
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841244:2026-03-25 16:56:50.068 +02:00 [INF] Sending HTTP request GET https://localhost:44386/health-status
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841245:2026-03-25 16:56:50.075 +02:00 [INF] Request starting HTTP/1.1 GET https://localhost:44386/health-status - null null
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841246:2026-03-25 16:56:50.075 +02:00 [DBG] The event OpenIddict.Server.OpenIddictServerEvents+ProcessRequestContext was successfully processed by OpenIddict.Server.AspNetCore.OpenIddictServerAspNetCoreHandlers+ResolveRequestUri.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841247:2026-03-25 16:56:50.075 +02:00 [DBG] The event OpenIddict.Server.OpenIddictServerEvents+ProcessRequestContext was successfully processed by OpenIddict.Server.OpenIddictServerHandlers+InferEndpointType.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841248:2026-03-25 16:56:50.075 +02:00 [DBG] The event OpenIddict.Server.OpenIddictServerEvents+ProcessRequestContext was successfully processed by OpenIddict.Server.AspNetCore.OpenIddictServerAspNetCoreHandlers+ValidateTransportSecurityRequirement.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841249:2026-03-25 16:56:50.075 +02:00 [DBG] The event OpenIddict.Server.OpenIddictServerEvents+ProcessRequestContext was successfully processed by OpenIddict.Server.AspNetCore.OpenIddictServerAspNetCoreHandlers+ValidateHostHeader.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841250:2026-03-25 16:56:50.075 +02:00 [DBG] The event OpenIddict.Validation.OpenIddictValidationEvents+ProcessRequestContext was successfully processed by OpenIddict.Validation.AspNetCore.OpenIddictValidationAspNetCoreHandlers+ResolveRequestUri.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841251:2026-03-25 16:56:50.075 +02:00 [DBG] The event OpenIddict.Validation.OpenIddictValidationEvents+ProcessAuthenticationContext was successfully processed by OpenIddict.Validation.AspNetCore.OpenIddictValidationAspNetCoreHandlers+ValidateHostHeader.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841252:2026-03-25 16:56:50.075 +02:00 [DBG] The event OpenIddict.Validation.OpenIddictValidationEvents+ProcessAuthenticationContext was successfully processed by OpenIddict.Validation.OpenIddictValidationHandlers+EvaluateValidatedTokens.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841253:2026-03-25 16:56:50.075 +02:00 [DBG] The event OpenIddict.Validation.OpenIddictValidationEvents+ProcessAuthenticationContext was successfully processed by OpenIddict.Validation.AspNetCore.OpenIddictValidationAspNetCoreHandlers+ExtractAccessTokenFromAuthorizationHeader.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841254:2026-03-25 16:56:50.075 +02:00 [DBG] The event OpenIddict.Validation.OpenIddictValidationEvents+ProcessAuthenticationContext was successfully processed by OpenIddict.Validation.AspNetCore.OpenIddictValidationAspNetCoreHandlers+ExtractAccessTokenFromBodyForm.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841255:2026-03-25 16:56:50.075 +02:00 [DBG] The event OpenIddict.Validation.OpenIddictValidationEvents+ProcessAuthenticationContext was successfully processed by OpenIddict.Validation.AspNetCore.OpenIddictValidationAspNetCoreHandlers+ExtractAccessTokenFromQueryString.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841256:2026-03-25 16:56:50.075 +02:00 [DBG] The event OpenIddict.Validation.OpenIddictValidationEvents+ProcessAuthenticationContext was successfully processed by OpenIddict.Validation.OpenIddictValidationHandlers+ValidateRequiredTokens.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841257:2026-03-25 16:56:50.075 +02:00 [DBG] The event OpenIddict.Validation.OpenIddictValidationEvents+ProcessAuthenticationContext was marked as rejected by OpenIddict.Validation.OpenIddictValidationHandlers+ValidateRequiredTokens.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841258:2026-03-25 16:56:50.075 +02:00 [DBG] AuthenticationScheme: OpenIddict.Validation.AspNetCore was not authenticated.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841259:2026-03-25 16:56:50.075 +02:00 [DBG] Starting resolving tenant...
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841260:2026-03-25 16:56:50.075 +02:00 [DBG] Trying to resolve tenant through 'CurrentUser'...
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841261:2026-03-25 16:56:50.075 +02:00 [DBG] Trying to resolve tenant through 'QueryString'...
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841262:2026-03-25 16:56:50.075 +02:00 [DBG] Trying to resolve tenant through 'Route'...
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841263:2026-03-25 16:56:50.075 +02:00 [DBG] Trying to resolve tenant through 'Header'...
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841264:2026-03-25 16:56:50.075 +02:00 [DBG] Trying to resolve tenant through 'Cookie'...
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841265:2026-03-25 16:56:50.075 +02:00 [DBG] No tenant resolved.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841266:2026-03-25 16:56:50.076 +02:00 [INF] Executing endpoint 'Health checks'
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841267:2026-03-25 16:56:50.079 +02:00 [INF] Executed endpoint 'Health checks'
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841268:2026-03-25 16:56:50.079 +02:00 [INF] Request finished HTTP/1.1 GET https://localhost:44386/health-status - 200 null application/json 4.2292ms
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841269:2026-03-25 16:56:50.079 +02:00 [INF] Received HTTP response headers after 11.4137ms - 200
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841270:2026-03-25 16:56:50.079 +02:00 [INF] End processing HTTP request after 11.5335ms - 200
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841271:2026-03-25 16:56:50.079 +02:00 [DBG] HealthReportCollector - health report execution history saved.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841272:2026-03-25 16:56:50.079 +02:00 [DBG] HealthReport history already exists and is in the same state, updating the values.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841273:2026-03-25 16:56:50.079 +02:00 [DBG] HealthReportCollector has completed.
+src\Informatique.Alumni.HttpApi.Host\Logs\logs.txt:3841274:2026-03-25 16:56:50.079 +02:00 [DBG] HealthCheck collector HostedService executed successfully.
+

@@ -15,6 +15,22 @@
     "Alumni:Event:008": "Start time must be before end time.",
     "Alumni:Event:009": "At least one timeslot must be defined before publishing.",
     "Alumni:Event:010": "An event with this code already exists.",
-    "Events:InvalidSubscriptionDate": "The deadline for subscription must be before or equal to the start time of the earliest timeslot."
+    "Events:InvalidSubscriptionDate": "The deadline for subscription must be before or equal to the start time of the earliest timeslot.",
+    "Permission:Companies": "Companies",
+    "Permission:ManageCompanies": "Manage Companies",
+    "Menu:Companies": "Companies",
+    "Companies": "Company Partners",
+    "ManageCompanies": "Manage Partners",
+    "CreateCompany": "Register New Company",
+    "EditCompany": "Edit Company",
+    "CompanyNameAr": "Name (Arabic)",
+    "CompanyNameEn": "Name (English)",
+    "CompanyWebsite": "Website URL",
+    "CompanyIndustry": "Industry",
+    "CompanyLogo": "Logo",
+    "CompanyDescription": "Description",
+    "CompanyEmail": "Email Address",
+    "CompanyPhone": "Phone Number",
+    "CompanyIsActive": "Is Active"
   }
 }

@@ -49,10 +49,7 @@ public class GalleryAppService : AlumniAppService, IGalleryAppService
 
     public async Task<GalleryAlbumDto> CreateAlbumAsync(CreateGalleryAlbumDto input)
     {
-        var album = await _galleryManager.CreateAsync(input.Name, null, new List<(string, GalleryMediaType, string)>());
-        
-        // Description helper
-        // Use repo/manager to update description if needed, logic omitted for brevity as per instructions
+        var album = await _galleryManager.CreateAsync(input.Name, input.Description, null, new List<(string, GalleryMediaType, string)>());
         
         await _albumRepository.InsertAsync(album);
         return _alumniMappers.MapToDto(album);

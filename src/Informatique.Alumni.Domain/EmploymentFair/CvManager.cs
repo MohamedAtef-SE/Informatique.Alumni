@@ -371,8 +371,8 @@ public class UpdateCvInput
 public class CvWorkExperienceInput : ICvInput
 {
     public Guid? Id { get; set; }
-    public string JobTitle { get; set; }
-    public string CompanyName { get; set; }
+    public string JobTitle { get; set; } = string.Empty;
+    public string CompanyName { get; set; } = string.Empty;
     public JobType JobType { get; set; }
     public bool IsCurrent { get; set; }
     public DateTime StartDate { get; set; }
@@ -383,8 +383,8 @@ public class CvWorkExperienceInput : ICvInput
 public class CvEducationInput : ICvInput
 {
     public Guid? Id { get; set; }
-    public string InstitutionName { get; set; }
-    public string Degree { get; set; }
+    public string InstitutionName { get; set; } = string.Empty;
+    public string Degree { get; set; } = string.Empty;
     public DateTime StartDate { get; set; }
     public DateTime? EndDate { get; set; }
 }
@@ -392,16 +392,16 @@ public class CvEducationInput : ICvInput
 public class CvCertificateInput : ICvInput
 {
     public Guid? Id { get; set; }
-    public string Name { get; set; }
-    public string Authority { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Authority { get; set; } = string.Empty;
     public DateTime Date { get; set; }
 }
 
 public class CvTrainingCourseInput : ICvInput
 {
     public Guid? Id { get; set; }
-    public string Name { get; set; }
-    public string CenterName { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string CenterName { get; set; } = string.Empty;
     public DateTime StartDate { get; set; }
     public DateTime? EndDate { get; set; }
 }
@@ -409,29 +409,29 @@ public class CvTrainingCourseInput : ICvInput
 public class CvLanguageInput : ICvInput
 {
     public Guid? Id { get; set; }
-    public string Name { get; set; }
-    public string ProficiencyLevel { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string ProficiencyLevel { get; set; } = string.Empty;
 }
 
 public class CvSkillInput : ICvInput
 {
     public Guid? Id { get; set; }
-    public string Name { get; set; }
-    public string Proficiency { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Proficiency { get; set; } = string.Empty;
 }
 
 public class CvAchievementInput : ICvInput
 {
     public Guid? Id { get; set; }
-    public string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
     public DateTime Date { get; set; }
-    public string Description { get; set; }
+    public string Description { get; set; } = string.Empty;
 }
 
 public class CvSchoolInfoInput : ICvInput
 {
     public Guid? Id { get; set; }
-    public string SchoolName { get; set; }
+    public string SchoolName { get; set; } = string.Empty;
     public int Year { get; set; }
-    public string Grade { get; set; }
+    public string Grade { get; set; } = string.Empty;
 }

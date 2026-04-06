@@ -18,7 +18,9 @@ import {
     GraduationCap,
     Search,
     Bell,
-    ChevronDown
+    ChevronDown,
+    Wallet,
+    Ticket
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { Button } from '../ui/Button';
@@ -223,6 +225,17 @@ const Navbar = () => {
                                         </div>
                                         <Link to="/portal/profile" className="flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-secondary)] hover:text-[var(--color-text-primary)] transition-colors">
                                             <UserCircle className="w-4 h-4" /> {t('nav.profile', 'My Profile')}
+                                        </Link>
+                                        <Link to="/portal/wallet" className="flex items-center justify-between px-4 py-2.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-secondary)] hover:text-[var(--color-text-primary)] transition-colors border-b border-[var(--color-border)]">
+                                            <div className="flex items-center gap-2">
+                                                <Wallet className="w-4 h-4" /> {t('nav.wallet', 'My Wallet')}
+                                            </div>
+                                            <span className="text-xs font-bold bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">
+                                                {profile?.walletBalance?.toLocaleString() || '0.00'}
+                                            </span>
+                                        </Link>
+                                        <Link to="/portal/registrations" className="flex items-center gap-2 px-4 py-2.5 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-secondary)] hover:text-[var(--color-text-primary)] transition-colors border-b border-[var(--color-border)]">
+                                            <Ticket className="w-4 h-4" /> {t('nav.my_tickets', 'My Tickets')}
                                         </Link>
                                         <button
                                             onClick={handleSignOut}

@@ -159,7 +159,7 @@ public class AlumniTrip : FullAuditedAggregateRoot<Guid>
         {
             throw new BusinessException("Trip:CapacityLimitRequired")
                 .WithData("HasCapacityLimit", hasCapacityLimit)
-                .WithData("CapacityLimit", capacityLimit);
+                .WithData("CapacityLimit", (object?)capacityLimit);
         }
 
         HasCapacityLimit = hasCapacityLimit;

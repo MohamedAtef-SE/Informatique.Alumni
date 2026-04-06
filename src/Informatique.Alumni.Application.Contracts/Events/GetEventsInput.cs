@@ -78,4 +78,9 @@ public class EventDetailDto : EventListDto
     /// Available time slots for registration
     /// </summary>
     public List<EventTimeslotDto> Timeslots { get; set; } = new();
+
+    /// <summary>
+    /// Existing registration for the current user
+    /// </summary>
+    public AlumniEventRegistrationDto? MyRegistration { get; set; }
 }

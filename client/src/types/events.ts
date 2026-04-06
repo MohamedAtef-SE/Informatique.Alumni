@@ -101,13 +101,54 @@ export const RegistrationStatus = {
 } as const;
 export type RegistrationStatus = typeof RegistrationStatus[keyof typeof RegistrationStatus];
 
+export const RegistrationType = {
+    Event: 0,
+    Workshop: 1
+} as const;
+export type RegistrationType = typeof RegistrationType[keyof typeof RegistrationType];
+
 export interface AlumniEventRegistrationDto extends FullAuditedEntityDto<string> {
     alumniId: string;
     eventId: string;
     ticketCode: string;
     status: RegistrationStatus;
+    type: RegistrationType;
     qrCodeUrl: string;
     eventName?: string;
     eventDate?: string;
     location?: string;
+    paidAmount: number;
+    lecturerName?: string;
+    room?: string;
+}
+
+export interface ActivityParticipantDto extends EntityDto<string> {
+    alumniId: string;
+    alumniName: string;
+    mobileNumber: string;
+    collegeName: string;
+    majorName: string;
+    graduationYear: number;
+    jobTitle?: string;
+    company?: string;
+    nationalId?: string;
+    address?: string;
+    eventName: string;
+    activityTypeName: string;
+    timeslotStart: string;
+    timeslotEnd: string;
+    location: string;
+    status: RegistrationStatus;
+    paymentMethod: string;
+    paidAmount?: number;
+    creationTime: string;
+}
+
+export interface ActivityParticipantFilterDto extends PagedAndSortedResultRequestDto {
+    branchId?: string;
+    activityTypeId?: string;
+    activityName?: string;
+    location?: string;
+    fromDate?: string;
+    toDate?: string;
 }

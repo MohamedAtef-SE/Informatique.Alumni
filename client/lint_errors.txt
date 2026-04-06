@@ -1,0 +1,541 @@
+
+> client@0.0.0 lint
+> eslint . --max-warnings 0
+
+
+D:\Projects\Informatique.Alumni\client\src\components\Profile\BecomeAdvisorModal.tsx
+   48:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  161:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  190:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  216:82  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\Profile\EditProfileModal.tsx
+   34:14  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-explicit-any
+   88:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\Projects\Informatique.Alumni\client\src\components\Profile\EditProfileModal.tsx:88:13
+  86 |             });
+  87 |             // Reset file state
+> 88 |             setSelectedFile(null);
+     |             ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  89 |             setPreviewUrl(null);
+  90 |         }
+  91 |     }, [profile, reset]);  react-hooks/set-state-in-effect
+  118:24  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\Profile\ProfileHeader.tsx
+  7:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\AlumniImportModal.tsx
+  53:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  72:18  error  'error' is defined but never used         @typescript-eslint/no-unused-vars
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\CommunicationLogsModal.tsx
+  68:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\StatusBadge.tsx
+  34:23  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\benefits\CreateDiscountModal.tsx
+  32:9  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\benefits\CreateGrantModal.tsx
+  29:9  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\benefits\EditDiscountModal.tsx
+  34:9  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\benefits\EditGrantModal.tsx
+  31:9  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\career\CreateCareerServiceModal.tsx
+   57:9   error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/ban-ts-comment
+   79:21  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\career\CreateCareerServiceModal.tsx:79:21
+  77 |     });
+  78 |
+> 79 |     const hasFees = watch('hasFees');
+     |                     ^^^^^ React Hook Form's `useForm()` API returns a `watch()` function which cannot be memoized safely.
+  80 |
+  81 |     const createMutation = useMutation({
+  82 |         mutationFn: (data: CreateCareerServiceDto) => adminService.createCareerService(data),  react-hooks/incompatible-library
+   89:26  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  112:58  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\career\CreateCareerServiceTypeModal.tsx
+  43:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\career\CreateJobModal.tsx
+  44:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  55:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\career\EditCareerServiceModal.tsx
+   59:9   error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/ban-ts-comment
+   89:54  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  107:21  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\career\EditCareerServiceModal.tsx:107:21
+  105 |     });
+  106 |
+> 107 |     const hasFees = watch('hasFees');
+      |                     ^^^^^ React Hook Form's `useForm()` API returns a `watch()` function which cannot be memoized safely.
+  108 |
+  109 |     const updateMutation = useMutation({
+  110 |         mutationFn: (data: CreateCareerServiceDto) => {  react-hooks/incompatible-library
+  119:26  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  142:58  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\career\EditCareerServiceTypeModal.tsx
+  52:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\certificates\ReviewCertificateModal.tsx
+  219:80  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\certificates\ReviewCertificateModal.tsx:219:80
+  217 |                             <div className="mt-4 text-xs text-slate-500 flex items-center gap-2">
+  218 |                                 <Calendar className="w-4 h-4" />
+> 219 |                                 Requested on {new Date(request.creationTime || Date.now()).toLocaleDateString('en-US', {
+      |                                                                                ^^^^^^^^^^ Cannot call impure function
+  220 |                                     year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+  221 |                                 })}
+  222 |                             </div>  react-hooks/purity
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\company\CreateCompanyModal.tsx
+  49:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\company\EditCompanyModal.tsx
+  67:24  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-explicit-any
+  90:22  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\company\EditCompanyModal.tsx:90:22
+  88 |     if (!company) return null;
+  89 |
+> 90 |     const isActive = watch('isActive');
+     |                      ^^^^^ React Hook Form's `useForm()` API returns a `watch()` function which cannot be memoized safely.
+  91 |
+  92 |     return (
+  93 |         <Dialog open={open} onOpenChange={onOpenChange}>  react-hooks/incompatible-library
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\content\CategoryModal.tsx
+  29:13  error  't' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\content\CreatePostModal.tsx
+  35:9   error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  70:29  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\content\EditPostModal.tsx
+  37:9   error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  78:29  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\events\CreateEventModal.tsx
+  40:9   error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/ban-ts-comment
+  55:21  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\events\CreateEventModal.tsx:55:21
+  53 |
+  54 |     const { fields, append, remove } = useFieldArray({ control, name: 'timeslots' });
+> 55 |     const hasFees = watch('hasFees');
+     |                     ^^^^^ React Hook Form's `useForm()` API returns a `watch()` function which cannot be memoized safely.
+  56 |
+  57 |     const createMutation = useMutation({
+  58 |         mutationFn: (data: CreateEventDto) => adminService.createEvent(data),  react-hooks/incompatible-library
+  65:26  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-explicit-any
+  96:18  error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/ban-ts-comment
+  97:58  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\events\EditEventModal.tsx
+   51:9   error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/ban-ts-comment
+   66:21  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\events\EditEventModal.tsx:66:21
+  64 |
+  65 |     const { fields, append, remove } = useFieldArray({ control, name: 'timeslots' });
+> 66 |     const hasFees = watch('hasFees');
+     |                     ^^^^^ React Hook Form's `useForm()` API returns a `watch()` function which cannot be memoized safely.
+  67 |
+  68 |     // Fetch event details when modal opens
+  69 |     const { data: eventData, isLoading: isLoadingEvent } = useQuery({  react-hooks/incompatible-library
+  107:26  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-explicit-any
+  141:21  error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/ban-ts-comment
+  142:62  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\gallery\CreateAlbumModal.tsx
+  28:9  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\guidance\AdvisoryCategoryModal.tsx
+  77:38  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\guidance\AdvisoryCategoryModal.tsx:77:38
+  75 |                             id="isActive" 
+  76 |                             className="w-4 h-4 rounded border-slate-700 text-indigo-600 focus:ring-indigo-500 bg-slate-900"
+> 77 |                             checked={watch('isActive')} 
+     |                                      ^^^^^ React Hook Form's `useForm()` API returns a `watch()` function which cannot be memoized safely.
+  78 |                             onChange={(e) => setValue('isActive', e.target.checked)} 
+  79 |                         />
+  80 |                         <Label htmlFor="isActive" className="text-sm font-medium cursor-pointer">Active and visible to alumni</Label>  react-hooks/incompatible-library
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\health\CreateMedicalPartnerModal.tsx
+  36:9   error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  74:58  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\health\EditMedicalPartnerModal.tsx
+  38:9   error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  92:58  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\organization\CollegeModal.tsx
+   26:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\organization\CollegeModal.tsx:26:13
+  24 |     useEffect(() => {
+  25 |         if (college && open) {
+> 26 |             setFormData({
+     |             ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  27 |                 name: college.name,
+  28 |                 branchId: college.branchId,
+  29 |                 externalId: college.externalId,  react-hooks/set-state-in-effect
+   53:24  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-explicit-any
+   66:24  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-explicit-any
+  101:39  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-explicit-any
+  111:39  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-explicit-any
+  126:39  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\organization\MajorModal.tsx
+   25:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\Projects\Informatique.Alumni\client\src\components\admin\organization\MajorModal.tsx:25:13
+  23 |     useEffect(() => {
+  24 |         if (major && open) {
+> 25 |             setFormData({
+     |             ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  26 |                 name: major.name,
+  27 |                 collegeId: major.collegeId,
+  28 |             });  react-hooks/set-state-in-effect
+   50:24  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   63:24  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  103:39  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  113:39  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\common\ImageCropper.tsx
+  16:64  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  26:51  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  26:75  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\common\MembershipGuard.tsx
+  10:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  26:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  46:65  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\cv\ExperienceSection.tsx
+  14:22  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  68:37  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\layouts\MainLayout.tsx
+  18:8  warning  React Hook useEffect has a missing dependency: 'i18n'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\Projects\Informatique.Alumni\client\src\components\layouts\Navbar.tsx
+  221:76  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\portal\MembershipCheckoutModal.tsx
+  33:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\portal\certificates\CertificatePaymentModal.tsx
+  37:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\portal\news\ArticleView.tsx
+  76:78  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+D:\Projects\Informatique.Alumni\client\src\components\portal\news\ArticleView.tsx:76:78
+  74 |                                     <div className="flex items-center gap-2">
+  75 |                                         <Calendar className="w-4 h-4" />
+> 76 |                                         <span>{new Date(post.creationTime || Date.now()).toLocaleDateString(i18n.language, { dateStyle: 'long' })}</span>
+     |                                                                              ^^^^^^^^^^ Cannot call impure function
+  77 |                                     </div>
+  78 |                                 </div>
+  79 |                             </header>  react-hooks/purity
+
+D:\Projects\Informatique.Alumni\client\src\components\portal\news\FeaturedNews.tsx
+  59:66  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+D:\Projects\Informatique.Alumni\client\src\components\portal\news\FeaturedNews.tsx:59:66
+  57 |                         <div className="flex items-center gap-2">
+  58 |                             <Calendar className="w-4 h-4" />
+> 59 |                             <span>{new Date(post.creationTime || Date.now()).toLocaleDateString(i18n.language, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+     |                                                                  ^^^^^^^^^^ Cannot call impure function
+  60 |                         </div>
+  61 |                         {post.viewCount > 0 && (
+  62 |                             <div className="flex items-center gap-2">  react-hooks/purity
+
+D:\Projects\Informatique.Alumni\client\src\components\portal\news\NewsCard.tsx
+  37:58  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+D:\Projects\Informatique.Alumni\client\src\components\portal\news\NewsCard.tsx:37:58
+  35 |                 <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)] mb-3">
+  36 |                     <Calendar className="w-3 h-3" />
+> 37 |                     <span>{new Date(post.creationTime || Date.now()).toLocaleDateString(i18n.language)}</span>
+     |                                                          ^^^^^^^^^^ Cannot call impure function
+  38 |                     {post.viewCount > 0 && (
+  39 |                         <>
+  40 |                             <span>ΓÇó</span>  react-hooks/purity
+
+D:\Projects\Informatique.Alumni\client\src\components\portal\syndicates\SyndicateApplicationWizard.tsx
+   23:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   61:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   99:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  109:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  232:83  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\components\ui\Button.tsx
+  70:18  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+D:\Projects\Informatique.Alumni\client\src\components\ui\Label.tsx
+  4:18  error  An interface declaring no members is equivalent to its supertype  @typescript-eslint/no-empty-object-type
+
+D:\Projects\Informatique.Alumni\client\src\pages\admin\AdminDashboard.tsx
+  11:65  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\pages\admin\AdvisoryCategoryManager.tsx
+  35:33  error  React Hook "useQuery" is called conditionally. React Hooks must be called in the exact same order in every component render     react-hooks/rules-of-hooks
+  45:28  error  React Hook "useMutation" is called conditionally. React Hooks must be called in the exact same order in every component render  react-hooks/rules-of-hooks
+
+D:\Projects\Informatique.Alumni\client\src\pages\admin\AlumniManager.tsx
+   55:13  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  285:54  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  413:18  error  'error' is defined but never used         @typescript-eslint/no-unused-vars
+  555:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\pages\admin\CareerManager.tsx
+  94:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\pages\admin\CareerServiceTypeManager.tsx
+  87:60  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\pages\admin\CertificatesManager.tsx
+  103:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\pages\admin\CollegeManager.tsx
+  35:36  error  React Hook "useQuery" is called conditionally. React Hooks must be called in the exact same order in every component render                                                                    react-hooks/rules-of-hooks
+  42:33  error  React Hook "useQuery" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?     react-hooks/rules-of-hooks
+  51:28  error  React Hook "useMutation" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+
+D:\Projects\Informatique.Alumni\client\src\pages\admin\CommunicationCenter.tsx
+  65:21  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+D:\Projects\Informatique.Alumni\client\src\pages\admin\CommunicationCenter.tsx:65:21
+  63 |     });
+  64 |
+> 65 |     const channel = watch('channel');
+     |                     ^^^^^ React Hook Form's `useForm()` API returns a `watch()` function which cannot be memoized safely.
+  66 |     const filter = watch('filter');
+  67 |
+  68 |     const { data: branches } = useQuery({  react-hooks/incompatible-library
+  80:34  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-explicit-any
+  89:28  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-explicit-any
+  98:41  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\pages\admin\CompanyManager.tsx
+  41:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  47:99  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  84:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\pages\admin\ContentManager.tsx
+  153:66  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\pages\admin\EventManager.tsx
+  115:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\pages\admin\GalleryManager.tsx
+  269:76  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\pages\admin\GuidanceManager.tsx
+   48:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  111:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\pages\admin\JobManager.tsx
+  77:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\pages\admin\MajorManager.tsx
+  35:36  error  React Hook "useQuery" is called conditionally. React Hooks must be called in the exact same order in every component render                                                                    react-hooks/rules-of-hooks
+  42:33  error  React Hook "useQuery" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?     react-hooks/rules-of-hooks
+  51:28  error  React Hook "useMutation" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+
+D:\Projects\Informatique.Alumni\client\src\pages\admin\OrgManager.tsx
+  35:33  error  React Hook "useQuery" is called conditionally. React Hooks must be called in the exact same order in every component render     react-hooks/rules-of-hooks
+  44:28  error  React Hook "useMutation" is called conditionally. React Hooks must be called in the exact same order in every component render  react-hooks/rules-of-hooks
+
+D:\Projects\Informatique.Alumni\client\src\pages\admin\SyndicatesManager.tsx
+   68:70  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   84:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   90:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   96:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  105:37  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  119:33  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  282:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\pages\admin\TripsManager.tsx
+  64:8  warning  React Hook useEffect has missing dependencies: 'selectedCurrency' and 'setSelectedCurrency'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\Projects\Informatique.Alumni\client\src\pages\portal\CareerServicesList.tsx
+  144:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  163:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  180:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  194:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  283:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  295:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  348:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\pages\portal\EventDetail.tsx
+  43:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\pages\portal\EventsList.tsx
+  123:37  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\pages\portal\Gallery.tsx
+  122:64  error    Unexpected any. Specify a different type                                                                                          @typescript-eslint/no-explicit-any
+  149:8   warning  React Hook useEffect has missing dependencies: 'handleNext' and 'handlePrev'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\Projects\Informatique.Alumni\client\src\pages\portal\MyCv.tsx
+  24:44  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  74:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\pages\portal\PortalHome.tsx
+  407:76  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+D:\Projects\Informatique.Alumni\client\src\pages\portal\PortalHome.tsx:407:76
+  405 |                                     <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-4 mt-auto">
+  406 |                                         <span className="text-xs text-[var(--color-text-muted)] font-medium">
+> 407 |                                             {new Date(item.creationTime || Date.now()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+      |                                                                            ^^^^^^^^^^ Cannot call impure function
+  408 |                                         </span>
+  409 |                                         <ChevronRight className="w-4 h-4 text-[var(--color-accent)] group-hover:translate-x-1 transition-transform rtl:rotate-180 rtl:group-hover:-translate-x-1" />
+  410 |                                     </div>  react-hooks/purity
+
+D:\Projects\Informatique.Alumni\client\src\pages\portal\Profile.tsx
+    6:74  error  'User' is defined but never used          @typescript-eslint/no-unused-vars
+  101:81  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  120:83  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  257:80  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  294:75  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\pages\portal\ServicesLayout.tsx
+   73:63   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  342:24   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  506:72   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  545:69   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  565:80   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  573:107  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  639:42   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\pages\portal\TripsList.tsx
+   37:8   warning  React Hook useEffect has missing dependencies: 'selectedCurrency' and 'setSelectedCurrency'. Either include them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             react-hooks/exhaustive-deps
+  149:59  error    Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+D:\Projects\Informatique.Alumni\client\src\pages\portal\TripsList.tsx:149:59
+  147 | const TripCard = ({ trip, currency, onBook }: TripCardProps) => {
+  148 |     const daysUntil = trip.startDate
+> 149 |         ? Math.ceil((new Date(trip.startDate).getTime() - Date.now()) / 86400000)
+      |                                                           ^^^^^^^^^^ Cannot call impure function
+  150 |         : null;
+  151 |
+  152 |     return (  react-hooks/purity
+
+D:\Projects\Informatique.Alumni\client\src\services\adminService.ts
+   71:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  344:41  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  387:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  393:43  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  501:47  error  '_notes' is defined but never used        @typescript-eslint/no-unused-vars
+  508:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  511:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\services\api.ts
+  46:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  63:72  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  73:77  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  79:72  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\services\auth.ts
+  33:6  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\services\careerService.ts
+   6:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  19:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  30:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  33:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  34:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  44:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  51:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  69:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\services\eventsService.ts
+  36:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\services\galleryService.ts
+  27:30  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\services\magazineService.ts
+  13:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\services\servicesService.ts
+   70:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   86:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   89:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   97:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  110:39  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  114:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Projects\Informatique.Alumni\client\src\types\events.ts
+  58:18  error  An interface declaring no members is equivalent to its supertype  @typescript-eslint/no-empty-object-type
+
+D:\Projects\Informatique.Alumni\client\src\types\health.ts
+  74:18  error  An interface declaring no members is equivalent to its supertype  @typescript-eslint/no-empty-object-type
+
+D:\Projects\Informatique.Alumni\client\src\types\news.ts
+  38:18  error  An interface declaring no members is equivalent to its supertype  @typescript-eslint/no-empty-object-type
+
+Γ£û 186 problems (175 errors, 11 warnings)
+

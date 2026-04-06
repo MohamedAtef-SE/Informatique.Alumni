@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Volo.Abp.Content;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
+using Informatique.Alumni.Companies;
 
 namespace Informatique.Alumni.Events;
 
@@ -37,8 +38,10 @@ public interface IEventsAppService : IApplicationService
 
     // Companies
     Task<List<CompanyDto>> GetCompaniesAsync();
-    // Participant Management (Employees)
+    // Participants
     Task<PagedResultDto<ActivityParticipantDto>> GetParticipantsAsync(ActivityParticipantFilterDto input);
+    Task ApproveRegistrationAsync(Guid id);
+    Task RejectRegistrationAsync(Guid id, string reason);
     Task RemoveParticipantAsync(Guid subscriptionId, string cancellationReason);
     
     // Bulk Email

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
+using Microsoft.AspNetCore.Mvc;
 using Volo.Abp.Authorization;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.EventBus.Local;
@@ -11,6 +12,7 @@ using Volo.Abp.Identity;
 using Informatique.Alumni.Permissions;
 using Informatique.Alumni.Profiles;
 using System.Collections.Generic;
+using Informatique.Alumni.Admin;
 
 namespace Informatique.Alumni.Guidance;
 
@@ -23,6 +25,7 @@ public class AdvisingAppService : AlumniAppService, IGuidanceAppService
     private readonly ILocalEventBus _localEventBus;
     private readonly AlumniApplicationMappers _alumniMappers;
     private readonly AdvisingManager _advisingManager;
+    private readonly IRepository<GuidanceSessionRule, Guid> _ruleRepository;
 
     public AdvisingAppService(
         IRepository<AdvisingRequest, Guid> repository,
@@ -30,7 +33,8 @@ public class AdvisingAppService : AlumniAppService, IGuidanceAppService
         IIdentityUserRepository userRepository,
         ILocalEventBus localEventBus,
         AlumniApplicationMappers alumniMappers,
-        AdvisingManager advisingManager)
+        AdvisingManager advisingManager,
+        IRepository<GuidanceSessionRule, Guid> ruleRepository)
     {
         _repository = repository;
         _alumniProfileRepository = alumniProfileRepository;
@@ -38,6 +42,7 @@ public class AdvisingAppService : AlumniAppService, IGuidanceAppService
         _localEventBus = localEventBus;
         _alumniMappers = alumniMappers;
         _advisingManager = advisingManager;
+        _ruleRepository = ruleRepository;
     }
 
     [Authorize(AlumniPermissions.Guidance.ManageRequests)]
@@ -85,11 +90,12 @@ public class AdvisingAppService : AlumniAppService, IGuidanceAppService
     }
 
     // [New] Create Request Endpoint
-    [Authorize]
-    public async Task<AdvisingRequestDto> CreateRequestAsync(CreateAdvisingRequestDto input)
+    [Authorize(AlumniPermissions.Guidance.BookSession)]
+    public async Task<AdvisingRequestDto> RequestAsync(CreateAdvisingRequestDto input)
     {
+        var alumniId = await GetCurrentAlumniProfileIdAsync();
         var request = await _advisingManager.CreateRequestAsync(
-            CurrentUser.Id.Value,
+            alumniId,
             null, // BranchId inferred/enforced by Manager logic or user input if allowed
             input.AdvisorId,
             input.Date,
@@ -103,9 +109,9 @@ public class AdvisingAppService : AlumniAppService, IGuidanceAppService
 
     public async Task<List<AdvisorDto>> GetAvailableAdvisorsAsync()
     {
-        // Return VIP members as Advisors
-        var allProfiles = await _alumniProfileRepository.GetListAsync();
-        var profiles = allProfiles.Where(p => p.IsVip).Take(10).ToList();
+        // Return Alumni marked as Approved Advisors
+        var profiles = await _alumniProfileRepository.GetListAsync(p => p.AdvisoryStatus == AdvisoryWorkflowStatus.Approved);
+        profiles = profiles.Take(10).ToList();
         
         if (!profiles.Any()) return new List<AdvisorDto>();
         
@@ -132,7 +138,8 @@ public class AdvisingAppService : AlumniAppService, IGuidanceAppService
                 Id = p.Id,
                 Name = displayName,
                 JobTitle = p.JobTitle,
-                PhotoUrl = p.PhotoUrl
+                PhotoUrl = p.PhotoUrl,
+                BranchId = p.BranchId
             });
         }
         
@@ -141,19 +148,10 @@ public class AdvisingAppService : AlumniAppService, IGuidanceAppService
 
     public async Task<PagedResultDto<AdvisingRequestDto>> GetMyRequestsAsync(PagedAndSortedResultRequestDto input)
     {
-         var userId = CurrentUser.Id;
-         if (!userId.HasValue) throw new AbpAuthorizationException("Must be logged in.");
-
-         // [Fix] Lookup Profile ID first, because AdvisingRequest.AlumniId refers to ProfileId
-         var profile = await _alumniProfileRepository.FirstOrDefaultAsync(x => x.UserId == userId.Value);
-         if (profile == null)
-         {
-             // If no profile, user cannot have requests
-             return new PagedResultDto<AdvisingRequestDto>(0, new List<AdvisingRequestDto>());
-         }
+         var alumniId = await GetCurrentAlumniProfileIdAsync();
 
          var query = await _repository.GetQueryableAsync();
-         query = query.Where(x => x.AlumniId == profile.Id);
+         query = query.Where(x => x.AlumniId == alumniId);
          
          var totalCount = await AsyncExecuter.CountAsync(query);
          
@@ -236,7 +234,7 @@ public class AdvisingAppService : AlumniAppService, IGuidanceAppService
             case AdvisingRequestStatus.Rejected:
                 request.Reject(input.Notes ?? "Rejected");
                 break;
-            case AdvisingRequestStatus.Cancelled: // If Admin can cancel
+            case AdvisingRequestStatus.Canceled: // If Admin can cancel
                 // request.Cancel(); // Assuming Cancel method exists or we add it? 
                 // Using reflection or Assuming only Approve/Reject relevant for "ManageRequests". 
                 // Requirement said "Status: Pending -> Approved/Rejected". 
@@ -350,6 +348,38 @@ public class AdvisingAppService : AlumniAppService, IGuidanceAppService
             
             return stats;
         }
+    }
+
+    [Authorize(AlumniPermissions.Guidance.BookSession)]
+    [HttpGet("/api/app/advising/rule")]
+    public async Task<GuidanceSessionRuleDto> GetRuleAsync(Guid branchId)
+    {
+        var ruleQuery = await _ruleRepository.WithDetailsAsync(x => x.WeekDays);
+        var rule = await AsyncExecuter.FirstOrDefaultAsync(ruleQuery.Where(x => x.BranchId == branchId));
+
+        if (rule == null)
+        {
+            return new GuidanceSessionRuleDto {
+                BranchId = branchId,
+                StartTime = new TimeSpan(9, 0, 0),
+                EndTime = new TimeSpan(17, 0, 0),
+                SessionDurationMinutes = 30,
+                WeekDays = new List<DayOfWeek> { 
+                    DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, 
+                    DayOfWeek.Thursday, DayOfWeek.Friday 
+                }
+            };
+        }
+
+        return new GuidanceSessionRuleDto
+        {
+            Id = rule.Id,
+            BranchId = rule.BranchId,
+            StartTime = rule.StartTime,
+            EndTime = rule.EndTime,
+            SessionDurationMinutes = rule.SessionDurationMinutes,
+            WeekDays = rule.WeekDays.Select(w => w.Day).ToList()
+        };
     }
 
     private async Task<Guid> GetCurrentUserBranchIdAsync()

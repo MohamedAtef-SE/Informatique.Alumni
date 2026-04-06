@@ -42,3 +42,15 @@ export interface ArticleCategoryLookupDto {
     nameAr: string;
     nameEn: string;
 }
+
+export interface ArticleCategoryDto extends FullAuditedEntityDto<string> {
+    nameAr: string;
+    nameEn: string;
+    isActive: boolean;
+}
+
+export interface CreateUpdateArticleCategoryDto {
+    nameAr: string;
+    nameEn: string;
+    isActive: boolean;
+}

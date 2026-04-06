@@ -11,16 +11,11 @@ public interface IGuidanceAppService : IApplicationService
     Task<PagedResultDto<AdvisingRequestDto>> GetListAsync(AdvisingRequestFilterDto input);
     Task UpdateStatusAsync(Guid id, UpdateAdvisingStatusDto input);
     
-    Task<AdvisingRequestDto> CreateRequestAsync(CreateAdvisingRequestDto input);
+    Task<AdvisingRequestDto> RequestAsync(CreateAdvisingRequestDto input);
     Task<List<AdvisorDto>> GetAvailableAdvisorsAsync(); // New
     Task<PagedResultDto<AdvisingRequestDto>> GetMyRequestsAsync(PagedAndSortedResultRequestDto input); // New
     Task<object> GetReportAsync(AdvisingReportInputDto input);
-}
 
-public class AdvisorDto
-{
-    public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string JobTitle { get; set; } = string.Empty;
-    public string? PhotoUrl { get; set; }
+    // [New] Rule/Office Hours Management
+    Task<GuidanceSessionRuleDto> GetRuleAsync(Guid branchId);
 }

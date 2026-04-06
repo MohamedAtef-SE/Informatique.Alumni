@@ -19,7 +19,7 @@ public class MedicalPartnerAppServiceTests : AlumniApplicationTestBase<AlumniApp
     public async Task GetListAsync_Should_Return_List()
     {
         // Act
-        var result = await _medicalPartnerAppService.GetListAsync(null);
+        var result = await _medicalPartnerAppService.GetListAsync(new GetMedicalPartnersInput());
 
         // Assert
         result.ShouldNotBeNull();

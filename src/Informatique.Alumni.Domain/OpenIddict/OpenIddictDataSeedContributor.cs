@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
@@ -115,7 +115,7 @@ public class OpenIddictDataSeedContributor : OpenIddictDataSeedContributorBase, 
                 grantTypes: new List<string> { OpenIddictConstants.GrantTypes.AuthorizationCode, },
                 scopes: commonScopes,
                 redirectUris: new List<string> { $"{swaggerRootUrl}/swagger/oauth2-redirect.html" },
-                clientUri: swaggerRootUrl.EnsureEndsWith('/') + "swagger",
+                clientUri: (swaggerRootUrl ?? string.Empty).EnsureEndsWith('/') + "swagger",
                 logoUri: "/images/clients/swagger.svg"
             );
         }

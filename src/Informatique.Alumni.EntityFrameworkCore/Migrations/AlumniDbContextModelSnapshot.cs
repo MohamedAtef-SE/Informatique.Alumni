@@ -1382,7 +1382,8 @@ namespace Informatique.Alumni.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("AttachmentUrl")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<Guid>("CertificateDefinitionId")
                         .HasColumnType("uniqueidentifier");
@@ -1465,6 +1466,101 @@ namespace Informatique.Alumni.Migrations
                     b.HasIndex("SenderId");
 
                     b.ToTable("AppCommunicationLogs", (string)null);
+                });
+
+            modelBuilder.Entity("Informatique.Alumni.Companies.Company", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)")
+                        .HasColumnName("ConcurrencyStamp");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreationTime");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CreatorId");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("DeleterId");
+
+                    b.Property<DateTime?>("DeletionTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("DeletionTime");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ExtraProperties")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("ExtraProperties");
+
+                    b.Property<string>("Industry")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("LastModificationTime");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("LastModifierId");
+
+                    b.Property<string>("LogoBlobName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("WebsiteUrl")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NameAr")
+                        .IsUnique();
+
+                    b.HasIndex("NameEn")
+                        .IsUnique();
+
+                    b.ToTable("AppCompanies", (string)null);
                 });
 
             modelBuilder.Entity("Informatique.Alumni.Currencies.Currency", b =>
@@ -1670,11 +1766,17 @@ namespace Informatique.Alumni.Migrations
                     b.Property<int?>("GraduationYear")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsVip")
+                        .HasColumnType("bit");
+
                     b.Property<string>("JobTitle")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Major")
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("PhotoUrl")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("ShowInDirectory")
                         .HasColumnType("bit");
@@ -1690,7 +1792,8 @@ namespace Informatique.Alumni.Migrations
 
                     b.HasIndex("Major");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("AppAlumniDirectoryCache", (string)null);
                 });
@@ -1952,82 +2055,6 @@ namespace Informatique.Alumni.Migrations
                     b.ToTable("AppEvents", (string)null);
                 });
 
-            modelBuilder.Entity("Informatique.Alumni.Events.Company", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
-                        .IsRequired()
-                        .HasMaxLength(40)
-                        .HasColumnType("nvarchar(40)")
-                        .HasColumnName("ConcurrencyStamp");
-
-                    b.Property<DateTime>("CreationTime")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("CreationTime");
-
-                    b.Property<Guid?>("CreatorId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("CreatorId");
-
-                    b.Property<Guid?>("DeleterId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("DeleterId");
-
-                    b.Property<DateTime?>("DeletionTime")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("DeletionTime");
-
-                    b.Property<string>("ExtraProperties")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("ExtraProperties");
-
-                    b.Property<bool>("IsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false)
-                        .HasColumnName("IsDeleted");
-
-                    b.Property<DateTime?>("LastModificationTime")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("LastModificationTime");
-
-                    b.Property<Guid?>("LastModifierId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("LastModifierId");
-
-                    b.Property<string>("LogoBlobName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NameAr")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<string>("NameEn")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<string>("WebsiteUrl")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NameAr")
-                        .IsUnique();
-
-                    b.HasIndex("NameEn")
-                        .IsUnique();
-
-                    b.ToTable("AppCompanies", (string)null);
-                });
-
             modelBuilder.Entity("Informatique.Alumni.Events.EventAgendaItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2073,8 +2100,38 @@ namespace Informatique.Alumni.Migrations
                     b.Property<Guid>("CompanyId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreationTime");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CreatorId");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("DeleterId");
+
+                    b.Property<DateTime?>("DeletionTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("DeletionTime");
+
                     b.Property<Guid>("EventId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("LastModificationTime");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("LastModifierId");
 
                     b.Property<Guid>("ParticipationTypeId")
                         .HasColumnType("uniqueidentifier");
@@ -2407,6 +2464,74 @@ namespace Informatique.Alumni.Migrations
                     b.ToTable("AppAdvisingRequests", (string)null);
                 });
 
+            modelBuilder.Entity("Informatique.Alumni.Guidance.AdvisoryCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)")
+                        .HasColumnName("ConcurrencyStamp");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreationTime");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CreatorId");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("DeleterId");
+
+                    b.Property<DateTime?>("DeletionTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("DeletionTime");
+
+                    b.Property<string>("ExtraProperties")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("ExtraProperties");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("LastModificationTime");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("LastModifierId");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NameEn")
+                        .IsUnique();
+
+                    b.ToTable("AppAdvisoryCategories", (string)null);
+                });
+
             modelBuilder.Entity("Informatique.Alumni.Guidance.GuidanceSessionRule", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2482,6 +2607,76 @@ namespace Informatique.Alumni.Migrations
                     b.ToTable("GuidanceSessionRuleWeekDay");
                 });
 
+            modelBuilder.Entity("Informatique.Alumni.Health.MedicalCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("BaseType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)")
+                        .HasColumnName("ConcurrencyStamp");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreationTime");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CreatorId");
+
+                    b.Property<Guid?>("DeleterId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("DeleterId");
+
+                    b.Property<DateTime?>("DeletionTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("DeletionTime");
+
+                    b.Property<string>("ExtraProperties")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("ExtraProperties");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("LastModificationTime");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("LastModifierId");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BaseType");
+
+                    b.ToTable("AppMedicalCategories", (string)null);
+                });
+
             modelBuilder.Entity("Informatique.Alumni.Health.MedicalOffer", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2511,6 +2706,9 @@ namespace Informatique.Alumni.Migrations
                     b.Property<string>("DiscountCode")
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
+
+                    b.Property<int?>("DiscountPercentage")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -2611,6 +2809,9 @@ namespace Informatique.Alumni.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("IsDeleted");
 
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime?>("LastModificationTime")
                         .HasColumnType("datetime2")
                         .HasColumnName("LastModificationTime");
@@ -2621,6 +2822,9 @@ namespace Informatique.Alumni.Migrations
 
                     b.Property<string>("LogoUrl")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("MedicalCategoryId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -2637,6 +2841,8 @@ namespace Informatique.Alumni.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("MedicalCategoryId");
 
                     b.HasIndex("Type");
 
@@ -3569,6 +3775,23 @@ namespace Informatique.Alumni.Migrations
                     b.ToTable("AppAppPaymentTransactions", (string)null);
                 });
 
+            modelBuilder.Entity("Informatique.Alumni.Profiles.AlumniAdvisorExpertise", b =>
+                {
+                    b.Property<Guid>("AlumniProfileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AdvisoryCategoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("AlumniProfileId", "AdvisoryCategoryId");
+
+                    b.HasIndex("AdvisoryCategoryId");
+
+                    b.HasIndex("AlumniProfileId");
+
+                    b.ToTable("AppAlumniAdvisorExpertises", (string)null);
+                });
+
             modelBuilder.Entity("Informatique.Alumni.Profiles.AlumniProfile", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3576,6 +3799,26 @@ namespace Informatique.Alumni.Migrations
 
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AdvisoryBio")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<int>("AdvisoryExperienceYears")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("AdvisoryRejectionReason")
+                        .HasMaxLength(1024)
+                        .HasColumnType("nvarchar(1024)");
+
+                    b.Property<string>("AdvisoryStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)")
+                        .HasDefaultValue("None");
 
                     b.Property<string>("Bio")
                         .HasColumnType("nvarchar(max)");
@@ -3629,6 +3872,9 @@ namespace Informatique.Alumni.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)")
                         .HasDefaultValue("None");
+
+                    b.Property<bool>("IsAdvisor")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
@@ -6722,13 +6968,13 @@ namespace Informatique.Alumni.Migrations
             modelBuilder.Entity("Informatique.Alumni.Events.EventAgendaItem", b =>
                 {
                     b.HasOne("Informatique.Alumni.Events.AssociationEvent", null)
-                        .WithMany("AgendaItems")
+                        .WithMany("Agenda")
                         .HasForeignKey("AssociationEventId");
                 });
 
             modelBuilder.Entity("Informatique.Alumni.Events.EventParticipatingCompany", b =>
                 {
-                    b.HasOne("Informatique.Alumni.Events.Company", "Company")
+                    b.HasOne("Informatique.Alumni.Companies.Company", "Company")
                         .WithMany()
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -6785,6 +7031,16 @@ namespace Informatique.Alumni.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Informatique.Alumni.Health.MedicalPartner", b =>
+                {
+                    b.HasOne("Informatique.Alumni.Health.MedicalCategory", "MedicalCategory")
+                        .WithMany()
+                        .HasForeignKey("MedicalCategoryId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("MedicalCategory");
+                });
+
             modelBuilder.Entity("Informatique.Alumni.Magazine.BlogPost", b =>
                 {
                     b.HasOne("Informatique.Alumni.Magazine.ArticleCategory", "Category")
@@ -6826,6 +7082,21 @@ namespace Informatique.Alumni.Migrations
                     b.HasOne("Informatique.Alumni.Organization.Department", null)
                         .WithMany("Specializations")
                         .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Informatique.Alumni.Profiles.AlumniAdvisorExpertise", b =>
+                {
+                    b.HasOne("Informatique.Alumni.Guidance.AdvisoryCategory", null)
+                        .WithMany()
+                        .HasForeignKey("AdvisoryCategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Informatique.Alumni.Profiles.AlumniProfile", null)
+                        .WithMany("AdvisoryExpertises")
+                        .HasForeignKey("AlumniProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -7131,7 +7402,7 @@ namespace Informatique.Alumni.Migrations
 
             modelBuilder.Entity("Informatique.Alumni.Events.AssociationEvent", b =>
                 {
-                    b.Navigation("AgendaItems");
+                    b.Navigation("Agenda");
 
                     b.Navigation("ParticipatingCompanies");
 
@@ -7170,6 +7441,8 @@ namespace Informatique.Alumni.Migrations
 
             modelBuilder.Entity("Informatique.Alumni.Profiles.AlumniProfile", b =>
                 {
+                    b.Navigation("AdvisoryExpertises");
+
                     b.Navigation("Educations");
 
                     b.Navigation("Emails");

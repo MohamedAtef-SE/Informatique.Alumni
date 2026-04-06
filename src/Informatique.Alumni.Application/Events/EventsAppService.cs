@@ -19,7 +19,8 @@ using System.IO;
 using Volo.Abp.BlobStoring;
 using Volo.Abp.Content;
 using Volo.Abp.Domain.Entities;
-
+using Informatique.Alumni.Companies;
+using Informatique.Alumni.Career;
 
 namespace Informatique.Alumni.Events;
 
@@ -41,6 +42,8 @@ public class EventsAppService : AlumniAppService, IEventsAppService
     private readonly IRepository<College, Guid> _collegeRepository;
     private readonly IRepository<Major, Guid> _majorRepository;
     private readonly MembershipGuard _membershipGuard;
+    private readonly IRepository<AlumniCareerSubscription, Guid> _careerSubscriptionRepository;
+    private readonly IRepository<CareerService, Guid> _careerServiceRepository;
 
     public EventsAppService(
         IRepository<AssociationEvent, Guid> eventRepository,
@@ -55,7 +58,9 @@ public class EventsAppService : AlumniAppService, IEventsAppService
         IRepository<Education, Guid> educationRepository,
         IRepository<College, Guid> collegeRepository,
         IRepository<Major, Guid> majorRepository,
-        MembershipGuard membershipGuard)
+        MembershipGuard membershipGuard,
+        IRepository<AlumniCareerSubscription, Guid> careerSubscriptionRepository,
+        IRepository<CareerService, Guid> careerServiceRepository)
     {
         _eventRepository = eventRepository;
         _registrationRepository = registrationRepository;
@@ -70,6 +75,8 @@ public class EventsAppService : AlumniAppService, IEventsAppService
         _collegeRepository = collegeRepository;
         _majorRepository = majorRepository;
         _membershipGuard = membershipGuard;
+        _careerSubscriptionRepository = careerSubscriptionRepository;
+        _careerServiceRepository = careerServiceRepository;
     }
 
     // ==================== EVENT BROWSING & SEARCH ====================
@@ -187,7 +194,7 @@ public class EventsAppService : AlumniAppService, IEventsAppService
         // Or using explicit WithDetailsAsync.
         // Let's use explicit to be sure about AgendaItems and Timeslots.
         
-        var query = await _eventRepository.WithDetailsAsync(x => x.AgendaItems, x => x.Timeslots, x => x.ActivityType);
+        var query = await _eventRepository.WithDetailsAsync(x => x.Agenda, x => x.Timeslots, x => x.ActivityType);
         @event = await AsyncExecuter.FirstOrDefaultAsync(query.Where(x => x.Id == id));
         
         if (@event == null) throw new EntityNotFoundException(typeof(AssociationEvent), id);
@@ -222,7 +229,7 @@ public class EventsAppService : AlumniAppService, IEventsAppService
             FeeAmount = @event.FeeAmount,
             
             // Include full agenda/program (sorted by date and time)
-            AgendaItems = @event.AgendaItems
+            AgendaItems = @event.Agenda
                 .OrderBy(a => a.Date)
                 .ThenBy(a => a.StartTime)
                 .Select(a => new EventAgendaItemDto
@@ -249,6 +256,24 @@ public class EventsAppService : AlumniAppService, IEventsAppService
                 }).ToList()
         };
 
+        // Check if current user is registered
+        if (CurrentUser.IsAuthenticated)
+        {
+            try
+            {
+                var alumniId = await GetCurrentAlumniProfileIdAsync();
+                var registration = await _registrationRepository.FirstOrDefaultAsync(x => x.AlumniId == alumniId && x.EventId == id);
+                if (registration != null)
+                {
+                    dto.MyRegistration = _alumniMappers.MapToDto(registration);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning(ex, "Failed to fetch registration status for event detail view");
+            }
+        }
+
         return dto;
     }
 
@@ -266,14 +291,15 @@ public class EventsAppService : AlumniAppService, IEventsAppService
         var activityTypeQuery = await _activityTypeRepository.GetQueryableAsync();
         var educationQuery = await _educationRepository.GetQueryableAsync();
         
-        // 2. Base Query
+        // 2. Base Query (Correct Join: Registration -> Profile -> User)
         var query = from r in registrationQuery
                     join e in eventQuery on r.EventId equals e.Id
-                    join u in userQuery on r.AlumniId equals u.Id
+                    join p in profileQuery on r.AlumniId equals p.Id
+                    join u in userQuery on p.UserId equals u.Id
                     join at in activityTypeQuery on e.ActivityTypeId equals at.Id into atJoin
                     from at in atJoin.DefaultIfEmpty()
                     where r.Status != RegistrationStatus.Cancelled 
-                    select new { r, e, u, at };
+                    select new { r, e, p, u, at };
 
         // 3. Filters
         if (input.BranchId.HasValue)
@@ -310,16 +336,13 @@ public class EventsAppService : AlumniAppService, IEventsAppService
         var list = await AsyncExecuter.ToListAsync(query.OrderByDescending(x => x.r.CreationTime).PageBy(input.SkipCount, input.MaxResultCount));
 
         // 5. Fetch Additional Info
-        var alumniIds = list.Select(x => x.r.AlumniId).Distinct().ToList();
-        var profiles = await AsyncExecuter.ToListAsync(profileQuery.Where(p => alumniIds.Contains(p.UserId)));
-        var educations = await AsyncExecuter.ToListAsync(educationQuery.Where(e => profiles.Select(p => p.Id).Contains(e.AlumniProfileId)));
-        
+        var profileIds = list.Select(x => x.p.Id).Distinct().ToList();
+        var educations = await AsyncExecuter.ToListAsync(educationQuery.Where(e => profileIds.Contains(e.AlumniProfileId)));
         var educationsByProfile = educations.ToLookup(e => e.AlumniProfileId);
         
         var collegeIds = educations.Where(e => e.CollegeId.HasValue).Select(e => e.CollegeId.Value).Distinct().ToList();
         var majorIds = educations.Where(e => e.MajorId.HasValue).Select(e => e.MajorId.Value).Distinct().ToList();
         
-        // Use repos injected in ctor
         var colleges = await AsyncExecuter.ToListAsync((await _collegeRepository.GetQueryableAsync()).Where(x => collegeIds.Contains(x.Id)));
         var majors = await AsyncExecuter.ToListAsync((await _majorRepository.GetQueryableAsync()).Where(x => majorIds.Contains(x.Id)));
 
@@ -327,15 +350,19 @@ public class EventsAppService : AlumniAppService, IEventsAppService
 
         foreach (var item in list)
         {
-             var profile = profiles.FirstOrDefault(p => p.UserId == item.r.AlumniId);
-             var bestEdu = profile != null ? educationsByProfile[profile.Id].OrderByDescending(e => e.GraduationYear).FirstOrDefault() : null;
+             var bestEdu = educationsByProfile[item.p.Id].OrderByDescending(e => e.GraduationYear).FirstOrDefault();
              
              var dto = new ActivityParticipantDto
              {
                  Id = item.r.Id,
                  AlumniId = item.r.AlumniId,
                  AlumniName = item.u.Name + " " + item.u.Surname,
-                 MobileNumber = profile?.MobileNumber ?? "",
+                 MobileNumber = item.p.MobileNumber ?? "",
+                 JobTitle = item.p.JobTitle,
+                 Company = item.p.Company,
+                 NationalId = item.p.NationalId,
+                 Address = item.p.Address,
+                 CreationTime = item.r.CreationTime,
                  CollegeName = bestEdu?.CollegeId != null ? colleges.FirstOrDefault(c => c.Id == bestEdu.CollegeId)?.Name : "",
                  MajorName = bestEdu?.MajorId != null ? majors.FirstOrDefault(m => m.Id == bestEdu.MajorId)?.Name : "",
                  GraduationYear = bestEdu?.GraduationYear ?? 0,
@@ -363,6 +390,23 @@ public class EventsAppService : AlumniAppService, IEventsAppService
     {
         var manager = LazyServiceProvider.LazyGetRequiredService<EventSubscriptionManager>();
         await manager.ForceCancelAsync(subscriptionId, cancellationReason);
+    }
+
+    [Authorize(AlumniPermissions.Events.Manage)]
+    public async Task ApproveRegistrationAsync(Guid id)
+    {
+        var registration = await _registrationRepository.GetAsync(id);
+        registration.Confirm();
+        await _registrationRepository.UpdateAsync(registration);
+    }
+
+    [Authorize(AlumniPermissions.Events.Manage)]
+    public async Task RejectRegistrationAsync(Guid id, string reason)
+    {
+        var registration = await _registrationRepository.GetAsync(id);
+        registration.Cancel();
+        // Optionially log the reason elsewhere if needed, or update entity to store reason
+        await _registrationRepository.UpdateAsync(registration);
     }
     public async Task<PagedResultDto<AssociationEventDto>> GetEventsAsync(PagedAndSortedResultRequestDto input)
     {
@@ -469,24 +513,22 @@ public class EventsAppService : AlumniAppService, IEventsAppService
     [Authorize(AlumniPermissions.Events.Register)]
     public async Task<AlumniEventRegistrationDto> RegisterAsync(Guid id)
     {
-        // Business Rule: Active membership required for event registration
+        // 1. Business Rule: Active membership required
         await _membershipGuard.CheckAsync();
         
         var @event = await _eventRepository.GetAsync(id);
-        var alumniId = CurrentUser.GetId();
+        var alumniId = await GetCurrentAlumniProfileIdAsync();
+        var profile = await _profileRepository.GetAsync(alumniId);
         
-        // Prevent double registration
+        // 2. Prevent double registration
         if (await _registrationRepository.AnyAsync(x => x.AlumniId == alumniId && x.EventId == id))
         {
             throw new UserFriendlyException("You are already registered for this event.");
         }
 
-        // Use domain method to check if registration is allowed
-        var currentCount = await _registrationRepository.CountAsync(x => x.EventId == id && x.Status != RegistrationStatus.Cancelled);
-        
-        // Refactor: Capacity check needs to be against specific timeslot or total capacity?
-        // Assuming Total Capacity for now if Timeslots exist
+        // 3. Capacity Check
         await _eventRepository.EnsureCollectionLoadedAsync(@event, x => x.Timeslots);
+        var currentCount = await _registrationRepository.CountAsync(x => x.EventId == id && x.Status != RegistrationStatus.Cancelled);
         var totalCapacity = @event.Timeslots.Sum(x => x.Capacity);
         
         if (!@event.IsPublished || currentCount >= totalCapacity)
@@ -494,8 +536,34 @@ public class EventsAppService : AlumniAppService, IEventsAppService
              throw new UserFriendlyException("Event is not open for registration or has reached maximum capacity.");
         }
 
+        // 4. Payment Enforcement (Real-world wallet deduction)
+        decimal? paidAmount = null;
+        string? paymentMethod = null;
+
+        if (@event.HasFees && @event.FeeAmount > 0)
+        {
+            if (profile.WalletBalance < @event.FeeAmount)
+            {
+                throw new UserFriendlyException($"Insufficient wallet balance. This event requires {@event.FeeAmount} EGP, but your balance is only {profile.WalletBalance} EGP.");
+            }
+
+            profile.DeductWallet(@event.FeeAmount.Value);
+            await _profileRepository.UpdateAsync(profile);
+            
+            paidAmount = @event.FeeAmount;
+            paymentMethod = "Wallet";
+        }
+
+        // 5. Create Registration
         var ticketCode = GuidGenerator.Create().ToString("N").ToUpper();
-        var registration = new AlumniEventRegistration(GuidGenerator.Create(), alumniId, id, ticketCode);
+        var registration = new AlumniEventRegistration(
+            id: GuidGenerator.Create(), 
+            alumniId: alumniId, 
+            eventId: id, 
+            ticketCode: ticketCode,
+            paidAmount: paidAmount,
+            paymentMethod: paymentMethod
+        );
         
         await _registrationRepository.InsertAsync(registration);
         
@@ -507,29 +575,72 @@ public class EventsAppService : AlumniAppService, IEventsAppService
 
     public async Task<List<AlumniEventRegistrationDto>> GetMyRegistrationsAsync()
     {
-        var alumniId = CurrentUser.GetId();
-        var list = await _registrationRepository.GetListAsync(x => x.AlumniId == alumniId);
+        var alumniId = await GetCurrentAlumniProfileIdAsync();
         
-        // Bulk load Events
-        var eventIds = list.Select(x => x.EventId).Distinct().ToList();
+        // 1. Fetch Event Registrations
+        var eventRegistrations = await _registrationRepository.GetListAsync(x => x.AlumniId == alumniId);
+        var eventIds = eventRegistrations.Select(x => x.EventId).Distinct().ToList();
         var events = await _eventRepository.GetListAsync(x => eventIds.Contains(x.Id));
         var eventDict = events.ToDictionary(x => x.Id);
 
-        var dtos = list.Select(x => 
+        // 2. Fetch Career Workshop Subscriptions
+        var careerSubscriptions = await _careerSubscriptionRepository.GetListAsync(x => x.AlumniId == alumniId && x.PaymentStatus != CareerPaymentStatus.Cancelled);
+        var careerServiceIds = careerSubscriptions.Select(x => x.CareerServiceId).Distinct().ToList();
+        var careerServices = await _careerServiceRepository.GetListAsync(x => careerServiceIds.Contains(x.Id));
+        var careerDict = careerServices.ToDictionary(x => x.Id);
+
+        var allDtos = new List<AlumniEventRegistrationDto>();
+
+        // Map Events
+        foreach (var reg in eventRegistrations)
         {
-            var dto = _alumniMappers.MapToDto(x);
-             dto.QrCodeUrl = $"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={dto.TicketCode}";
+            var dto = _alumniMappers.MapToDto(reg);
+            dto.Type = RegistrationType.Event;
+            dto.QrCodeUrl = $"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={dto.TicketCode}";
             
-            if (eventDict.TryGetValue(x.EventId, out var evt))
+            if (eventDict.TryGetValue(reg.EventId, out var evt))
             {
-                dto.EventName = evt.NameEn; // Assuming DTO has EventName
-                dto.EventDate = evt.LastSubscriptionDate; // Or some date
+                dto.EventName = evt.NameEn;
+                dto.EventDate = evt.LastSubscriptionDate;
                 dto.Location = evt.Location;
             }
-            return dto;
-        }).ToList();
+            allDtos.Add(dto);
+        }
+
+        // Map Workshops
+        foreach (var sub in careerSubscriptions)
+        {
+            var dto = new AlumniEventRegistrationDto
+            {
+                Id = sub.Id,
+                AlumniId = sub.AlumniId,
+                EventId = sub.CareerServiceId, // Reuse EventId for ServiceId
+                TicketCode = sub.Id.ToString("N").ToUpper().Substring(0, 8), // Generate a short code for workshops if missing
+                Status = RegistrationStatus.Confirmed,
+                Type = RegistrationType.Workshop,
+                CreationTime = sub.RegistrationDate,
+                QrCodeUrl = $"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={sub.Id}"
+            };
+
+            if (careerDict.TryGetValue(sub.CareerServiceId, out var svc))
+            {
+                dto.EventName = svc.NameEn;
+                dto.EventDate = svc.LastSubscriptionDate;
+                dto.Location = svc.MapUrl; // Use map URL as location hint
+                
+                // Try to find timeslot info if needed, but for list view service info is enough
+                var timeslot = svc.Timeslots?.FirstOrDefault(t => t.Id == sub.TimeslotId);
+                if (timeslot != null)
+                {
+                    dto.LecturerName = timeslot.LecturerName;
+                    dto.Room = timeslot.Room;
+                    dto.Location = $"{timeslot.Room} - {timeslot.Address}";
+                }
+            }
+            allDtos.Add(dto);
+        }
         
-        return dtos;
+        return allDtos.OrderByDescending(x => x.CreationTime).ToList();
     }
 
     [Authorize(AlumniPermissions.Events.VerifyTicket)]
@@ -631,9 +742,9 @@ public class EventsAppService : AlumniAppService, IEventsAppService
     public async Task<IRemoteStreamContent> GetAgendaPdfAsync(Guid eventId)
     {
         var @event = await _eventRepository.GetAsync(eventId);
-        await _eventRepository.EnsureCollectionLoadedAsync(@event, x => x.AgendaItems);
+        await _eventRepository.EnsureCollectionLoadedAsync(@event, x => x.Agenda);
         
-        var sortedAgenda = @event.AgendaItems
+        var sortedAgenda = @event.Agenda
             .OrderBy(x => x.Date)
             .ThenBy(x => x.StartTime)
             .ToList();

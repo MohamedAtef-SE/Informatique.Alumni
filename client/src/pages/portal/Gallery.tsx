@@ -19,7 +19,7 @@ const Gallery = () => {
                     </button>
                 )}
                 <div>
-                    <h1 className="text-3xl font-heading font-bold text-[var(--color-text-primary)]">{selectedAlbumId ? t('gallery.album_photos') : t('gallery.title')}</h1>
+                    <h1 className="text-3xl font-heading font-bold text-[var(--color-text-primary)]">{t('gallery.title')}</h1>
                     <p className="text-[var(--color-text-secondary)] mt-1">{t('gallery.subtitle')}</p>
                 </div>
             </div>
@@ -61,6 +61,7 @@ const AlbumsList = ({ onSelect }: { onSelect: (id: string) => void }) => {
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
                             <div className="absolute bottom-0 left-0 w-full p-4 pt-12 transform group-hover:translate-y-[-4px] transition-transform">
                                 <h3 className="text-xl font-bold text-white mb-1 shadow-sm">{album.title}</h3>
+                                {album.description && <p className="text-white/60 text-xs line-clamp-1 mb-1">{album.description}</p>}
                                 <p className="text-sm text-white/80 font-medium">{album.photoCount} {t('gallery.photos_count')}</p>
                             </div>
                         </div>
@@ -78,15 +79,26 @@ const AlbumsList = ({ onSelect }: { onSelect: (id: string) => void }) => {
 
 const AlbumView = ({ albumId }: { albumId: string }) => {
     const { t } = useTranslation();
-    const { data: photos, isError } = useQuery({ queryKey: ['photos', albumId], queryFn: () => galleryService.getPhotos(albumId) });
+    const { data: albumData, isError } = useQuery({ queryKey: ['album-details', albumId], queryFn: () => galleryService.getPhotos(albumId) });
     const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-    const photoList = photos ?? [];
+    const photoList = albumData?.mediaItems ?? [];
 
     if (isError) return <p className="text-center py-20 text-[var(--color-error)]">{t('gallery.error_photos')}</p>;
 
     return (
-        <>
+        <div className="space-y-6">
+            {albumData && (
+                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 animate-in fade-in slide-in-from-top-4">
+                    <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">{albumData.title}</h2>
+                    {albumData.description ? (
+                        <p className="text-[var(--color-text-secondary)] mt-2 italic">"{albumData.description}"</p>
+                    ) : (
+                        <p className="text-[var(--color-text-muted)] mt-2 text-sm italic">No description available for this album.</p>
+                    )}
+                </div>
+            )}
+
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-slide-up">
                 {photoList.map((photo, index) => (
                     <motion.div
@@ -115,7 +127,7 @@ const AlbumView = ({ albumId }: { albumId: string }) => {
                     />
                 )}
             </AnimatePresence>
-        </>
+        </div>
     );
 };
 

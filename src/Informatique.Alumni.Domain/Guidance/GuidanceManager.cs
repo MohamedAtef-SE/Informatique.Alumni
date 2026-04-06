@@ -52,7 +52,7 @@ public class GuidanceManager : DomainService
         var hasConflict = await _requestRepository.AnyAsync(x => 
             x.AdvisorId == advisorId &&
             x.Status != AdvisingRequestStatus.Rejected &&
-            x.Status != AdvisingRequestStatus.Cancelled &&
+            x.Status != AdvisingRequestStatus.Canceled &&
             ((startTime >= x.StartTime && startTime < x.EndTime) || 
              (endTime > x.StartTime && endTime <= x.EndTime) ||
              (startTime <= x.StartTime && endTime >= x.EndTime)));

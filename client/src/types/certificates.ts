@@ -76,6 +76,19 @@ export interface CertificateDefinitionDto extends EntityDto<string> {
     isActive: boolean;
 }
 
+export interface CreateCertificateDefinitionDto {
+    nameAr: string;
+    nameEn: string;
+    fee: number;
+    degreeType: number;
+    description?: string;
+    requiredDocuments?: string;
+}
+
+export interface UpdateCertificateDefinitionDto extends CreateCertificateDefinitionDto {
+    isActive: boolean;
+}
+
 export interface CertificateAvailabilityDto {
     isEligible: boolean;
     ineligibilityReason?: string;

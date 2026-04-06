@@ -318,7 +318,7 @@ const SyndicatesManager = () => {
                                     <TableCell>
                                         <div className="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-300">
                                             <Truck className="w-3.5 h-3.5 text-slate-400" />
-                                            <span>{req.deliveryMethod === 0 ? 'Office Pickup' : req.deliveryMethod === 1 ? 'Delivery' : '—'}</span>
+                                            <span>{req.deliveryMethod === 1 ? 'Office Pickup' : req.deliveryMethod === 2 ? 'Delivery' : '—'}</span>
                                         </div>
                                     </TableCell>
                                     <TableCell>

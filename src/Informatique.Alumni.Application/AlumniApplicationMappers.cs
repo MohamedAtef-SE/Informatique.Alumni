@@ -12,7 +12,9 @@ using Informatique.Alumni.Guidance;
 using Informatique.Alumni.Benefits;
 using Informatique.Alumni.Career;
 using Informatique.Alumni.Syndicates;
+using Informatique.Alumni.Companies;
 using Informatique.Alumni.Events;
+
 using Informatique.Alumni.Payment;
 using Informatique.Alumni.Delivery;
 using Informatique.Alumni.Dashboard;
@@ -27,6 +29,12 @@ public partial class AlumniApplicationMappers : ITransientDependency
 {
     public partial BranchDto MapToDto(Branch branch);
     public partial List<BranchDto> MapToDtos(List<Branch> branches);
+
+    public partial Informatique.Alumni.Colleges.CollegeDto MapToDto(College entity);
+    public partial List<Informatique.Alumni.Colleges.CollegeDto> MapToDtos(IEnumerable<College> entities);
+
+    public partial Informatique.Alumni.Majors.MajorDto MapToDto(Major entity);
+    public partial List<Informatique.Alumni.Majors.MajorDto> MapToDtos(IEnumerable<Major> entities);
 
     public partial CertificateDefinitionDto MapToDto(CertificateDefinition entity);
     public partial List<CertificateDefinitionDto> MapToDtos(IEnumerable<CertificateDefinition> entities);
@@ -54,7 +62,7 @@ public partial class AlumniApplicationMappers : ITransientDependency
     public partial AssociationRequestDto MapToDto(AssociationRequest entity);
     public partial List<AssociationRequestDto> MapToDtos(IEnumerable<AssociationRequest> entities);
 
-    public partial AlumniProfileDto MapToDto(AlumniProfile entity);
+    public partial AlumniMyProfileDto MapToDto(AlumniProfile entity);
     public partial ExperienceDto MapToDto(Experience entity);
     public partial EducationDto MapToDto(Education entity);
 
@@ -73,9 +81,14 @@ public partial class AlumniApplicationMappers : ITransientDependency
     public partial GalleryAlbumDto MapToDto(GalleryAlbum entity);
     public partial List<GalleryAlbumDto> MapToDtos(IEnumerable<GalleryAlbum> entities);
 
+    [MapProperty($"{nameof(MedicalPartner.MedicalCategory)}.{nameof(MedicalCategory.NameEn)}", nameof(MedicalPartnerDto.MedicalCategoryName))]
+    [MapProperty($"{nameof(MedicalPartner.MedicalCategory)}.{nameof(MedicalCategory.BaseType)}", nameof(MedicalPartnerDto.MedicalCategoryBaseType))]
     public partial MedicalPartnerDto MapToDto(MedicalPartner entity);
     public partial List<MedicalPartnerDto> MapToDtos(IEnumerable<MedicalPartner> entities);
     public partial MedicalOfferDto MapToDto(MedicalOffer entity);
+    
+    public partial MedicalCategoryDto MapToDto(MedicalCategory entity);
+    public partial List<MedicalCategoryDto> MapToDtos(IEnumerable<MedicalCategory> entities);
     
     public partial void MapToEntity(CreateUpdateMedicalPartnerDto dto, MedicalPartner entity);
     public partial void MapToEntity(CreateUpdateMedicalOfferDto dto, MedicalOffer entity);
@@ -93,11 +106,17 @@ public partial class AlumniApplicationMappers : ITransientDependency
     public partial PostCommentDto MapToDto(PostComment entity);
     public partial List<PostCommentDto> MapToDtos(IEnumerable<PostComment> entities);
 
+    public partial ArticleCategoryDto MapToDto(ArticleCategory entity);
+    public partial List<ArticleCategoryDto> MapToDtos(IEnumerable<ArticleCategory> entities);
+
     public partial AdvisingRequestDto MapToDto(AdvisingRequest entity);
     public partial List<AdvisingRequestDto> MapToDtos(IEnumerable<AdvisingRequest> entities);
 
     public partial GuidanceSessionRuleDto MapToDto(GuidanceSessionRule entity);
     public partial List<GuidanceSessionRuleDto> MapToDtos(IEnumerable<GuidanceSessionRule> entities);
+
+    public partial AdvisoryCategoryDto MapToDto(AdvisoryCategory entity);
+    public partial List<AdvisoryCategoryDto> MapToDtos(IEnumerable<AdvisoryCategory> entities);
 
 
 
@@ -138,6 +157,9 @@ public partial class AlumniApplicationMappers : ITransientDependency
     public partial SyndicateDto MapToDto(Syndicate entity);
     public partial List<SyndicateDto> MapToDtos(IEnumerable<Syndicate> entities);
     
+    [MapperIgnoreTarget(nameof(SyndicateSubscriptionDto.AlumniName))]
+    [MapperIgnoreTarget(nameof(SyndicateSubscriptionDto.AlumniNationalId))]
+    [MapperIgnoreTarget(nameof(SyndicateSubscriptionDto.AlumniMobileNumber))]
     public partial SyndicateSubscriptionDto MapToDto(SyndicateSubscription entity);
     public partial List<SyndicateSubscriptionDto> MapToDtos(IEnumerable<SyndicateSubscription> entities);
     

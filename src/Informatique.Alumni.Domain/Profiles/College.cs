@@ -23,5 +23,13 @@ public class College : FullAuditedAggregateRoot<Guid>
         BranchId = branchId;
         ExternalId = externalId;
         Name = Check.NotNullOrWhiteSpace(name, nameof(name), 128);
+        Departments = new System.Collections.Generic.List<Informatique.Alumni.Organization.Department>();
+    }
+    
+    public void Update(string name, Guid? branchId, string? externalId)
+    {
+        Name = Check.NotNullOrWhiteSpace(name, nameof(name), 128);
+        BranchId = branchId;
+        ExternalId = externalId;
     }
 }

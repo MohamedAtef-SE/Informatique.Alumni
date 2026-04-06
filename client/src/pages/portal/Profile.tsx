@@ -1,18 +1,28 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { alumniService } from '../../services/alumniService';
 import { careerService } from '../../services/careerService';
-import { Mail, Phone, MapPin, Globe, Calendar, GraduationCap, Briefcase } from 'lucide-react';
+import { 
+    Calendar, GraduationCap, 
+    Briefcase, ShieldCheck, Edit2, Plus, 
+    Sparkles, Building2, BookOpen
+} from 'lucide-react';
 import ProfileHeader from '../../components/Profile/ProfileHeader';
-import ProfileTabs from '../../components/Profile/ProfileTabs';
+import ProfileDashboard from '../../components/Profile/ProfileDashboard';
+import ProfileCompletion from '../../components/Profile/ProfileCompletion';
+import ProfileFeatured from '../../components/Profile/ProfileFeatured';
+import ProfileSkills from '../../components/Profile/ProfileSkills';
 import EditProfileModal from '../../components/Profile/EditProfileModal';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
+import { Card, CardContent } from '../../components/ui/Card';
+import { BecomeAdvisorModal } from '../../components/Profile/BecomeAdvisorModal';
+import { AdvisoryStatus } from '../../types/admin';
+import { Button } from '../../components/ui/Button';
+import LoadingLayer from '../../components/common/LoadingLayer';
+import { cn } from '../../utils/cn';
 
 const Profile = () => {
-    const { t } = useTranslation();
-    const [activeTab, setActiveTab] = useState('about');
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isAdvisorModalOpen, setIsAdvisorModalOpen] = useState(false);
 
     const { data: profile, isLoading } = useQuery({
         queryKey: ['my-profile'],
@@ -24,219 +34,184 @@ const Profile = () => {
         queryFn: () => careerService.getMyCv(),
     });
 
-    if (isLoading) {
-        return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
-    }
-
+    if (isLoading) return <LoadingLayer />;
     if (!profile) return null;
 
     return (
-        <div className="min-h-screen bg-slate-50 pb-20">
-            {/* Header */}
-            <ProfileHeader
-                profile={profile}
-                onEdit={() => setIsEditModalOpen(true)}
-                isOwnProfile={true}
-            />
+        <div className="min-h-screen bg-[#f3f2ef] pb-20 font-sans">
+            <div className="max-w-6xl mx-auto px-4 md:px-12 pt-8">
+                {/* Standard Profile Header (Shared component) */}
+                <ProfileHeader
+                    profile={profile}
+                    onEdit={() => setIsEditModalOpen(true)}
+                    isOwnProfile={true}
+                />
 
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Tabs */}
-                <ProfileTabs activeTab={activeTab} onTabChange={setActiveTab} />
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    
+                    {/* Main Content Column (LinkedIn style) */}
+                    <div className="lg:col-span-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                        
+                        {/* Analytics Dashboard (Private) */}
+                        <ProfileDashboard viewCount={profile.viewCount || 0} />
 
-                {/* Tab Content */}
-                <div className="animate-fade-in">
-                    {activeTab === 'about' && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            <div className="md:col-span-2 space-y-6">
-                                {/* Bio */}
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>{t('profile.about')}</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">
-                                            {profile.bio || t('profile.no_bio')}
-                                        </p>
-                                    </CardContent>
-                                </Card>
+                        {/* About Section */}
+                        <Card className="border-slate-200 border shadow-sm">
+                            <CardContent className="p-8">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h3 className="text-2xl font-heading font-black text-slate-900 tracking-tight flex items-center gap-3">
+                                        About
+                                    </h3>
+                                    <Button variant="ghost" size="icon" className="rounded-full text-slate-400 hover:text-blue-600 hover:bg-blue-50">
+                                        <Edit2 className="w-5 h-5" />
+                                    </Button>
+                                </div>
+                                <p className="text-slate-600 leading-relaxed whitespace-pre-wrap text-[15px]">
+                                    {profile.bio || "You haven't added a bio yet. Summarize your professional background and aspirations to attract more opportunities."}
+                                </p>
+                            </CardContent>
+                        </Card>
 
-                                {/* Professional Info */}
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>{t('my_profile.sections.professional')}</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-4">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="text-sm font-medium text-slate-500">{t('my_profile.form.job_title')}</label>
-                                                <p className="text-slate-900 font-medium">{profile.jobTitle || '-'}</p>
-                                            </div>
-                                            <div>
-                                                <label className="text-sm font-medium text-slate-500">{t('my_profile.form.company')}</label>
-                                                <p className="text-slate-900 font-medium">{profile.company || '-'}</p>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
+                        {/* Featured Items */}
+                        <ProfileFeatured />
 
-                            <div className="space-y-6">
-                                {/* Contact Info */}
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>{t('profile.contact')}</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-4">
-                                        {/* Emails */}
-                                        <div className="space-y-2">
-                                            <h4 className="text-sm font-medium text-slate-900 flex items-center gap-2">
-                                                <Mail className="w-4 h-4 text-slate-400" /> {t('my_profile.form.emails')}
-                                            </h4>
-                                            {profile.emails && profile.emails.length > 0 ? (
-                                                <ul className="space-y-1">
-                                                    {profile.emails.map((email: any) => (
-                                                        <li key={email.id} className="text-sm text-slate-600 flex justify-between">
-                                                            <span>{email.email}</span>
-                                                            {email.isPrimary && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Primary</span>}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            ) : (
-                                                <p className="text-sm text-slate-400 italic">No emails listed</p>
-                                            )}
-                                        </div>
+                        {/* Experience Section */}
+                        <Card className="border-slate-200 border shadow-sm overflow-hidden">
+                            <CardContent className="p-8">
+                                <div className="flex items-center justify-between mb-8">
+                                    <h3 className="text-2xl font-heading font-black text-slate-900 tracking-tight flex items-center gap-3">
+                                        Experience
+                                    </h3>
+                                    <div className="flex gap-2">
+                                        <Button variant="ghost" size="icon" className="rounded-full text-slate-400 hover:text-blue-600 hover:bg-blue-50">
+                                            <Plus className="w-6 h-6" />
+                                        </Button>
+                                        <Button variant="ghost" size="icon" className="rounded-full text-slate-400 hover:text-blue-600 hover:bg-blue-50">
+                                            <Edit2 className="w-5 h-5" />
+                                        </Button>
+                                    </div>
+                                </div>
 
-                                        {/* Mobiles */}
-                                        <div className="space-y-2 border-t pt-3">
-                                            <h4 className="text-sm font-medium text-slate-900 flex items-center gap-2">
-                                                <Phone className="w-4 h-4 text-slate-400" /> {t('my_profile.form.mobiles')}
-                                            </h4>
-                                            {profile.mobiles && profile.mobiles.length > 0 ? (
-                                                <ul className="space-y-1">
-                                                    {profile.mobiles.map((mobile: any) => (
-                                                        <li key={mobile.id} className="text-sm text-slate-600 flex justify-between">
-                                                            <span>{mobile.mobileNumber}</span>
-                                                            {mobile.isPrimary && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Primary</span>}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            ) : (
-                                                <p className="text-sm text-slate-400 italic">No mobile numbers</p>
-                                            )}
-                                        </div>
-
-                                        {/* Socials */}
-                                        <div className="space-y-2 border-t pt-3">
-                                            <h4 className="text-sm font-medium text-slate-900 flex items-center gap-2">
-                                                <Globe className="w-4 h-4 text-slate-400" /> Socials
-                                            </h4>
-                                            <div className="flex gap-3">
-                                                {profile.linkedinUrl && (
-                                                    <a href={profile.linkedinUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:text-blue-700 text-sm font-medium">LinkedIn</a>
-                                                )}
-                                                {profile.facebookUrl && (
-                                                    <a href={profile.facebookUrl} target="_blank" rel="noreferrer" className="text-blue-800 hover:text-blue-900 text-sm font-medium">Facebook</a>
-                                                )}
-                                                {!profile.linkedinUrl && !profile.facebookUrl && <span className="text-sm text-slate-400 italic">None linked</span>}
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-
-                                {/* Location */}
-                                <Card>
-                                    <CardContent className="pt-6">
-                                        <div className="flex items-start gap-3">
-                                            <MapPin className="w-5 h-5 text-slate-400 mt-0.5" />
-                                            <div>
-                                                <h4 className="text-sm font-medium text-slate-900">Location</h4>
-                                                <p className="text-sm text-slate-600 mt-1">
-                                                    {[profile.address, profile.city, profile.country].filter(Boolean).join(', ') || 'Not specified'}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
-                        </div>
-                    )}
-
-                    {activeTab === 'education' && (
-                        <div className="space-y-6">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Academic History</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    {profile.academicHistory && profile.academicHistory.length > 0 ? (
-                                        <div className="space-y-8 relative before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
-                                            {profile.academicHistory.map((edu: any, idx: number) => (
-                                                <div key={idx} className="relative pl-8">
-                                                    <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-white border-4 border-blue-600"></div>
-                                                    <h4 className="text-lg font-bold text-slate-900">{edu.degreeName}{edu.major ? ` in ${edu.major}` : ''}</h4>
-                                                    <p className="text-blue-600 font-medium">{edu.college}</p>
-                                                    <div className="flex items-center gap-4 mt-2 text-sm text-slate-500">
-                                                        <span className="flex items-center gap-1">
-                                                            <Calendar className="w-4 h-4" /> Class of {edu.graduationYear}
-                                                        </span>
-                                                        {edu.cumulativeGPA && (
-                                                            <span className="flex items-center gap-1">
-                                                                <GraduationCap className="w-4 h-4" /> GPA: {edu.cumulativeGPA}
-                                                            </span>
-                                                        )}
-                                                    </div>
+                                {cvData?.experiences && cvData.experiences.length > 0 ? (
+                                    <div className="space-y-10">
+                                        {cvData.experiences.map((exp: any) => (
+                                            <div key={exp.id} className="flex gap-4 group">
+                                                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all self-start">
+                                                    <Briefcase className="w-6 h-6" />
                                                 </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <p className="text-slate-500 italic">No academic history found.</p>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </div>
-                    )}
-
-                    {activeTab === 'experience' && (
-                        <div className="space-y-6">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
-                                        <Briefcase className="w-5 h-5" /> Work Experience
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    {cvData?.experiences && cvData.experiences.length > 0 ? (
-                                        <div className="space-y-8 relative before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
-                                            {cvData.experiences.map((exp: any) => (
-                                                <div key={exp.id} className="relative pl-8">
-                                                    <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-white border-4 border-green-600"></div>
-                                                    <h4 className="text-lg font-bold text-slate-900">{exp.position}</h4>
-                                                    <p className="text-green-600 font-medium">{exp.company}</p>
-                                                    <div className="flex items-center gap-4 mt-2 text-sm text-slate-500">
-                                                        <span className="flex items-center gap-1">
-                                                            <Calendar className="w-4 h-4" />
-                                                            {new Date(exp.startDate).toLocaleDateString('en', { month: 'short', year: 'numeric' })}
-                                                            {' - '}
-                                                            {exp.endDate ? new Date(exp.endDate).toLocaleDateString('en', { month: 'short', year: 'numeric' }) : 'Present'}
-                                                        </span>
+                                                <div className="flex-1 space-y-1 pb-8 border-b last:border-0 border-slate-100">
+                                                    <h4 className="text-lg font-bold text-slate-900 leading-snug">{exp.position}</h4>
+                                                    <p className="text-blue-600 font-bold text-sm tracking-wide uppercase">{exp.company}</p>
+                                                    <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
+                                                        <Calendar className="w-3 h-3" />
+                                                        {new Date(exp.startDate).toLocaleDateString('en', { month: 'short', year: 'numeric' })}
+                                                        {' - '}
+                                                        {exp.endDate ? new Date(exp.endDate).toLocaleDateString('en', { month: 'short', year: 'numeric' }) : 'Present'}
                                                     </div>
                                                     {exp.description && (
-                                                        <p className="mt-2 text-slate-600 text-sm">{exp.description}</p>
+                                                        <p className="mt-4 text-slate-500 text-sm leading-relaxed max-w-2xl">{exp.description}</p>
                                                     )}
                                                 </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="text-center py-8 text-slate-500">
-                                            <Briefcase className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-                                            <p>No work experience added yet.</p>
-                                            <p className="mt-2 text-sm">Add your experience in the <a href="/portal/my-cv" className="text-blue-600 hover:underline">My CV</a> section.</p>
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </div>
-                    )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-12 rounded-3xl border-2 border-dashed border-slate-100 bg-slate-50/50">
+                                        <p className="text-slate-400 font-medium">No experience shown on your profile yet.</p>
+                                        <Button variant="ghost" className="mt-4 text-blue-600 gap-2 font-bold uppercase tracking-widest text-xs">
+                                            <Plus className="w-4 h-4" /> Add Experience
+                                        </Button>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {/* Education Section */}
+                        <Card className="border-slate-200 border shadow-sm">
+                            <CardContent className="p-8">
+                                <div className="flex items-center justify-between mb-8">
+                                    <h3 className="text-2xl font-heading font-black text-slate-900 tracking-tight flex items-center gap-3">
+                                        Education
+                                    </h3>
+                                    <Button variant="ghost" size="icon" className="rounded-full text-slate-400 hover:text-blue-600 hover:bg-blue-50">
+                                        <Edit2 className="w-5 h-5" />
+                                    </Button>
+                                </div>
+
+                                {profile.academicHistory && profile.academicHistory.length > 0 ? (
+                                    <div className="space-y-10">
+                                        {profile.academicHistory.map((edu: any) => (
+                                            <div key={edu.id || Math.random()} className="flex gap-4 group">
+                                                <div className="p-3 bg-blue-50 rounded-xl border border-blue-100 text-blue-600 self-start">
+                                                    <Building2 className="w-6 h-6" />
+                                                </div>
+                                                <div className="flex-1 space-y-1 pb-8 border-b last:border-0 border-slate-100">
+                                                    <h4 className="text-lg font-bold text-slate-900 leading-snug">{edu.college}</h4>
+                                                    <p className="text-slate-600 font-bold text-sm">{edu.degreeName}{edu.major ? ` in ${edu.major}` : ''}</p>
+                                                    <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
+                                                        <GraduationCap className="w-3 h-3 text-blue-400" />
+                                                        Class of {edu.graduationYear}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-slate-400 italic">No academic foundation listed.</p>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {/* Skills Section */}
+                        <ProfileSkills />
+                    </div>
+
+                    {/* Sidebar Column */}
+                    <div className="lg:col-span-4 space-y-8">
+                        
+                        {/* Profile Strength Meter */}
+                        <ProfileCompletion profile={profile} />
+
+                        {/* Advisory Status Card */}
+                        <Card className={cn(
+                            "overflow-hidden border-none shadow-xl transition-all duration-500",
+                            profile.advisoryStatus === AdvisoryStatus.Approved ? "bg-gradient-to-br from-indigo-700 to-slate-900 text-white" : "bg-white border border-slate-200"
+                        )}>
+                            <CardContent className="p-8">
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div className={cn(
+                                        "p-3 rounded-2xl shadow-inner",
+                                        profile.advisoryStatus === AdvisoryStatus.Approved ? "bg-white/10" : "bg-indigo-50 text-indigo-600"
+                                    )}>
+                                        <ShieldCheck className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-black text-lg">Mentorship</h4>
+                                        <p className={cn(
+                                            "text-xs font-black uppercase tracking-[0.2em] opacity-60",
+                                            profile.advisoryStatus === AdvisoryStatus.Approved ? "text-indigo-100" : "text-slate-400"
+                                        )}>
+                                            Elite Advisors
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {profile.advisoryStatus === AdvisoryStatus.None && (
+                                    <div className="space-y-6">
+                                        <p className="text-sm text-slate-600 leading-relaxed font-medium">
+                                            Become a certified advisor and help shape the next generation of graduates.
+                                        </p>
+                                        <Button 
+                                            className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-600/20 font-bold uppercase tracking-widest text-[10px]"
+                                            onClick={() => setIsAdvisorModalOpen(true)}
+                                        >
+                                            Apply for Advisory
+                                        </Button>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
             </div>
 
@@ -244,6 +219,11 @@ const Profile = () => {
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}
                 profile={profile}
+            />
+
+            <BecomeAdvisorModal
+                isOpen={isAdvisorModalOpen}
+                onClose={() => setIsAdvisorModalOpen(false)}
             />
         </div>
     );

@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Domain.Repositories;
@@ -25,7 +26,7 @@ public class AdvisingManager : DomainService
     }
 
     public async Task<AdvisingRequest> CreateRequestAsync(
-        Guid userId,
+        Guid alumniId,
         Guid? branchId,
         Guid advisorId,
         DateTime selectedDate, 
@@ -34,45 +35,41 @@ public class AdvisingManager : DomainService
         string? description)
     {
         // 1. Get Alumni Profile
-        var alumni = await _alumniRepository.GetAsync(x => x.UserId == userId);
+        var alumni = await _alumniRepository.GetAsync(alumniId);
         if (alumni == null)
         {
-             // Fallback for demo or strict check
              throw new UserFriendlyException("Alumni profile not found.");
         }
 
         var targetBranchId = branchId ?? alumni.BranchId;
 
-        // 2. Load Branch Rules
-        var rules = await _ruleRepository.GetListAsync(x => x.BranchId == targetBranchId);
-        var rule = rules.FirstOrDefault(); // Assuming one rule per branch for simplicity, or select best match
+        // 2. Load Branch Rules with Fallback
+        var rules = await _ruleRepository.WithDetailsAsync(x => x.WeekDays);
+        var rule = rules.FirstOrDefault(x => x.BranchId == targetBranchId);
 
-        if (rule == null)
-        {
-            throw new UserFriendlyException("No advising rules defined for this branch. Cannot book session.");
-        }
+        var startTime = rule?.StartTime ?? new TimeSpan(9, 0, 0);
+        var endTime = rule?.EndTime ?? new TimeSpan(17, 0, 0);
+        var duration = rule?.SessionDurationMinutes ?? 30;
+        var validWorkDays = rule?.WeekDays?.Select(x => x.Day).ToList() ?? new List<DayOfWeek> { 
+            DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, 
+            DayOfWeek.Thursday, DayOfWeek.Friday 
+        };
 
         // 3. Calculate Timings
-        // Use the Rule's duration
-        var sessionDuration = rule.SessionDurationMinutes;
         var startDateTime = selectedDate.Date.Add(requestedStartTime);
-        var endDateTime = startDateTime.AddMinutes(sessionDuration);
+        var endDateTime = startDateTime.AddMinutes(duration);
 
         // 4. Validate Rules
         // 4.1 Time Window Check
-        if (requestedStartTime < rule.StartTime || endDateTime.TimeOfDay > rule.EndTime)
+        if (requestedStartTime < startTime || endDateTime.TimeOfDay > endTime)
         {
-             throw new UserFriendlyException($"Selected time is outside the allowed advising hours ({rule.StartTime} - {rule.EndTime}).");
+             throw new UserFriendlyException($@"Selected time is outside the allowed advising hours ({startTime:hh\:mm} - {endTime:hh\:mm}).");
         }
 
         // 4.2 Valid Day Check
-        // Need to check if rule.WeekDays contains the selected day
-        if (rule.WeekDays != null && rule.WeekDays.Any())
+        if (!validWorkDays.Contains(selectedDate.DayOfWeek))
         {
-            if (!rule.WeekDays.Any(x => x.Day == selectedDate.DayOfWeek))
-            {
-                 throw new UserFriendlyException($"Advising sessions are not available on {selectedDate.DayOfWeek}.");
-            }
+             throw new UserFriendlyException($"Advising sessions are not available on {selectedDate.DayOfWeek}.");
         }
         
         // 5. Daily Limit Logic (Max 1 per day)
@@ -83,7 +80,7 @@ public class AdvisingManager : DomainService
             x.AlumniId == alumni.Id && 
             x.StartTime >= dayStart && x.StartTime <= dayEnd &&
             x.Status != AdvisingRequestStatus.Rejected &&
-            x.Status != AdvisingRequestStatus.Cancelled);
+            x.Status != AdvisingRequestStatus.Canceled);
 
         if (hasExistingRequest)
         {
@@ -91,15 +88,14 @@ public class AdvisingManager : DomainService
         }
 
         // 6. Slot Availability (Conflict Check)
-        // Check for overlap [Start, End]
         var isSlotTaken = await _requestRepository.AnyAsync(x => 
             x.BranchId == targetBranchId &&
-            x.AdvisorId == advisorId && // Assuming conflict is per Advisor
+            x.AdvisorId == advisorId && 
             x.Status != AdvisingRequestStatus.Rejected &&
-            x.Status != AdvisingRequestStatus.Cancelled &&
-            ((x.StartTime <= startDateTime && x.EndTime > startDateTime) || // Starts during existing
-             (x.StartTime < endDateTime && x.EndTime >= endDateTime) || // Ends during existing
-             (x.StartTime >= startDateTime && x.EndTime <= endDateTime)) // Enclosed
+            x.Status != AdvisingRequestStatus.Canceled &&
+            ((x.StartTime <= startDateTime && x.EndTime > startDateTime) || 
+             (x.StartTime < endDateTime && x.EndTime >= endDateTime) || 
+             (x.StartTime >= startDateTime && x.EndTime <= endDateTime))
         );
 
         if (isSlotTaken)

@@ -99,7 +99,8 @@ public class TripAppService : AlumniAppService, ITripAppService
 
         var price = trip.PricePerPerson ?? 0;
         var totalAmount = totalRequestedParticipants * price;
-        var Request = new TripRequest(GuidGenerator.Create(), tripId, CurrentUser.Id ?? throw new UnauthorizedAccessException(), guestCount, totalAmount);
+        var alumniId = await GetCurrentAlumniProfileIdAsync();
+        var Request = new TripRequest(GuidGenerator.Create(), tripId, alumniId, guestCount, totalAmount);
         
         await _requestRepository.InsertAsync(Request);
     }

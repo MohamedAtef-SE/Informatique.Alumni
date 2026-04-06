@@ -1,0 +1,323 @@
+Using launch settings from D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Properties\launchSettings.json...
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-5rpf-x9jg-8j5p [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1903: Package 'AutoMapper' 14.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-5rpf-x9jg-8j5p [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\Informatique.Alumni.HttpApi.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-5rpf-x9jg-8j5p [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\Informatique.Alumni.HttpApi.csproj : warning NU1904: Package 'Scriban' 6.3.0 has a known critical severity vulnerability, https://github.com/advisories/GHSA-5wr9-m6jw-xx44 [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj : warning NU1904: Package 'Scriban' 6.3.0 has a known critical severity vulnerability, https://github.com/advisories/GHSA-5wr9-m6jw-xx44 [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1902: Package 'HtmlSanitizer' 9.0.889 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-j92c-7v7g-gj3f [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\Informatique.Alumni.HttpApi.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-c875-h985-hvrc [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1903: Package 'AutoMapper' 14.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-c875-h985-hvrc [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-5rpf-x9jg-8j5p [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\Informatique.Alumni.HttpApi.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-grr9-747v-xvcp [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj : warning NU1904: Package 'Scriban' 6.3.0 has a known critical severity vulnerability, https://github.com/advisories/GHSA-5wr9-m6jw-xx44 [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-grr9-747v-xvcp [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1904: Package 'Scriban' 6.3.0 has a known critical severity vulnerability, https://github.com/advisories/GHSA-5wr9-m6jw-xx44 [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\Informatique.Alumni.HttpApi.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-m2p3-hwv5-xpqw [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-c875-h985-hvrc [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-m2p3-hwv5-xpqw [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-c875-h985-hvrc [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-grr9-747v-xvcp [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-p6q4-fgr8-vx4p [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\Informatique.Alumni.HttpApi.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-p6q4-fgr8-vx4p [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-m2p3-hwv5-xpqw [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1902: Package 'HtmlSanitizer' 9.0.889 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-j92c-7v7g-gj3f
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-grr9-747v-xvcp [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\Informatique.Alumni.HttpApi.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-v66j-x4hw-fv9g [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-v66j-x4hw-fv9g [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-p6q4-fgr8-vx4p [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\Informatique.Alumni.HttpApi.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-wgh7-7m3c-fx25 [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-5rpf-x9jg-8j5p
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-m2p3-hwv5-xpqw [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-wgh7-7m3c-fx25 [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-v66j-x4hw-fv9g [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-p6q4-fgr8-vx4p [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-wgh7-7m3c-fx25 [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-x6m9-38vm-2xhf [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-xcx6-vp38-8hr5 [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\Informatique.Alumni.HttpApi.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-x6m9-38vm-2xhf [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-v66j-x4hw-fv9g [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-xw6w-9jjh-p9cr [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-wgh7-7m3c-fx25 [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-x6m9-38vm-2xhf [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\Informatique.Alumni.HttpApi.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-xcx6-vp38-8hr5 [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-xcx6-vp38-8hr5 [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\Informatique.Alumni.HttpApi.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-xw6w-9jjh-p9cr [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-xw6w-9jjh-p9cr [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1904: Package 'Scriban' 6.3.0 has a known critical severity vulnerability, https://github.com/advisories/GHSA-5wr9-m6jw-xx44
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-c875-h985-hvrc
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-grr9-747v-xvcp
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-x6m9-38vm-2xhf [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-m2p3-hwv5-xpqw
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-p6q4-fgr8-vx4p
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-v66j-x4hw-fv9g
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-wgh7-7m3c-fx25
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-xcx6-vp38-8hr5 [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-x6m9-38vm-2xhf
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-xw6w-9jjh-p9cr [D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj]
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-xcx6-vp38-8hr5
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-xw6w-9jjh-p9cr
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1903: Package 'AutoMapper' 14.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1902: Package 'HtmlSanitizer' 9.0.889 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-j92c-7v7g-gj3f
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-5rpf-x9jg-8j5p
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1904: Package 'Scriban' 6.3.0 has a known critical severity vulnerability, https://github.com/advisories/GHSA-5wr9-m6jw-xx44
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-c875-h985-hvrc
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-grr9-747v-xvcp
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-m2p3-hwv5-xpqw
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-p6q4-fgr8-vx4p
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-v66j-x4hw-fv9g
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-wgh7-7m3c-fx25
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-x6m9-38vm-2xhf
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-xcx6-vp38-8hr5
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Informatique.Alumni.HttpApi.Host.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-xw6w-9jjh-p9cr
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\Informatique.Alumni.HttpApi.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-5rpf-x9jg-8j5p
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\Informatique.Alumni.HttpApi.csproj : warning NU1904: Package 'Scriban' 6.3.0 has a known critical severity vulnerability, https://github.com/advisories/GHSA-5wr9-m6jw-xx44
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\Informatique.Alumni.HttpApi.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-c875-h985-hvrc
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\Informatique.Alumni.HttpApi.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-grr9-747v-xvcp
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\Informatique.Alumni.HttpApi.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-m2p3-hwv5-xpqw
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\Informatique.Alumni.HttpApi.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-p6q4-fgr8-vx4p
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\Informatique.Alumni.HttpApi.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-v66j-x4hw-fv9g
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\Informatique.Alumni.HttpApi.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-wgh7-7m3c-fx25
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\Informatique.Alumni.HttpApi.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-x6m9-38vm-2xhf
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\Informatique.Alumni.HttpApi.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-xcx6-vp38-8hr5
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi\Informatique.Alumni.HttpApi.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-xw6w-9jjh-p9cr
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-5rpf-x9jg-8j5p
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj : warning NU1904: Package 'Scriban' 6.3.0 has a known critical severity vulnerability, https://github.com/advisories/GHSA-5wr9-m6jw-xx44
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-c875-h985-hvrc
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-grr9-747v-xvcp
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-m2p3-hwv5-xpqw
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-p6q4-fgr8-vx4p
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-v66j-x4hw-fv9g
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-wgh7-7m3c-fx25
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-x6m9-38vm-2xhf
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-xcx6-vp38-8hr5
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.EntityFrameworkCore\Informatique.Alumni.EntityFrameworkCore.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-xw6w-9jjh-p9cr
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1903: Package 'AutoMapper' 14.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1902: Package 'HtmlSanitizer' 9.0.889 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-j92c-7v7g-gj3f
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-5rpf-x9jg-8j5p
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1904: Package 'Scriban' 6.3.0 has a known critical severity vulnerability, https://github.com/advisories/GHSA-5wr9-m6jw-xx44
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-c875-h985-hvrc
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-grr9-747v-xvcp
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-m2p3-hwv5-xpqw
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-p6q4-fgr8-vx4p
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-v66j-x4hw-fv9g
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-wgh7-7m3c-fx25
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-x6m9-38vm-2xhf
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-xcx6-vp38-8hr5
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Application\Informatique.Alumni.Application.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-xw6w-9jjh-p9cr
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-5rpf-x9jg-8j5p
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj : warning NU1904: Package 'Scriban' 6.3.0 has a known critical severity vulnerability, https://github.com/advisories/GHSA-5wr9-m6jw-xx44
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-c875-h985-hvrc
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-grr9-747v-xvcp
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-m2p3-hwv5-xpqw
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-p6q4-fgr8-vx4p
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-v66j-x4hw-fv9g
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-wgh7-7m3c-fx25
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-x6m9-38vm-2xhf
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj : warning NU1903: Package 'Scriban' 6.3.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-xcx6-vp38-8hr5
+D:\Projects\Informatique.Alumni\src\Informatique.Alumni.Domain\Informatique.Alumni.Domain.csproj : warning NU1902: Package 'Scriban' 6.3.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-xw6w-9jjh-p9cr
+[14:16:22 INF] Starting Informatique.Alumni.HttpApi.Host.
+[14:16:25 DBG] Loaded ABP modules:
+[14:16:25 DBG] - Informatique.Alumni.AlumniHttpApiHostModule
+[14:16:25 DBG]   - Informatique.Alumni.AlumniHttpApiModule
+[14:16:25 DBG]     - Informatique.Alumni.AlumniApplicationContractsModule
+[14:16:25 DBG]       - Informatique.Alumni.AlumniDomainSharedModule
+[14:16:25 DBG]         - Volo.Abp.AuditLogging.AbpAuditLoggingDomainSharedModule
+[14:16:25 DBG]           - Volo.Abp.Validation.AbpValidationModule
+[14:16:25 DBG]             - Volo.Abp.Validation.AbpValidationAbstractionsModule
+[14:16:25 DBG]             - Volo.Abp.Localization.AbpLocalizationModule
+[14:16:25 DBG]               - Volo.Abp.VirtualFileSystem.AbpVirtualFileSystemModule
+[14:16:25 DBG]               - Volo.Abp.Settings.AbpSettingsModule
+[14:16:25 DBG]                 - Volo.Abp.Localization.AbpLocalizationAbstractionsModule
+[14:16:25 DBG]                 - Volo.Abp.Security.AbpSecurityModule
+[14:16:25 DBG]                 - Volo.Abp.Data.AbpDataModule
+[14:16:25 DBG]                   - Volo.Abp.ObjectExtending.AbpObjectExtendingModule
+[14:16:25 DBG]                   - Volo.Abp.Uow.AbpUnitOfWorkModule
+[14:16:25 DBG]                   - Volo.Abp.EventBus.Abstractions.AbpEventBusAbstractionsModule
+[14:16:25 DBG]               - Volo.Abp.Threading.AbpThreadingModule
+[14:16:25 DBG]         - Volo.Abp.BackgroundJobs.AbpBackgroundJobsDomainSharedModule
+[14:16:25 DBG]         - Volo.Abp.FeatureManagement.AbpFeatureManagementDomainSharedModule
+[14:16:25 DBG]           - Volo.Abp.Json.SystemTextJson.AbpJsonSystemTextJsonModule
+[14:16:25 DBG]             - Volo.Abp.Json.AbpJsonAbstractionsModule
+[14:16:25 DBG]             - Volo.Abp.Timing.AbpTimingModule
+[14:16:25 DBG]         - Volo.Abp.PermissionManagement.AbpPermissionManagementDomainSharedModule
+[14:16:25 DBG]         - Volo.Abp.SettingManagement.AbpSettingManagementDomainSharedModule
+[14:16:25 DBG]           - Volo.Abp.Features.AbpFeaturesModule
+[14:16:25 DBG]             - Volo.Abp.MultiTenancy.AbpMultiTenancyModule
+[14:16:25 DBG]               - Volo.Abp.MultiTenancy.AbpMultiTenancyAbstractionsModule
+[14:16:25 DBG]             - Volo.Abp.Authorization.AbpAuthorizationAbstractionsModule
+[14:16:25 DBG]         - Volo.Abp.Identity.AbpIdentityDomainSharedModule
+[14:16:25 DBG]           - Volo.Abp.Users.AbpUsersDomainSharedModule
+[14:16:25 DBG]         - Volo.Abp.OpenIddict.AbpOpenIddictDomainSharedModule
+[14:16:25 DBG]         - Volo.Abp.TenantManagement.AbpTenantManagementDomainSharedModule
+[14:16:25 DBG]         - Volo.Abp.BlobStoring.Database.BlobStoringDatabaseDomainSharedModule
+[14:16:25 DBG]       - Volo.Abp.FeatureManagement.AbpFeatureManagementApplicationContractsModule
+[14:16:25 DBG]         - Volo.Abp.Application.AbpDddApplicationContractsModule
+[14:16:25 DBG]           - Volo.Abp.Auditing.AbpAuditingContractsModule
+[14:16:25 DBG]         - Volo.Abp.Json.AbpJsonModule
+[14:16:25 DBG]       - Volo.Abp.SettingManagement.AbpSettingManagementApplicationContractsModule
+[14:16:25 DBG]       - Volo.Abp.Identity.AbpIdentityApplicationContractsModule
+[14:16:25 DBG]         - Volo.Abp.Users.AbpUsersAbstractionModule
+[14:16:25 DBG]           - Volo.Abp.EventBus.AbpEventBusModule
+[14:16:25 DBG]             - Volo.Abp.Guids.AbpGuidsModule
+[14:16:25 DBG]             - Volo.Abp.BackgroundWorkers.AbpBackgroundWorkersModule
+[14:16:25 DBG]             - Volo.Abp.DistributedLocking.AbpDistributedLockingAbstractionsModule
+[14:16:25 DBG]         - Volo.Abp.Authorization.AbpAuthorizationModule
+[14:16:25 DBG]         - Volo.Abp.PermissionManagement.AbpPermissionManagementApplicationContractsModule
+[14:16:25 DBG]       - Volo.Abp.Account.AbpAccountApplicationContractsModule
+[14:16:25 DBG]       - Volo.Abp.TenantManagement.AbpTenantManagementApplicationContractsModule
+[14:16:25 DBG]     - Volo.Abp.PermissionManagement.HttpApi.AbpPermissionManagementHttpApiModule
+[14:16:25 DBG]       - Volo.Abp.AspNetCore.Mvc.AbpAspNetCoreMvcModule
+[14:16:25 DBG]         - Volo.Abp.AspNetCore.AbpAspNetCoreModule
+[14:16:25 DBG]           - Volo.Abp.Auditing.AbpAuditingModule
+[14:16:25 DBG]           - Volo.Abp.Http.AbpHttpModule
+[14:16:25 DBG]             - Volo.Abp.Http.AbpHttpAbstractionsModule
+[14:16:25 DBG]             - Volo.Abp.Minify.AbpMinifyModule
+[14:16:25 DBG]           - Volo.Abp.ExceptionHandling.AbpExceptionHandlingModule
+[14:16:25 DBG]           - Volo.Abp.AspNetCore.AbpAspNetCoreAbstractionsModule
+[14:16:25 DBG]         - Volo.Abp.ApiVersioning.AbpApiVersioningAbstractionsModule
+[14:16:25 DBG]         - Volo.Abp.AspNetCore.Mvc.AbpAspNetCoreMvcContractsModule
+[14:16:25 DBG]         - Volo.Abp.UI.Navigation.AbpUiNavigationModule
+[14:16:25 DBG]           - Volo.Abp.UI.AbpUiModule
+[14:16:25 DBG]         - Volo.Abp.GlobalFeatures.AbpGlobalFeaturesModule
+[14:16:25 DBG]         - Volo.Abp.Application.AbpDddApplicationModule
+[14:16:25 DBG]           - Volo.Abp.Domain.AbpDddDomainModule
+[14:16:25 DBG]             - Volo.Abp.ObjectMapping.AbpObjectMappingModule
+[14:16:25 DBG]             - Volo.Abp.Specifications.AbpSpecificationsModule
+[14:16:25 DBG]             - Volo.Abp.Caching.AbpCachingModule
+[14:16:25 DBG]               - Volo.Abp.Serialization.AbpSerializationModule
+[14:16:25 DBG]             - Volo.Abp.Domain.AbpDddDomainSharedModule
+[14:16:25 DBG]     - Volo.Abp.SettingManagement.AbpSettingManagementHttpApiModule
+[14:16:25 DBG]     - Volo.Abp.Account.AbpAccountHttpApiModule
+[14:16:25 DBG]       - Volo.Abp.Identity.AbpIdentityHttpApiModule
+[14:16:25 DBG]     - Volo.Abp.TenantManagement.AbpTenantManagementHttpApiModule
+[14:16:25 DBG]       - Volo.Abp.FeatureManagement.AbpFeatureManagementHttpApiModule
+[14:16:25 DBG]   - Volo.Abp.Studio.Client.AspNetCore.AbpStudioClientAspNetCoreModule
+[14:16:25 DBG]     - Volo.Abp.Studio.AbpStudioClientModule
+[14:16:25 DBG]       - Volo.Abp.Studio.AbpStudioClientContractsModule
+[14:16:25 DBG]   - Volo.Abp.AspNetCore.Mvc.UI.Theme.Basic.AbpAspNetCoreMvcUiBasicThemeModule
+[14:16:25 DBG]     - Volo.Abp.AspNetCore.Mvc.UI.Theme.Shared.AbpAspNetCoreMvcUiThemeSharedModule
+[14:16:25 DBG]       - Volo.Abp.AspNetCore.Mvc.UI.Bootstrap.AbpAspNetCoreMvcUiBootstrapModule
+[14:16:25 DBG]         - Volo.Abp.AspNetCore.Mvc.UI.AbpAspNetCoreMvcUiModule
+[14:16:25 DBG]       - Volo.Abp.AspNetCore.Mvc.UI.Packages.AbpAspNetCoreMvcUiPackagesModule
+[14:16:25 DBG]         - Volo.Abp.AspNetCore.Mvc.UI.Bundling.AbpAspNetCoreMvcUiBundlingAbstractionsModule
+[14:16:25 DBG]       - Volo.Abp.AspNetCore.Mvc.UI.Widgets.AbpAspNetCoreMvcUiWidgetsModule
+[14:16:25 DBG]         - Volo.Abp.AspNetCore.Mvc.UI.Bundling.AbpAspNetCoreMvcUiBundlingModule
+[14:16:25 DBG]           - Volo.Abp.AspNetCore.Bundling.AbpAspNetCoreBundlingModule
+[14:16:25 DBG]     - Volo.Abp.AspNetCore.Mvc.UI.MultiTenancy.AbpAspNetCoreMvcUiMultiTenancyModule
+[14:16:25 DBG]       - Volo.Abp.AspNetCore.MultiTenancy.AbpAspNetCoreMultiTenancyModule
+[14:16:25 DBG]   - Volo.Abp.Autofac.AbpAutofacModule
+[14:16:25 DBG]     - Volo.Abp.Castle.AbpCastleCoreModule
+[14:16:25 DBG]   - Informatique.Alumni.AlumniApplicationModule
+[14:16:25 DBG]     - Informatique.Alumni.AlumniDomainModule
+[14:16:25 DBG]       - Volo.Abp.AuditLogging.AbpAuditLoggingDomainModule
+[14:16:25 DBG]       - Volo.Abp.BackgroundJobs.AbpBackgroundJobsDomainModule
+[14:16:25 DBG]         - Volo.Abp.BackgroundJobs.AbpBackgroundJobsModule
+[14:16:25 DBG]           - Volo.Abp.BackgroundJobs.AbpBackgroundJobsAbstractionsModule
+[14:16:25 DBG]         - Volo.Abp.Mapperly.AbpMapperlyModule
+[14:16:25 DBG]       - Volo.Abp.FeatureManagement.AbpFeatureManagementDomainModule
+[14:16:25 DBG]       - Volo.Abp.PermissionManagement.Identity.AbpPermissionManagementDomainIdentityModule
+[14:16:25 DBG]         - Volo.Abp.PermissionManagement.AbpPermissionManagementDomainModule
+[14:16:25 DBG]       - Volo.Abp.PermissionManagement.OpenIddict.AbpPermissionManagementDomainOpenIddictModule
+[14:16:25 DBG]       - Volo.Abp.SettingManagement.AbpSettingManagementDomainModule
+[14:16:25 DBG]       - Volo.Abp.Emailing.AbpEmailingModule
+[14:16:25 DBG]         - Volo.Abp.TextTemplating.AbpTextTemplatingModule
+[14:16:25 DBG]           - Volo.Abp.TextTemplating.Scriban.AbpTextTemplatingScribanModule
+[14:16:25 DBG]             - Volo.Abp.TextTemplating.AbpTextTemplatingCoreModule
+[14:16:25 DBG]       - Volo.Abp.Identity.AbpIdentityDomainModule
+[14:16:25 DBG]         - Volo.Abp.Users.AbpUsersDomainModule
+[14:16:25 DBG]       - Volo.Abp.OpenIddict.AbpOpenIddictDomainModule
+[14:16:25 DBG]       - Volo.Abp.TenantManagement.AbpTenantManagementDomainModule
+[14:16:25 DBG]       - Volo.Abp.BlobStoring.Database.BlobStoringDatabaseDomainModule
+[14:16:25 DBG]         - Volo.Abp.BlobStoring.AbpBlobStoringModule
+[14:16:25 DBG]       - Volo.Abp.BlobStoring.FileSystem.AbpBlobStoringFileSystemModule
+[14:16:25 DBG]     - Volo.Abp.PermissionManagement.AbpPermissionManagementApplicationModule
+[14:16:25 DBG]     - Volo.Abp.FeatureManagement.AbpFeatureManagementApplicationModule
+[14:16:25 DBG]     - Volo.Abp.Identity.AbpIdentityApplicationModule
+[14:16:25 DBG]     - Volo.Abp.Account.AbpAccountApplicationModule
+[14:16:25 DBG]     - Volo.Abp.TenantManagement.AbpTenantManagementApplicationModule
+[14:16:25 DBG]     - Volo.Abp.SettingManagement.AbpSettingManagementApplicationModule
+[14:16:25 DBG]   - Informatique.Alumni.EntityFrameworkCore.AlumniEntityFrameworkCoreModule
+[14:16:25 DBG]     - Volo.Abp.PermissionManagement.EntityFrameworkCore.AbpPermissionManagementEntityFrameworkCoreModule
+[14:16:25 DBG]       - Volo.Abp.EntityFrameworkCore.AbpEntityFrameworkCoreModule
+[14:16:25 DBG]     - Volo.Abp.SettingManagement.EntityFrameworkCore.AbpSettingManagementEntityFrameworkCoreModule
+[14:16:25 DBG]     - Volo.Abp.EntityFrameworkCore.SqlServer.AbpEntityFrameworkCoreSqlServerModule
+[14:16:25 DBG]     - Volo.Abp.BackgroundJobs.EntityFrameworkCore.AbpBackgroundJobsEntityFrameworkCoreModule
+[14:16:25 DBG]     - Volo.Abp.AuditLogging.EntityFrameworkCore.AbpAuditLoggingEntityFrameworkCoreModule
+[14:16:25 DBG]     - Volo.Abp.FeatureManagement.EntityFrameworkCore.AbpFeatureManagementEntityFrameworkCoreModule
+[14:16:25 DBG]     - Volo.Abp.Identity.EntityFrameworkCore.AbpIdentityEntityFrameworkCoreModule
+[14:16:25 DBG]       - Volo.Abp.Users.EntityFrameworkCore.AbpUsersEntityFrameworkCoreModule
+[14:16:25 DBG]     - Volo.Abp.OpenIddict.EntityFrameworkCore.AbpOpenIddictEntityFrameworkCoreModule
+[14:16:25 DBG]     - Volo.Abp.TenantManagement.EntityFrameworkCore.AbpTenantManagementEntityFrameworkCoreModule
+[14:16:25 DBG]     - Volo.Abp.BlobStoring.Database.EntityFrameworkCore.BlobStoringDatabaseEntityFrameworkCoreModule
+[14:16:25 DBG]   - Volo.Abp.Account.Web.AbpAccountWebOpenIddictModule
+[14:16:25 DBG]     - Volo.Abp.Account.Web.AbpAccountWebModule
+[14:16:25 DBG]       - Volo.Abp.Identity.AspNetCore.AbpIdentityAspNetCoreModule
+[14:16:25 DBG]     - Volo.Abp.OpenIddict.AbpOpenIddictAspNetCoreModule
+[14:16:25 DBG]   - Volo.Abp.Swashbuckle.AbpSwashbuckleModule
+[14:16:25 DBG]   - Volo.Abp.AspNetCore.Serilog.AbpAspNetCoreSerilogModule
+[14:16:25 DBG] Started background worker: Volo.Abp.BackgroundJobs.BackgroundJobWorker
+[14:16:25 DBG] Started background worker: Volo.Abp.OpenIddict.Tokens.TokenCleanupBackgroundWorker
+[14:16:25 DBG] Started background worker: Informatique.Alumni.Membership.MembershipExpirationWorker
+[14:16:25 DBG] Started background worker: Castle.Proxies.ExchangeRateSyncWorkerProxy
+[14:16:25 INF] User profile is available. Using 'C:\Users\HP\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+[14:16:26 INF] Initialized all ABP modules.
+[14:16:26 INF] Initializing UI Database
+[14:16:26 INF] Saving healthchecks configuration to database
+[14:16:26 ERR] Hosting failed to start
+System.IO.IOException: Failed to bind to address https://127.0.0.1:44386: address already in use.
+ ---> Microsoft.AspNetCore.Connections.AddressInUseException: Only one usage of each socket address (protocol/network address/port) is normally permitted.
+ ---> System.Net.Sockets.SocketException (10048): Only one usage of each socket address (protocol/network address/port) is normally permitted.
+   at System.Net.Sockets.Socket.UpdateStatusAfterSocketErrorAndThrowException(SocketError error, Boolean disconnectOnFailure, String callerName)
+   at System.Net.Sockets.Socket.DoBind(EndPoint endPointSnapshot, SocketAddress socketAddress)
+   at System.Net.Sockets.Socket.Bind(EndPoint localEP)
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketTransportOptions.CreateDefaultBoundListenSocket(EndPoint endpoint)
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketConnectionListener.Bind()
+   --- End of inner exception stack trace ---
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketConnectionListener.Bind()
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketTransportFactory.BindAsync(EndPoint endpoint, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure.TransportManager.BindAsync(EndPoint endPoint, ConnectionDelegate connectionDelegate, EndpointConfig endpointConfig, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.<>c__DisplayClass28_0`1.<<StartAsync>g__OnBind|0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindEndpointAsync(ListenOptions endpoint, AddressBindContext context, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindEndpointAsync(ListenOptions endpoint, AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.LocalhostListenOptions.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.AddressesStrategy.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.BindAsync(CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.StartAsync[TContext](IHttpApplication`1 application, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Hosting.GenericWebHostService.StartAsync(CancellationToken cancellationToken)
+   at Microsoft.Extensions.Hosting.Internal.Host.<StartAsync>b__14_1(IHostedService service, CancellationToken token)
+   at Microsoft.Extensions.Hosting.Internal.Host.ForeachService[T](IEnumerable`1 services, CancellationToken token, Boolean concurrent, Boolean abortOnFirstException, List`1 exceptions, Func`3 operation)
+   at Microsoft.Extensions.Hosting.Internal.Host.StartAsync(CancellationToken cancellationToken)
+   at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.RunAsync(IHost host, CancellationToken token)
+[14:16:26 FTL] Host terminated unexpectedly!
+System.IO.IOException: Failed to bind to address https://127.0.0.1:44386: address already in use.
+ ---> Microsoft.AspNetCore.Connections.AddressInUseException: Only one usage of each socket address (protocol/network address/port) is normally permitted.
+ ---> System.Net.Sockets.SocketException (10048): Only one usage of each socket address (protocol/network address/port) is normally permitted.
+   at System.Net.Sockets.Socket.UpdateStatusAfterSocketErrorAndThrowException(SocketError error, Boolean disconnectOnFailure, String callerName)
+   at System.Net.Sockets.Socket.DoBind(EndPoint endPointSnapshot, SocketAddress socketAddress)
+   at System.Net.Sockets.Socket.Bind(EndPoint localEP)
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketTransportOptions.CreateDefaultBoundListenSocket(EndPoint endpoint)
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketConnectionListener.Bind()
+   --- End of inner exception stack trace ---
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketConnectionListener.Bind()
+   at Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketTransportFactory.BindAsync(EndPoint endpoint, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure.TransportManager.BindAsync(EndPoint endPoint, ConnectionDelegate connectionDelegate, EndpointConfig endpointConfig, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.<>c__DisplayClass28_0`1.<<StartAsync>g__OnBind|0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindEndpointAsync(ListenOptions endpoint, AddressBindContext context, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.BindEndpointAsync(ListenOptions endpoint, AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.LocalhostListenOptions.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.AddressBinder.AddressesStrategy.BindAsync(AddressBindContext context, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.BindAsync(CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl.StartAsync[TContext](IHttpApplication`1 application, CancellationToken cancellationToken)
+   at Microsoft.AspNetCore.Hosting.GenericWebHostService.StartAsync(CancellationToken cancellationToken)
+   at Microsoft.Extensions.Hosting.Internal.Host.<StartAsync>b__14_1(IHostedService service, CancellationToken token)
+   at Microsoft.Extensions.Hosting.Internal.Host.ForeachService[T](IEnumerable`1 services, CancellationToken token, Boolean concurrent, Boolean abortOnFirstException, List`1 exceptions, Func`3 operation)
+   at Microsoft.Extensions.Hosting.Internal.Host.StartAsync(CancellationToken cancellationToken)
+   at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.RunAsync(IHost host, CancellationToken token)
+   at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.RunAsync(IHost host, CancellationToken token)
+   at Informatique.Alumni.Program.Main(String[] args) in D:\Projects\Informatique.Alumni\src\Informatique.Alumni.HttpApi.Host\Program.cs:line 45

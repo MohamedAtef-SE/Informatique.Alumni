@@ -1,22 +1,30 @@
 import { Outlet, NavLink } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
-import { LayoutDashboard, Users, Calendar, FileText, LogOut, Briefcase, Gift, Image, Landmark, HeartPulse, FileBadge, Building2, Plane, BookOpen, Mail } from 'lucide-react';
+import { LayoutDashboard, Users, Calendar, FileText, LogOut, Briefcase, Gift, Image, Landmark, HeartPulse, FileBadge, Building2, Plane, BookOpen, Mail, Lightbulb as LucideLightbulb } from 'lucide-react';
 import clsx from 'clsx';
 
 const adminNavItems = [
     { icon: LayoutDashboard, label: 'Dashboard', to: '/admin/dashboard' },
     { icon: Users, label: 'Alumni Manager', to: '/admin/alumni' },
     { icon: Calendar, label: 'Events Manager', to: '/admin/events' },
+    { icon: FileBadge, label: 'Event Registrations', to: '/admin/event-registrations' },
     { icon: FileText, label: 'Content (CMS)', to: '/admin/content' },
-    { icon: Briefcase, label: 'Career & Jobs', to: '/admin/career' },
+    { icon: Briefcase, label: 'Career Service', to: '/admin/career' },
+    { icon: Briefcase, label: 'Career Categories', to: '/admin/career-types' },
+    { icon: Briefcase, label: 'Job Board', to: '/admin/jobs' },
+    { icon: Building2, label: 'Company Partners', to: '/admin/companies' },
     { icon: Gift, label: 'Benefits', to: '/admin/benefits' },
     { icon: Image, label: 'Gallery', to: '/admin/gallery' },
     { icon: Landmark, label: 'Syndicates', to: '/admin/syndicates' },
     { icon: HeartPulse, label: 'Health', to: '/admin/health' },
     { icon: FileBadge, label: 'Certificates', to: '/admin/certificates' },
-    { icon: Building2, label: 'Organization', to: '/admin/organization' },
+    { icon: BookOpen, label: 'Magazine Manager', to: '/admin/magazine' },
+    { icon: Building2, label: 'Branches', to: '/admin/organization', end: true },
+    { icon: Building2, label: 'Colleges', to: '/admin/organization/colleges' },
+    { icon: Building2, label: 'Majors', to: '/admin/organization/majors' },
     { icon: Plane, label: 'Trips', to: '/admin/trips' },
     { icon: BookOpen, label: 'Guidance', to: '/admin/guidance' },
+    { icon: LucideLightbulb, label: 'Advisory Categories', to: '/admin/advisory-categories' },
     { icon: Mail, label: 'Communication', to: '/admin/communication' },
 ];
 
@@ -52,7 +60,7 @@ const AdminLayout = () => {
                         const isSuperAdmin = roleArray.some(r => ['admin', 'systemadmin'].includes(r.toLowerCase()));
 
                         // Restricted items
-                        if (item.label === 'Organization' && !isSuperAdmin) return false;
+                        if (['Branches', 'Colleges', 'Majors'].includes(item.label) && !isSuperAdmin) return false;
                         if (item.label === 'Communication' && !isSuperAdmin) return false;
 
                         return true;
@@ -60,6 +68,7 @@ const AdminLayout = () => {
                         <NavLink
                             key={item.to}
                             to={item.to}
+                            end={item.end}
                             className={({ isActive }) => clsx(
                                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group',
                                 isActive

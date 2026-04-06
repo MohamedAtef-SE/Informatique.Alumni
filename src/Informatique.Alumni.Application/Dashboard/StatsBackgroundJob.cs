@@ -38,8 +38,8 @@ public class StatsBackgroundJob : AsyncBackgroundJob<StatsArgs>, ITransientDepen
     {
         var today = DateTime.Today;
         
-        // Use a simple query for aggregate data
-        var alumniCount = await _userRepository.CountAsync();
+        // Count unique alumni profiles for accurate dashboard statistics
+        var alumniCount = await _profileRepository.CountAsync();
         
         var profileQuery = await _profileRepository.GetQueryableAsync();
         // Simple logic for employment rate: users with job titles vs total users

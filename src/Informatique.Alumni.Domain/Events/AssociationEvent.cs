@@ -30,8 +30,8 @@ public class AssociationEvent : FullAuditedAggregateRoot<Guid>
     private readonly List<EventParticipatingCompany> _participatingCompanies = new();
     public IReadOnlyCollection<EventParticipatingCompany> ParticipatingCompanies => _participatingCompanies.AsReadOnly();
 
-    private readonly List<EventAgendaItem> _agendaItems = new();
-    public IReadOnlyCollection<EventAgendaItem> AgendaItems => _agendaItems.AsReadOnly();
+    private readonly List<EventAgendaItem> _agenda = new();
+    public IReadOnlyCollection<EventAgendaItem> Agenda => _agenda.AsReadOnly();
     
     // Legacy support or new agenda? keeping as is for safety if used elsewhere, but maybe removing if replaced by timeslots.
     // The requirement says "AssociationEvent has a collection of EventTimeslot". 
@@ -136,21 +136,21 @@ public class AssociationEvent : FullAuditedAggregateRoot<Guid>
     public void AddAgendaItem(EventAgendaItem item)
     {
         Check.NotNull(item, nameof(item));
-        _agendaItems.Add(item);
+        _agenda.Add(item);
     }
 
     public void RemoveAgendaItem(Guid agendaItemId)
     {
-        var item = _agendaItems.FirstOrDefault(x => x.Id == agendaItemId);
+        var item = _agenda.FirstOrDefault(x => x.Id == agendaItemId);
         if (item != null)
         {
-            _agendaItems.Remove(item);
+            _agenda.Remove(item);
         }
     }
 
-    public void ClearAgendaItems()
+    public void ClearAgenda()
     {
-        _agendaItems.Clear();
+        _agenda.Clear();
     }
 
     public void Update(

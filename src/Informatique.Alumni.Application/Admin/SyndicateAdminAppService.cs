@@ -60,20 +60,21 @@ public class SyndicateAdminAppService : AlumniAppService, ISyndicateAdminAppServ
         var syndicateIds = subscriptions.Select(s => s.SyndicateId).Distinct().ToList();
         var syndicates = await _syndicateRepository.GetListAsync(s => syndicateIds.Contains(s.Id));
 
-        // Batch lookup alumni profiles and users
-        // Note: s.AlumniId from the subscription is actually the IdentityUser Id.
-        var userIds = subscriptions.Select(s => s.AlumniId).Distinct().ToList();
-        var users = await _identityUserRepository.GetListAsync(u => userIds.Contains(u.Id));
-        
+        // Batch lookup alumni profiles and users correctly
+        var alumniProfileIds = subscriptions.Select(s => s.AlumniId).Distinct().ToList();
         // Eager load Mobiles to correctly get the primary contact number
         var profilesQuery = await _alumniProfileRepository.WithDetailsAsync(x => x.Mobiles);
-        var profiles = await AsyncExecuter.ToListAsync(profilesQuery.Where(p => userIds.Contains(p.UserId)));
+        var profiles = await AsyncExecuter.ToListAsync(profilesQuery.Where(p => alumniProfileIds.Contains(p.Id)));
+        
+        var userIds = profiles.Select(p => p.UserId).Distinct().ToList();
+        var users = await _identityUserRepository.GetListAsync(u => userIds.Contains(u.Id));
 
         var items = subscriptions.Select(s =>
         {
             var syndicate = syndicates.FirstOrDefault(syn => syn.Id == s.SyndicateId);
-            var user = users.FirstOrDefault(u => u.Id == s.AlumniId);
-            var profile = profiles.FirstOrDefault(p => p.UserId == s.AlumniId);
+            var profile = profiles.FirstOrDefault(p => p.Id == s.AlumniId);
+            var user = profile != null ? users.FirstOrDefault(u => u.Id == profile.UserId) : null;
+            
             var fullName = user != null ? $"{user.Name} {user.Surname}".Trim() : string.Empty;
             if (string.IsNullOrWhiteSpace(fullName) && user != null) fullName = user.UserName;
 
@@ -88,7 +89,7 @@ public class SyndicateAdminAppService : AlumniAppService, ISyndicateAdminAppServ
                 AlumniId = s.AlumniId,
                 AlumniName = string.IsNullOrWhiteSpace(fullName) ? "—" : fullName,
                 AlumniNationalId = profile?.NationalId ?? "—",
-                AlumniMobile = primaryMobile,
+                AlumniMobileNumber = primaryMobile,
                 SyndicateId = s.SyndicateId,
                 SyndicateName = syndicate?.Name ?? "—",
                 Status = s.Status,

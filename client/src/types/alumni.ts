@@ -1,4 +1,5 @@
 import type { PagedAndSortedResultRequestDto } from './common';
+import type { AdvisoryStatus } from './admin';
 
 export const VipFilterOption = {
     All: 0,
@@ -86,13 +87,17 @@ export interface AlumniMyProfileDto {
     alumniId: string;
     nameAr: string;
     nameEn: string;
+    status: number;
     nationalId: string;
     nationality?: string;
     gender?: string;
     birthDate?: string;
     openingBalance: number;
+    walletBalance: number;
     viewCount: number;
     academicHistory: QualificationHistoryDto[];
+    advisoryStatus?: AdvisoryStatus;
+    isVip: boolean;
 
     // Editable Data
     photoUrl?: string;
@@ -142,6 +147,7 @@ export interface AlumniProfileDetailDto {
     showInDirectory: boolean;
     viewCount: number;
     photoUrl?: string;
+    advisoryStatus?: AdvisoryStatus;
     company?: string;
     phoneNumber?: string;
     facebookUrl?: string;
@@ -174,4 +180,12 @@ export interface UpdateMyProfileDto {
     emails: ContactEmailDto[];
     mobiles: ContactMobileDto[];
     phones: ContactPhoneDto[];
+}
+
+export interface WalletActivityDto {
+    id: string;
+    amount: number;
+    description: string;
+    transactionDate: string;
+    type: 'Deposit' | 'Payment';
 }

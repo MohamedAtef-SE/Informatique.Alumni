@@ -47,8 +47,9 @@ export function CreateAlbumModal({ open, onOpenChange }: CreateAlbumModalProps) 
     });
 
     const onSubmit = (data: AlbumFormValues) => {
-        const dto: CreateGalleryAlbumDto = {
-            title: data.title,
+        // Map to CreateGalleryAlbumDto which expects Name instead of title
+        const dto: any = {
+            name: data.title,
             description: data.description,
             eventDate: new Date().toISOString()
         };

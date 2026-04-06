@@ -8,6 +8,6 @@ public class CvReviewCompletedEto
 {
     public Guid RequestId { get; set; }
     public Guid GraduateId { get; set; }
-    public string ReviewedFileUrl { get; set; }
-    public string Notes { get; set; }
+    public string ReviewedFileUrl { get; set; } = string.Empty;
+    public string Notes { get; set; } = string.Empty;
 }
