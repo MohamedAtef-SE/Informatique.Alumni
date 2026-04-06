@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from 'react-oidc-context';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import LoadingLayer from '../common/LoadingLayer';
 
 /**
  * AlumniGuard — Protects /portal routes.
@@ -23,11 +24,7 @@ const AlumniGuard: React.FC = () => {
 
     // ------- loading state -------
     if (auth.isLoading) {
-        return (
-            <div className="h-screen flex items-center justify-center text-gray-500">
-                Checking permissions...
-            </div>
-        );
+        return <LoadingLayer />;
     }
 
     // ------- not authenticated -------

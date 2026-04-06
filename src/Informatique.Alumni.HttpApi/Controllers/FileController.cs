@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using System.Threading.Tasks;
 using Informatique.Alumni.Certificates;
 using Microsoft.AspNetCore.Authorization;
@@ -20,19 +22,30 @@ public class FileController : AbpController
 
     [HttpGet]
     [Route("download")]
-    public async Task<IActionResult> DownloadAsync(string name)
+    [AllowAnonymous]
+    public async Task<IActionResult> DownloadAsync([FromQuery] string name)
     {
-        var bytes = await _blobContainer.GetAllBytesOrNullAsync(name);
+        if (string.IsNullOrWhiteSpace(name))
+            return BadRequest();
+
+        // Decode URL-encoded blob name (handles the '/' inside the GUID path)
+        var blobName = Uri.UnescapeDataString(name);
+
+        var bytes = await _blobContainer.GetAllBytesOrNullAsync(blobName);
         if (bytes == null)
-        {
             return NotFound();
-        }
 
-        var contentType = "application/octet-stream";
-        if (name.EndsWith(".pdf")) contentType = "application/pdf";
-        else if (name.EndsWith(".jpg") || name.EndsWith(".jpeg")) contentType = "image/jpeg";
-        else if (name.EndsWith(".png")) contentType = "image/png";
+        var extension = Path.GetExtension(blobName).ToLowerInvariant();
+        var contentType = extension switch
+        {
+            ".pdf"  => "application/pdf",
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png"  => "image/png",
+            _       => "application/octet-stream"
+        };
 
-        return File(bytes, contentType, name);
+        // Return inline so the browser opens (views) it rather than downloading it
+        Response.Headers["Content-Disposition"] = $"inline; filename=\"{Path.GetFileName(blobName)}\"";
+        return File(bytes, contentType);
     }
 }

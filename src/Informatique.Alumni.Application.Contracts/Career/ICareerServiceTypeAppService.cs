@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -12,4 +13,5 @@ public interface ICareerServiceTypeAppService : IApplicationService
     Task DeleteAsync(Guid id);
     Task<CareerServiceTypeDto> GetAsync(Guid id);
     Task<PagedResultDto<CareerServiceTypeDto>> GetListAsync(CareerServiceTypeFilterDto input);
+    Task<List<CareerServiceTypeDto>> GetActiveListAsync();
 }

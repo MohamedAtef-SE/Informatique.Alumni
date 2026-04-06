@@ -3,15 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Volo.Abp.Application.Dtos;
 
-namespace Informatique.Alumni.Events;
+using Informatique.Alumni.Companies;
 
-public class CompanyDto : EntityDto<Guid>
-{
-    public string NameAr { get; set; } = string.Empty;
-    public string NameEn { get; set; } = string.Empty;
-    public string LogoBlobName { get; set; } = string.Empty;
-    public string? WebsiteUrl { get; set; }
-}
+namespace Informatique.Alumni.Events;
 
 public class AssociationEventDto : FullAuditedEntityDto<Guid>
 {
@@ -54,12 +48,17 @@ public class AlumniEventRegistrationDto : FullAuditedEntityDto<Guid>
     public Guid EventId { get; set; }
     public string TicketCode { get; set; } = string.Empty;
     public RegistrationStatus Status { get; set; }
+    public RegistrationType Type { get; set; }
     public string QrCodeUrl { get; set; } = string.Empty;
     
     // Properties for UI/Optimization (Bulk loaded)
     public string? EventName { get; set; }
     public DateTime? EventDate { get; set; }
     public string? Location { get; set; }
+    
+    // Workshop specific
+    public string? LecturerName { get; set; }
+    public string? Room { get; set; }
 }
 
 public class CreateEventDto

@@ -6,13 +6,14 @@ import { oidcConfig } from './services/auth'
 import './index.css'
 import './i18n'; // Initialize i18n
 import App from './App.tsx'
+import LoadingLayer from './components/common/LoadingLayer';
 
 const queryClient = new QueryClient()
 
 createRoot(document.getElementById('root')!).render(
   <QueryClientProvider client={queryClient}>
     <AuthProvider {...oidcConfig}>
-      <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading...</div>}>
+      <Suspense fallback={<LoadingLayer />}>
         <App />
       </Suspense>
     </AuthProvider>

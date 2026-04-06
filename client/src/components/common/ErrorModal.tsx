@@ -1,14 +1,23 @@
 import React from 'react';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle, X } from 'lucide-react';
+import { Button } from '../ui/Button';
+import { cn } from '../../utils/cn';
 
 interface ErrorModalProps {
     isOpen: boolean;
     title: string;
     message: string;
     onClose: () => void;
+    type?: 'error' | 'success';
 }
 
-const ErrorModal: React.FC<ErrorModalProps> = ({ isOpen, title, message, onClose }) => {
+const ErrorModal: React.FC<ErrorModalProps> = ({ 
+    isOpen, 
+    title, 
+    message, 
+    onClose,
+    type = 'error'
+}) => {
     if (!isOpen) return null;
 
     return (
@@ -23,8 +32,15 @@ const ErrorModal: React.FC<ErrorModalProps> = ({ isOpen, title, message, onClose
                 </button>
 
                 <div className="flex flex-col items-center text-center space-y-3 pt-2">
-                    <div className="w-12 h-12 bg-amber-500/10 rounded-full flex items-center justify-center">
-                        <AlertTriangle className="w-6 h-6 text-amber-500" />
+                    <div className={cn(
+                        "w-12 h-12 rounded-full flex items-center justify-center",
+                        type === 'success' ? "bg-emerald-500/10" : "bg-amber-500/10"
+                    )}>
+                        {type === 'success' ? (
+                            <CheckCircle className="w-6 h-6 text-emerald-500" />
+                        ) : (
+                            <AlertTriangle className="w-6 h-6 text-amber-500" />
+                        )}
                     </div>
                     <h3 className="text-xl font-bold text-white max-w-[90%]">{title}</h3>
                     <p className="text-gray-400 text-sm whitespace-pre-line leading-relaxed">
@@ -32,12 +48,15 @@ const ErrorModal: React.FC<ErrorModalProps> = ({ isOpen, title, message, onClose
                     </p>
                 </div>
 
-                <button
+                <Button
                     onClick={onClose}
-                    className="w-full btn-primary flex items-center justify-center gap-2"
+                    className={cn(
+                        "w-full",
+                        type === 'success' ? "bg-blue-600 hover:bg-blue-700" : ""
+                    )}
                 >
                     OK, Got it
-                </button>
+                </Button>
             </div>
         </div>
     );

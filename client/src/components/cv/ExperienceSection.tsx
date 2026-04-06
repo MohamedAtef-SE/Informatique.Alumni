@@ -6,12 +6,12 @@ import { Button } from '../ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/Dialog';
 import { Input } from '../ui/Input';
-import type { ExperienceFormData } from '../../schemas/cvSchema';
+import type { ExperienceFormData, CvFormData } from '../../schemas/cvSchema';
 import { cvExperienceSchema } from '../../schemas/cvSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 interface ExperienceSectionProps {
-    control: Control<any>;
+    control: Control<CvFormData>;
 }
 
 export const ExperienceSection = ({ control }: ExperienceSectionProps) => {

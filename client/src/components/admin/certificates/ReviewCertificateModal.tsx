@@ -1,8 +1,9 @@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../../ui/Dialog';
 import { Button } from '../../ui/Button';
 import { CertificateRequestStatus, CertificateLanguage, type CertificateRequestDto, type CertificateRequestItemDto } from '../../../types/certificates';
-import { FileBadge, User, Mail, Hash, Truck, Package, CreditCard, Check, Loader2, Calendar, FileText, Download, Info } from 'lucide-react';
+import { FileBadge, User, Mail, Hash, Truck, Package, CreditCard, Check, Loader2, Calendar, FileText, Download, Info, X } from 'lucide-react';
 import { StatusBadge } from '../StatusBadge';
+import { BASE_URL } from '../../../services/api';
 
 interface ReviewCertificateModalProps {
     open: boolean;
@@ -111,12 +112,16 @@ export const ReviewCertificateModal = ({
                                             </div>
                                         </div>
                                         <div className="flex flex-wrap items-center gap-3">
-                                            {item.attachmentUrl && (
+                                            {item.attachmentUrl ? (
                                                 <Button size="sm" variant="outline" className="h-7 text-xs bg-slate-50 border-slate-200 hover:bg-slate-100" asChild>
-                                                    <a href={item.attachmentUrl} target="_blank" rel="noopener noreferrer">
+                                                    <a href={`${BASE_URL}${item.attachmentUrl}`} target="_blank" rel="noopener noreferrer">
                                                         <Download className="w-3 h-3 mr-1" /> View Proof
                                                     </a>
                                                 </Button>
+                                            ) : (
+                                                <span className="px-2 py-1 rounded bg-slate-100 text-slate-500 font-medium text-xs border border-slate-200 flex items-center gap-1">
+                                                    <FileText className="w-3 h-3" /> No Proof Attached
+                                                </span>
                                             )}
                                             <span className="px-2 py-1 rounded bg-indigo-50 text-indigo-700 font-medium text-xs border border-indigo-100">
                                                 {item.language === CertificateLanguage.Arabic ? 'Arabic' : 'English'}
@@ -161,8 +166,18 @@ export const ReviewCertificateModal = ({
                             </h4>
                             <div className="space-y-3 text-sm">
                                 <div className="flex justify-between items-center text-slate-600">
+                                    <span>Document Fee</span>
+                                    <span className="font-medium">EGP {request.totalItemFees}</span>
+                                </div>
+                                {request.deliveryFee > 0 && (
+                                    <div className="flex justify-between items-center text-slate-600">
+                                        <span>Delivery Fee</span>
+                                        <span className="font-medium">EGP {request.deliveryFee}</span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between items-center text-slate-900 border-t border-slate-200 pt-2 font-bold">
                                     <span>Total Value</span>
-                                    <span className="font-medium">EGP {request.totalFees}</span>
+                                    <span>EGP {request.totalFees}</span>
                                 </div>
                                 <div className="flex justify-between items-center text-emerald-600">
                                     <span>Wallet Applied</span>
@@ -219,31 +234,41 @@ export const ReviewCertificateModal = ({
                     </div>
                 </div>
 
-                <DialogFooter className="border-t border-slate-200 pt-4 px-1 gap-2 sm:space-x-2">
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>
-                        Close
-                    </Button>
-                    {request.status === CertificateRequestStatus.PendingPayment && (
-                        <>
+                <DialogFooter className="border-t border-slate-200 pt-5 mt-2">
+                    <div className="flex w-full items-center justify-between gap-3">
+                        {request.status !== CertificateRequestStatus.Delivered && request.status !== CertificateRequestStatus.Rejected && (
                             <Button
                                 variant="destructive"
                                 onClick={() => onReject(request.id)}
                                 disabled={isRejecting || isApproving}
-                                className="sm:mr-auto"
+                                size="sm"
+                                className="h-9 px-4"
                             >
+                                <X className="w-4 h-4 mr-2" />
                                 Reject Request
                             </Button>
-                            <Button
-                                variant="default"
-                                onClick={() => onApprove(request.id)}
-                                disabled={isRejecting || isApproving || request.remainingAmount > 0}
-                                title={request.remainingAmount > 0 ? 'Cannot process unpaid requests' : ''}
-                            >
-                                {isApproving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
-                                Approve & Start Processing
+                        )}
+                        
+                        <div className="flex items-center gap-3 ml-auto">
+                            <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)} className="h-9">
+                                Close
                             </Button>
-                        </>
-                    )}
+                            
+                            {request.status === CertificateRequestStatus.PendingPayment && (
+                                <Button
+                                    variant="default"
+                                    size="sm"
+                                    onClick={() => onApprove(request.id)}
+                                    disabled={isRejecting || isApproving || request.remainingAmount > 0}
+                                    className="h-9 px-6 bg-primary hover:bg-primary/90 shadow-neon"
+                                    title={request.remainingAmount > 0 ? 'Cannot process unpaid requests' : ''}
+                                >
+                                    {isApproving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
+                                    Approve & Start
+                                </Button>
+                            )}
+                        </div>
+                    </div>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

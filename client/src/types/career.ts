@@ -1,4 +1,4 @@
-import type { FullAuditedEntityDto, EntityDto } from './common';
+import type { FullAuditedEntityDto, EntityDto, PagedAndSortedResultRequestDto } from './common';
 
 export interface CareerServiceDto extends FullAuditedEntityDto<string> {
     nameAr: string;
@@ -14,6 +14,7 @@ export interface CareerServiceDto extends FullAuditedEntityDto<string> {
     branchId?: string;
     serviceType?: { id: string; nameEn: string; nameAr: string };
     branch?: { id: string; name: string; nameEn?: string; nameAr?: string };
+    mySubscription?: AlumniCareerSubscriptionDto;
     timeslots: CareerServiceTimeslotDto[];
 }
 
@@ -80,4 +81,55 @@ export interface CareerLookupItemDto {
 export interface CareerLookupsDto {
     serviceTypes: CareerLookupItemDto[];
     branches: CareerLookupItemDto[];
+}
+
+export interface CareerServiceTypeDto extends FullAuditedEntityDto<string> {
+    nameAr: string;
+    nameEn: string;
+    isActive: boolean;
+}
+
+export interface CreateUpdateCareerServiceTypeDto {
+    nameAr: string;
+    nameEn: string;
+    isActive: boolean;
+}
+
+export interface CareerServiceTypeFilterDto extends PagedAndSortedResultRequestDto {
+    isActive?: boolean;
+}
+
+// ── Job Management ──────────────────────────────────────────────────────────
+
+export interface JobDto extends FullAuditedEntityDto<string> {
+    companyId: string;
+    title: string;
+    description: string;
+    requirements?: string;
+    isActive: boolean;
+    closingDate?: string;
+}
+
+export interface JobAdminDto extends EntityDto<string> {
+    title: string;
+    description: string;
+    requirements?: string;
+    companyId: string;
+    isActive: boolean;
+    closingDate?: string;
+    creationTime: string;
+    applicationCount: number;
+}
+
+export interface JobApplicationAdminDto extends EntityDto<string> {
+    jobId: string;
+    alumniId: string;
+    alumniName: string;
+    cvSnapshotBlobName: string;
+    creationTime: string;
+}
+
+export interface JobAdminGetListInput extends PagedAndSortedResultRequestDto {
+    isActive?: boolean;
+    filter?: string;
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Volo.Abp;
 using Volo.Abp.Domain.Entities.Auditing;
+using Informatique.Alumni.Guidance;
 
 namespace Informatique.Alumni.Profiles;
 
@@ -16,6 +17,7 @@ public class AlumniProfile : FullAuditedAggregateRoot<Guid>
     public bool ShowInDirectory { get; private set; } = true;
     public decimal WalletBalance { get; private set; } = 0m;
     public bool IsVip { get; private set; } = false;
+    public bool IsAdvisor { get; private set; } = false;
     public Guid BranchId { get; private set; } // For "Branch Scoping" security
     public string? PhotoUrl { get; private set; } // For "Personal Photo" update
     public Guid? NationalityId { get; private set; }
@@ -27,6 +29,15 @@ public class AlumniProfile : FullAuditedAggregateRoot<Guid>
     public bool IsNotable { get; private set; } = false;
     public IdCardStatus IdCardStatus { get; private set; } = IdCardStatus.None;
     public string? RejectionReason { get; private set; }
+
+    // Advisory Management
+    public AdvisoryWorkflowStatus AdvisoryStatus { get; private set; } = AdvisoryWorkflowStatus.None;
+    public string? AdvisoryBio { get; private set; }
+    public int AdvisoryExperienceYears { get; private set; }
+    public string? AdvisoryRejectionReason { get; private set; }
+
+    private readonly List<AlumniAdvisorExpertise> _advisoryExpertises = new();
+    public IReadOnlyCollection<AlumniAdvisorExpertise> AdvisoryExpertises => _advisoryExpertises.AsReadOnly();
     
     // Note: Educations collection handles degrees
     
@@ -116,13 +127,13 @@ public class AlumniProfile : FullAuditedAggregateRoot<Guid>
         
         if (jobTitle != null)
         {
-            JobTitle = Check.Length(jobTitle, nameof(jobTitle), ProfileConsts.MaxJobTitleLength);
+            JobTitle = Check.Length(jobTitle, nameof(jobTitle), ProfileConsts.MaxJobTitleLength) ?? string.Empty;
         }
     }
 
     public void UpdateJobTitle(string jobTitle)
     {
-        JobTitle = Check.Length(jobTitle, nameof(jobTitle), ProfileConsts.MaxJobTitleLength);
+        JobTitle = Check.Length(jobTitle, nameof(jobTitle), ProfileConsts.MaxJobTitleLength) ?? string.Empty;
     }
 
     public void UpdateBio(string? bio)
@@ -162,7 +173,7 @@ public class AlumniProfile : FullAuditedAggregateRoot<Guid>
     public void UpdateProfessionalInfo(string? company, string? jobTitle)
     {
         if (company != null) Company = company;
-        if (jobTitle != null) JobTitle = Check.Length(jobTitle, nameof(jobTitle), ProfileConsts.MaxJobTitleLength);
+        if (jobTitle != null) JobTitle = Check.Length(jobTitle, nameof(jobTitle), ProfileConsts.MaxJobTitleLength) ?? string.Empty;
     }
 
     public void UpdateSocialLinks(string? facebookUrl, string? linkedinUrl)
@@ -174,6 +185,64 @@ public class AlumniProfile : FullAuditedAggregateRoot<Guid>
     public void SetVip(bool isVip)
     {
         IsVip = isVip;
+    }
+
+    public void SetAdvisorStatus(bool isAdvisor)
+    {
+        IsAdvisor = isAdvisor;
+        // Legacy support: sync AdvisoryStatus
+        if (isAdvisor && AdvisoryStatus == AdvisoryWorkflowStatus.None)
+        {
+            AdvisoryStatus = AdvisoryWorkflowStatus.Approved;
+        }
+    }
+
+    // ── Professional Advisor Workflow Methods ──
+
+    public void ApplyForAdvisory(string bio, int years, IEnumerable<Guid> expertiseIds)
+    {
+        if (Status != AlumniStatus.Active)
+        {
+            throw new BusinessException("Alumni:OnlyActiveAlumniCanApplyForAdvisory");
+        }
+
+        AdvisoryBio = Check.NotNullOrWhiteSpace(bio, nameof(bio), 4000);
+        AdvisoryExperienceYears = years;
+        AdvisoryStatus = AdvisoryWorkflowStatus.Pending;
+        AdvisoryRejectionReason = null;
+
+        _advisoryExpertises.Clear();
+        foreach (var id in expertiseIds)
+        {
+            _advisoryExpertises.Add(new AlumniAdvisorExpertise(Id, id));
+        }
+    }
+
+    public void ApproveAdvisory()
+    {
+        if (AdvisoryStatus != AdvisoryWorkflowStatus.Pending && AdvisoryStatus != AdvisoryWorkflowStatus.Inactive)
+        {
+            throw new BusinessException("Alumni:InvalidAdvisoryStatusForApproval")
+                .WithData("CurrentStatus", AdvisoryStatus);
+        }
+
+        AdvisoryStatus = AdvisoryWorkflowStatus.Approved;
+        IsAdvisor = true;
+        AdvisoryRejectionReason = null;
+    }
+
+    public void RejectAdvisory(string reason)
+    {
+        Check.NotNullOrWhiteSpace(reason, nameof(reason));
+        AdvisoryStatus = AdvisoryWorkflowStatus.Rejected;
+        AdvisoryRejectionReason = reason;
+        IsAdvisor = false;
+    }
+
+    public void DeactivateAdvisory()
+    {
+        AdvisoryStatus = AdvisoryWorkflowStatus.Inactive;
+        IsAdvisor = false;
     }
 
     public void SetUserId(Guid userId)

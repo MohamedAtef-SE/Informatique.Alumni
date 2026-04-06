@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Informatique.Alumni.Permissions;
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
-using Volo.Abp.Application.Services;
+using Volo.Abp.Application.Dtos;
 using Volo.Abp.Domain.Entities;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Guids;
 using Volo.Abp.Users;
 
 namespace Informatique.Alumni.Career;
@@ -34,7 +36,7 @@ public class CvAppService : AlumniAppService, ICVAppService
     [Authorize(AlumniPermissions.Careers.CvManage)]
     public async Task<CurriculumVitaeDto> GetMyCvAsync()
     {
-        var alumniId = CurrentUser.Id ?? throw new UnauthorizedAccessException();
+        var alumniId = await GetCurrentAlumniProfileIdAsync();
         var cv = await _cvRepository.FirstOrDefaultAsync(x => x.AlumniId == alumniId);
         
         if (cv == null)
@@ -53,59 +55,116 @@ public class CvAppService : AlumniAppService, ICVAppService
     [Authorize(AlumniPermissions.Careers.CvManage)]
     public async Task<CurriculumVitaeDto> UpdateMyCvAsync(CurriculumVitaeDto input)
     {
-        var alumniId = CurrentUser.Id ?? throw new UnauthorizedAccessException();
+        var alumniId = await GetCurrentAlumniProfileIdAsync();
         var cv = await _cvRepository.FirstOrDefaultAsync(x => x.AlumniId == alumniId);
         if (cv == null) throw new UserFriendlyException("CV not found.");
 
         await LoadAllCollectionsAsync(cv);
         
-        // Manual mapping to avoid Mapperly recursion/instantiation issues causing 500 errors
+        // --- 1. Basic Info ---
         cv.Summary = input.Summary;
         cv.IsLookingForJob = input.IsLookingForJob;
         
-        // Handle Experiences (Full Replacement Strategy)
-        cv.Experiences.Clear();
-        if (input.Experiences != null)
-        {
-            foreach (var expDto in input.Experiences)
-            {
-               var experience = new CvExperience
-               {
-                   Company = expDto.Company,
-                   Position = expDto.Position,
-                   StartDate = expDto.StartDate,
-                   EndDate = expDto.EndDate,
-                   Description = expDto.Description,
-                   CurriculumVitaeId = cv.Id
-               };
-               EntityHelper.TrySetId(experience, () => GuidGenerator.Create());
-               cv.Experiences.Add(experience);
-            }
-        }
+        // --- 2. Collection Synchronization (Production-Ready Smart Sync) ---
+        SyncCollection(cv.Experiences, input.Experiences, (entity, dto) => {
+            entity.Company = dto.Company;
+            entity.Position = dto.Position;
+            entity.StartDate = dto.StartDate;
+            entity.EndDate = dto.EndDate;
+            entity.Description = dto.Description;
+        }, cv.Id);
 
-        // Handle Educations (Full Replacement Strategy)
-        cv.Educations.Clear();
-        if (input.Educations != null)
-        {
-            foreach (var eduDto in input.Educations)
-            {
-               var education = new CvEducation
-               {
-                   Institution = eduDto.Institution,
-                   Degree = eduDto.Degree,
-                   StartDate = eduDto.StartDate,
-                   EndDate = eduDto.EndDate,
-                   CurriculumVitaeId = cv.Id
-               };
-               EntityHelper.TrySetId(education, () => GuidGenerator.Create());
-               cv.Educations.Add(education);
-            }
-        }
+        SyncCollection(cv.Educations, input.Educations, (entity, dto) => {
+            entity.Institution = dto.Institution;
+            entity.Degree = dto.Degree;
+            entity.StartDate = dto.StartDate;
+            entity.EndDate = dto.EndDate;
+        }, cv.Id);
 
-        // _alumniMappers.MapToEntity(input, cv); // DISABLED causing 500 error
-        
+        SyncCollection(cv.Skills, input.Skills, (entity, dto) => {
+            entity.Name = dto.Name;
+            entity.ProficiencyLevel = dto.ProficiencyLevel;
+        }, cv.Id);
+
+        SyncCollection(cv.Languages, input.Languages, (entity, dto) => {
+            entity.Name = dto.Name;
+            entity.FluencyLevel = dto.FluencyLevel;
+        }, cv.Id);
+
+        SyncCollection(cv.Certifications, input.Certifications, (entity, dto) => {
+            entity.Name = dto.Name;
+            entity.Issuer = dto.Issuer;
+            entity.Date = dto.Date;
+        }, cv.Id);
+
+        SyncCollection(cv.Projects, input.Projects, (entity, dto) => {
+            entity.Name = dto.Name;
+            entity.Description = dto.Description;
+            entity.Link = dto.Link;
+        }, cv.Id);
+
+        SyncCollection(cv.SocialLinks, input.SocialLinks, (entity, dto) => {
+            entity.Platform = dto.Platform;
+            entity.Url = dto.Url;
+        }, cv.Id);
+
+        // --- Handle other collections as needed later (Audit-readiness) ---
+
         await _cvRepository.UpdateAsync(cv);
         return _alumniMappers.MapToDto(cv);
+    }
+
+    /// <summary>
+    /// Production-Ready Smart Sync: Identifies changes, additions, and deletions within a collection.
+    /// Preserves existing IDs to maintain database integrity and audit logs.
+    /// </summary>
+    private void SyncCollection<TEntity, TDto>(
+        ICollection<TEntity> entityCollection,
+        IEnumerable<TDto> dtoCollection,
+        Action<TEntity, TDto> mapAction,
+        Guid parentId) 
+        where TEntity : class, IEntity<Guid>, new()
+        where TDto : class, IEntityDto<Guid>
+    {
+        if (dtoCollection == null) return;
+
+        var dtos = dtoCollection.ToList();
+        var entities = entityCollection.ToList();
+
+        // 1. Remove Orphans (Items present in DB but not in the input)
+        foreach (var entity in entities)
+        {
+            if (dtos.All(d => d.Id != entity.Id))
+            {
+                entityCollection.Remove(entity);
+            }
+        }
+
+        // 2. Update Existing & Add New
+        foreach (var dto in dtos)
+        {
+            var existingEntity = entities.FirstOrDefault(e => e.Id != Guid.Empty && e.Id == dto.Id);
+
+            if (existingEntity != null)
+            {
+                // Update
+                mapAction(existingEntity, dto);
+            }
+            else
+            {
+                // Add New
+                var newEntity = new TEntity();
+                EntityHelper.TrySetId(newEntity, () => GuidGenerator.Create());
+                
+                // Set the backlink using reflection or a dynamic check if needed, 
+                // but since all these entities have 'CurriculumVitaeId' property:
+                var prop = typeof(TEntity).GetProperty("CurriculumVitaeId");
+                prop?.SetValue(newEntity, parentId);
+
+                mapAction(newEntity, dto);
+                entityCollection.Add(newEntity);
+            }
+        }
     }
 
     public async Task<byte[]> DownloadCvPdfAsync(Guid cvId)
@@ -114,7 +173,7 @@ public class CvAppService : AlumniAppService, ICVAppService
         await LoadAllCollectionsAsync(cv);
         
         // Privacy check
-        if (!cv.IsLookingForJob && cv.AlumniId != CurrentUser.Id)
+        if (!cv.IsLookingForJob && cv.AlumniId != await GetCurrentAlumniProfileIdAsync())
         {
              throw new UnauthorizedAccessException("This CV is private.");
         }
@@ -126,7 +185,7 @@ public class CvAppService : AlumniAppService, ICVAppService
     [Authorize(AlumniPermissions.Careers.CvManage)]
     public async Task<bool> HasCvAsync()
     {
-        var alumniId = CurrentUser.Id ?? throw new UnauthorizedAccessException();
+        var alumniId = await GetCurrentAlumniProfileIdAsync();
         return await _cvRepository.AnyAsync(x => x.AlumniId == alumniId);
     }
 

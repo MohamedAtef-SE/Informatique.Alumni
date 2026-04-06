@@ -1,6 +1,7 @@
 import { useAuth } from 'react-oidc-context';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import LoadingLayer from '../../components/common/LoadingLayer';
 
 const Callback = () => {
     const auth = useAuth();
@@ -33,9 +34,7 @@ const Callback = () => {
                         <button onClick={() => navigate('/auth/login')} className="mt-4 btn-primary">Back to Login</button>
                     </div>
                 ) : (
-                    <div className="text-[var(--color-accent)]">
-                        <h2 className="text-2xl animate-pulse">Authenticating...</h2>
-                    </div>
+                    <LoadingLayer />
                 )}
             </div>
         </div>

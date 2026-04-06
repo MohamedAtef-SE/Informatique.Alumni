@@ -2,162 +2,185 @@ import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { alumniService } from '../../services/alumniService';
-import { MapPin, Mail, Calendar, Briefcase, GraduationCap, Globe } from 'lucide-react';
-import { Card, CardContent } from '../../components/ui/Card';
-import { Button } from '../../components/ui/Button';
+import { 
+    Briefcase, GraduationCap, 
+    ShieldCheck, Mail, Globe, 
+    Building2, Calendar
+} from 'lucide-react';
+import { Card, CardContent, Button } from '../../components/ui';
+import LoadingLayer from '../../components/common/LoadingLayer';
+import ProfileHeader from '../../components/Profile/ProfileHeader';
 
 const AlumniProfile = () => {
     const { id } = useParams<{ id: string }>();
     const { t } = useTranslation();
 
-    const { data: profile } = useQuery({
+    const { data: profile, isLoading, isError } = useQuery({
         queryKey: ['alumni', id],
         queryFn: () => alumniService.getProfile(id!),
-        enabled: !!id
+        enabled: !!id,
+        retry: false
     });
 
-
-    if (!profile) return <div className="text-center py-20 text-[var(--color-text-muted)]">{t('profile.not_found')}</div>;
+    if (isLoading) return <LoadingLayer />;
+    if (isError || !profile) return (
+        <div className="flex flex-col items-center justify-center py-32 space-y-4">
+            <div className="p-4 bg-slate-100 rounded-full text-slate-400">
+                <ShieldCheck className="w-12 h-12" />
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900">{t('profile.not_found')}</h2>
+            <p className="text-slate-500 text-center max-w-sm">
+                The alumni profile you are looking for does not exist or the ID is incorrect.
+            </p>
+            <Button variant="outline" onClick={() => window.history.back()}>Back to Directory</Button>
+        </div>
+    );
 
     return (
-        <div className="space-y-6 max-w-5xl mx-auto animate-fade-in">
-            {/* Header Card */}
-            <Card variant="default" className="overflow-hidden border-t-4 border-t-[var(--color-accent)]">
-                <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-[var(--color-accent-light)]/50 to-slate-100 opacity-50"></div>
+        <div className="min-h-screen bg-[#f3f2ef] pb-20 font-sans">
+            <div className="max-w-6xl mx-auto px-4 md:px-12 pt-8">
+                {/* Standard Profile Header (Shared component) */}
+                <ProfileHeader
+                    profile={profile}
+                    onEdit={() => {}}
+                    isOwnProfile={false}
+                />
 
-                <CardContent className="relative flex flex-col md:flex-row items-center md:items-end gap-6 pt-10 pb-8 px-8">
-                    <div className="w-32 h-32 rounded-full border-4 border-white overflow-hidden shadow-xl bg-white z-10">
-                        <img
-                            src={alumniService.getPhotoUrl(profile.photoUrl) || `https://ui-avatars.com/api/?name=${profile.name}`}
-                            alt={profile.name}
-                            className="w-full h-full object-cover"
-                        />
-                    </div>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    
+                    {/* Main Content Column */}
+                    <div className="lg:col-span-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                        
+                        {/* About Section */}
+                        <Card className="border-slate-200 border shadow-sm">
+                            <CardContent className="p-8">
+                                <h3 className="text-2xl font-heading font-black text-slate-900 tracking-tight mb-6">
+                                    About
+                                </h3>
+                                <p className="text-slate-600 leading-relaxed whitespace-pre-wrap text-[15px]">
+                                    {profile.bio || "This alumnus focused on their journey and hasn't added a bio yet."}
+                                </p>
+                            </CardContent>
+                        </Card>
 
-                    <div className="flex-1 text-center md:text-left mb-2 z-10">
-                        <h1 className="text-3xl font-heading font-bold text-[var(--color-text-primary)] flex items-center justify-center md:justify-start gap-3">
-                            {profile.name}
-                            {profile.isVip && <span className="bg-[var(--color-accent)] text-white text-xs px-2 py-1 rounded-full font-bold shadow-sm">{t('profile.vip')}</span>}
-                        </h1>
-                        <p className="text-lg text-[var(--color-accent)] font-medium">{profile.jobTitle || t('profile.default_job_title')}</p>
+                        {/* Professional Experience Section */}
+                        <Card className="border-slate-200 border shadow-sm overflow-hidden">
+                            <CardContent className="p-8">
+                                <h3 className="text-2xl font-heading font-black text-slate-900 tracking-tight mb-8">
+                                    Experience
+                                </h3>
 
-                        <div className="flex flex-wrap justify-center md:justify-start gap-4 mt-4 text-sm text-[var(--color-text-secondary)]">
-                            {profile.city && <span className="flex items-center gap-1"><MapPin className="w-4 h-4 text-slate-400" /> {profile.city}, {profile.country}</span>}
-                            <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-slate-400" /> {t('profile.class_of', { year: profile.educations?.[0]?.graduationYear })}</span>
-                        </div>
-                    </div>
-
-                    <div className="flex gap-3 z-10">
-                        <Button className="flex items-center gap-2 shadow-lg shadow-blue-500/20">
-                            <Mail className="w-4 h-4" /> {t('profile.message_btn')}
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Left Column: Info */}
-                <div className="space-y-6">
-                    <Card variant="default">
-                        <CardContent className="p-6">
-                            <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-4 border-b border-[var(--color-border)] pb-2 flex items-center gap-2">
-                                <Briefcase className="w-5 h-5 text-[var(--color-accent)]" /> {t('profile.about')}
-                            </h3>
-                            <p className="text-[var(--color-text-secondary)] text-sm leading-relaxed">
-                                {profile.bio || t('profile.no_bio')}
-                            </p>
-                        </CardContent>
-                    </Card>
-
-                    <Card variant="default">
-                        <CardContent className="p-6">
-                            <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-4 border-b border-[var(--color-border)] pb-2 flex items-center gap-2">
-                                <Globe className="w-5 h-5 text-[var(--color-accent)]" /> {t('profile.contact')}
-                            </h3>
-                            <div className="space-y-3 text-sm">
-                                {profile.emails && profile.emails.length > 0 ? (
-                                    profile.emails.map(email => (
-                                        <div key={email.id} className="flex items-center gap-3 text-[var(--color-text-secondary)]">
-                                            <Mail className="w-4 h-4 text-slate-400" />
-                                            <span>{email.email} {email.isPrimary && <span className="text-xs bg-blue-100 text-blue-800 px-1 rounded">Primary</span>}</span>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="flex items-center gap-3 text-[var(--color-text-secondary)]">
-                                        <Mail className="w-4 h-4 text-slate-400" />
-                                        <span>{profile.id ? t('profile.protected_email') : t('profile.email_hidden')}</span>
-                                    </div>
-                                )}
-
-                                {profile.mobiles && profile.mobiles.length > 0 && (
-                                    <div className="pt-2 border-t border-slate-100 mt-2">
-                                        {profile.mobiles.map(mobile => (
-                                            <div key={mobile.id} className="flex items-center gap-3 text-[var(--color-text-secondary)] mt-1">
-                                                <Globe className="w-4 h-4 text-slate-400" />
-                                                <span>{mobile.mobileNumber}</span>
+                                {profile.experiences && profile.experiences.length > 0 ? (
+                                    <div className="space-y-10">
+                                        {profile.experiences.map((exp: any, idx: number) => (
+                                            <div key={idx} className="flex gap-4 group">
+                                                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all self-start">
+                                                    <Briefcase className="w-6 h-6" />
+                                                </div>
+                                                <div className="flex-1 space-y-1 pb-8 border-b last:border-0 border-slate-100">
+                                                    <h4 className="text-lg font-bold text-slate-900 leading-snug">{exp.jobTitle}</h4>
+                                                    <p className="text-blue-600 font-bold text-sm tracking-wide uppercase">{exp.companyName}</p>
+                                                    <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
+                                                        <Calendar className="w-3 h-3" />
+                                                        {new Date(exp.startDate).toLocaleDateString('en', { month: 'short', year: 'numeric' })}
+                                                        {' - '}
+                                                        {exp.endDate ? new Date(exp.endDate).toLocaleDateString('en', { month: 'short', year: 'numeric' }) : 'Present'}
+                                                    </div>
+                                                    {exp.description && (
+                                                        <p className="mt-4 text-slate-500 text-sm leading-relaxed max-w-2xl">{exp.description}</p>
+                                                    )}
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Right Column: Experience & Education */}
-                <div className="lg:col-span-2 space-y-6">
-                    {/* Education */}
-                    <Card variant="default">
-                        <CardContent className="p-6">
-                            <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-6 flex items-center gap-2">
-                                <GraduationCap className="w-5 h-5 text-[var(--color-accent)]" /> {t('profile.education')}
-                            </h3>
-
-                            <div className="space-y-6 relative before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-[var(--color-border)] rtl:before:right-2 rtl:before:left-auto">
-                                {profile.educations?.map((edu, idx) => (
-                                    <div key={idx} className="relative pl-8 rtl:pl-0 rtl:pr-8">
-                                        <div className="absolute left-0 top-1 w-4 h-4 rounded-full bg-white border-2 border-[var(--color-accent)] shadow-sm rtl:right-0 rtl:left-auto"></div>
-                                        <h4 className="text-base font-semibold text-[var(--color-text-primary)]">{edu.institutionName}</h4>
-                                        <p className="text-[var(--color-accent)] font-medium">{edu.degree} in {edu.major}</p>
-                                        <p className="text-xs text-[var(--color-text-muted)] mt-1">
-                                            {t('profile.class_of', { year: edu.graduationYear })} • {edu.graduationSemester === 1 ? t('profile.semester.fall') : t('profile.semester.spring')}
-                                        </p>
+                                ) : (
+                                    <div className="text-center py-12 rounded-3xl border-2 border-dashed border-slate-100 bg-slate-50/50">
+                                        <p className="text-slate-400 font-medium">No professional experience listed.</p>
                                     </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
+                                )}
+                            </CardContent>
+                        </Card>
 
-                    {/* Experience */}
-                    <Card variant="default">
-                        <CardContent className="p-6">
-                            <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-6 flex items-center gap-2">
-                                <Briefcase className="w-5 h-5 text-[var(--color-accent)]" /> {t('profile.experience')}
-                            </h3>
+                        {/* Academic Foundation */}
+                        <Card className="border-slate-200 border shadow-sm">
+                            <CardContent className="p-8">
+                                <h3 className="text-2xl font-heading font-black text-slate-900 tracking-tight mb-8">
+                                    Education
+                                </h3>
 
-                            {profile.experiences && profile.experiences.length > 0 ? (
-                                <div className="space-y-8 relative before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-[var(--color-border)] rtl:before:right-2 rtl:before:left-auto">
-                                    {profile.experiences.map((exp, idx) => (
-                                        <div key={idx} className="relative pl-8 rtl:pl-0 rtl:pr-8">
-                                            <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-white border-2 border-[var(--color-accent)] shadow-sm rtl:right-0 rtl:left-auto"></div>
-                                            <h4 className="text-base font-semibold text-[var(--color-text-primary)]">{exp.jobTitle}</h4>
-                                            <p className="text-[var(--color-accent)] font-medium">{exp.companyName}</p>
-                                            <div className="flex items-center gap-4 mt-2 text-xs text-[var(--color-text-muted)]">
-                                                <span className="flex items-center gap-1">
-                                                    <Calendar className="w-3 h-3" />
-                                                    {new Date(exp.startDate).toLocaleDateString()} -
-                                                    {exp.endDate ? new Date(exp.endDate).toLocaleDateString() : ' Present'}
-                                                </span>
+                                {profile.educations && profile.educations.length > 0 ? (
+                                    <div className="space-y-10">
+                                        {profile.educations.map((edu: any, idx: number) => (
+                                            <div key={idx} className="flex gap-4 group">
+                                                <div className="p-3 bg-blue-50 rounded-xl border border-blue-100 text-blue-600 self-start">
+                                                    <Building2 className="w-6 h-6" />
+                                                </div>
+                                                <div className="flex-1 space-y-1 pb-8 border-b last:border-0 border-slate-100">
+                                                    <h4 className="text-lg font-bold text-slate-900 leading-snug">{edu.institutionName || 'University of Information'}</h4>
+                                                    <p className="text-slate-600 font-bold text-sm">{edu.degree}{edu.major ? ` in ${edu.major}` : ''}</p>
+                                                    <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
+                                                        <GraduationCap className="w-3.5 h-3.5 text-blue-400" />
+                                                        Class of {edu.graduationYear}
+                                                    </div>
+                                                </div>
                                             </div>
-                                            {exp.description && <p className="mt-2 text-sm text-[var(--color-text-secondary)]">{exp.description}</p>}
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-slate-400 italic">No academic history available.</p>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Sidebar Column */}
+                    <div className="lg:col-span-4 space-y-8">
+                        {/* Contact Card */}
+                        <Card className="border-slate-200 border shadow-sm">
+                            <CardContent className="p-8">
+                                <h4 className="font-black text-slate-900 mb-6 uppercase tracking-widest text-xs">Contact Information</h4>
+                                <div className="space-y-6">
+                                    {profile.emails?.map((email: any) => (
+                                        <div key={email.id} className="flex items-center gap-4">
+                                            <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
+                                                <Mail className="w-4 h-4" />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Email</span>
+                                                <span className="text-slate-700 font-bold text-sm">{email.email}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {profile.mobiles?.map((mobile: any) => (
+                                        <div key={mobile.id} className="flex items-center gap-4">
+                                            <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
+                                                <Globe className="w-4 h-4" />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Mobile</span>
+                                                <span className="text-slate-700 font-bold text-sm">{mobile.mobileNumber}</span>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
-                            ) : (
-                                <p className="text-sm text-[var(--color-text-muted)] italic">{t('profile.no_experience')}</p>
-                            )}
-                        </CardContent>
-                    </Card>
+                            </CardContent>
+                        </Card>
+
+                        {/* Public Link */}
+                        <Card className="border-slate-200 border shadow-sm bg-gradient-to-br from-white to-slate-50">
+                            <CardContent className="p-8">
+                                <h4 className="font-black text-slate-900 mb-4 uppercase tracking-widest text-xs">Profile Link</h4>
+                                <div className="p-4 rounded-xl bg-white border border-slate-200 flex flex-col gap-2">
+                                    <span className="text-[11px] font-medium text-slate-400 break-all select-all">
+                                        {window.location.origin}/portal/directory/{id}
+                                    </span>
+                                    <Button variant="ghost" size="sm" className="text-blue-600 font-bold uppercase tracking-widest text-[10px] self-end h-8">
+                                        Copy Link
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
             </div>
         </div>

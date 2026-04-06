@@ -14,6 +14,8 @@ public class AlumniDirectoryCache : Entity<Guid>
     public string? College { get; set; }
     public int? GraduationYear { get; set; }
     public bool ShowInDirectory { get; set; }
+    public bool IsVip { get; set; }
+    public string? PhotoUrl { get; set; }
 
     private AlumniDirectoryCache() { }
 

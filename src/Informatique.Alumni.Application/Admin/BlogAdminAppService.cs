@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
 using Informatique.Alumni.Magazine;
 using Informatique.Alumni.Permissions;
@@ -65,17 +66,66 @@ public class BlogAdminAppService : AlumniAppService, IBlogAdminAppService
         return new PagedResultDto<BlogPostDto>(count, dtos);
     }
 
-    public async Task PublishPostAsync(Guid id)
+    public async Task PublishAsync(Guid id)
     {
         var post = await _postRepository.GetAsync(id);
         post.IsPublished = true;
         await _postRepository.UpdateAsync(post);
     }
 
-    public async Task UnpublishPostAsync(Guid id)
+    public async Task UnpublishAsync(Guid id)
     {
         var post = await _postRepository.GetAsync(id);
         post.IsPublished = false;
         await _postRepository.UpdateAsync(post);
+    }
+
+    public async Task<PagedResultDto<ArticleCategoryDto>> GetCategoriesAsync(PagedAndSortedResultRequestDto input)
+    {
+        var queryable = await _categoryRepository.GetQueryableAsync();
+        
+        var count = await AsyncExecuter.CountAsync(queryable);
+        
+        var items = await AsyncExecuter.ToListAsync(
+            queryable
+                .OrderBy(string.IsNullOrWhiteSpace(input.Sorting) ? nameof(ArticleCategory.NameEn) : input.Sorting)
+                .PageBy(input)
+        );
+
+        return new PagedResultDto<ArticleCategoryDto>(
+            count,
+            _alumniMappers.MapToDtos(items)
+        );
+    }
+
+    public async Task<ArticleCategoryDto> CreateCategoryAsync(CreateUpdateArticleCategoryDto input)
+    {
+        var category = new ArticleCategory(
+            GuidGenerator.Create(),
+            input.NameEn,
+            input.NameAr
+        )
+        {
+            IsActive = input.IsActive
+        };
+
+        await _categoryRepository.InsertAsync(category);
+        return _alumniMappers.MapToDto(category);
+    }
+
+    public async Task<ArticleCategoryDto> UpdateCategoryAsync(Guid id, CreateUpdateArticleCategoryDto input)
+    {
+        var category = await _categoryRepository.GetAsync(id);
+        category.NameEn = input.NameEn;
+        category.NameAr = input.NameAr;
+        category.IsActive = input.IsActive;
+
+        await _categoryRepository.UpdateAsync(category);
+        return _alumniMappers.MapToDto(category);
+    }
+
+    public async Task DeleteCategoryAsync(Guid id)
+    {
+        await _categoryRepository.DeleteAsync(id);
     }
 }

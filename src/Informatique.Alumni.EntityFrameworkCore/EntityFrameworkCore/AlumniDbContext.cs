@@ -42,6 +42,8 @@ using Informatique.Alumni.Communications;
 using Informatique.Alumni.EntityFrameworkCore.Syndicates;
 using Informatique.Alumni.EntityFrameworkCore.Membership;
 using Informatique.Alumni.Currencies;
+using Informatique.Alumni.Companies;
+
 
 namespace Informatique.Alumni.EntityFrameworkCore;
 
@@ -76,6 +78,7 @@ public class AlumniDbContext :
     public DbSet<College> Colleges { get; set; }
     public DbSet<Major> Majors { get; set; }
     public DbSet<Nationality> Nationalities { get; set; } // Added for Reporting
+    public DbSet<AlumniAdvisorExpertise> AdvisorExpertises { get; set; }
 
 
     // Directory
@@ -88,9 +91,10 @@ public class AlumniDbContext :
     // Health
     public DbSet<MedicalPartner> MedicalPartners { get; set; }
     public DbSet<MedicalOffer> MedicalOffers { get; set; }
+    public DbSet<MedicalCategory> MedicalCategories { get; set; }
 
     // Magazine & Blog
-    public DbSet<Informatique.Alumni.Magazine.Magazine> Magazines { get; set; } 
+    public DbSet<Informatique.Alumni.Magazine.Magazine> Magazines { get; set; }
     public DbSet<MagazineIssue> MagazineIssues { get; set; }
     public DbSet<ArticleCategory> ArticleCategories { get; set; }
     public DbSet<BlogPost> BlogPosts { get; set; }
@@ -99,36 +103,40 @@ public class AlumniDbContext :
     // Guidance
     public DbSet<GuidanceSessionRule> GuidanceSessionRules { get; set; }
     public DbSet<AdvisingRequest> AdvisingRequests { get; set; }
-    
+    public DbSet<AdvisoryCategory> AdvisoryCategories { get; set; }
+
     // Benefits
     public DbSet<AcademicGrant> AcademicGrants { get; set; }
     public DbSet<CommercialDiscount> CommercialDiscounts { get; set; }
     public DbSet<DiscountCategory> DiscountCategories { get; set; }
-    
+
     // Career
     public DbSet<CareerService> CareerServices { get; set; }
     public DbSet<CareerServiceType> CareerServiceTypes { get; set; }
     public DbSet<CareerServiceTimeslot> CareerServiceTimeslots { get; set; }
     public DbSet<AlumniCareerSubscription> AlumniCareerSubscriptions { get; set; }
-    
+
     // Syndicates
     public DbSet<Syndicate> Syndicates { get; set; }
     public DbSet<SyndicateSubscription> SyndicateSubscriptions { get; set; }
     public DbSet<SyndicateDocument> SyndicateDocuments { get; set; }
-    
+
     // Events
-    public DbSet<Company> Companies { get; set; }
+    public DbSet<EventParticipatingCompany> EventParticipatingCompanies { get; set; }
     public DbSet<ActivityType> ActivityTypes { get; set; } // New Entity
     public DbSet<ParticipationType> ParticipationTypes { get; set; }
     public DbSet<AssociationEvent> AssociationEvents { get; set; }
     public DbSet<EventAgendaItem> EventAgendaItems { get; set; }
     public DbSet<AlumniEventRegistration> AlumniEventRegistrations { get; set; }
-    
+
     // Career & Job Board
     public DbSet<CurriculumVitae> CurriculumVitaes { get; set; }
     public DbSet<Job> Jobs { get; set; }
     public DbSet<JobApplication> JobApplications { get; set; }
-    
+
+    // Companies
+    public DbSet<Company> Companies { get; set; }
+
     // CV Children
     public DbSet<CvEducation> CvEducations { get; set; }
     public DbSet<CvExperience> CvExperiences { get; set; }
@@ -144,7 +152,7 @@ public class AlumniDbContext :
     public DbSet<CvSocialLink> CvSocialLinks { get; set; }
     public DbSet<CvCourse> CvCourses { get; set; }
     public DbSet<CvPracticalTraining> CvPracticalTrainings { get; set; }
-    
+
     // Dashboard, Trips & Lookups
     public DbSet<DailyStats> DailyDashboardStats { get; set; }
     public DbSet<AlumniTrip> AlumniTrips { get; set; }
@@ -224,7 +232,7 @@ public class AlumniDbContext :
         builder.ConfigureOpenIddict();
         builder.ConfigureTenantManagement();
         builder.ConfigureBlobStoring();
-        
+
         /* Configure your own tables/entities inside here */
 
         builder.Entity<Branch>(b =>
@@ -279,14 +287,15 @@ public class AlumniDbContext :
             b.HasOne<CertificateDefinition>().WithMany().HasForeignKey(x => x.CertificateDefinitionId).IsRequired();
             b.HasIndex(x => x.CertificateDefinitionId);
             b.HasIndex(x => x.CertificateRequestId);
+            b.Property(x => x.AttachmentUrl).HasMaxLength(500);
         });
-        
-         builder.Entity<CertificateRequestHistory>(b =>
-        {
-            b.ToTable(AlumniConsts.DbTablePrefix + "CertificateRequestHistories", AlumniConsts.DbSchema);
-            b.ConfigureByConvention();
-            b.HasIndex(x => x.CertificateRequestId);
-        });
+
+        builder.Entity<CertificateRequestHistory>(b =>
+       {
+           b.ToTable(AlumniConsts.DbTablePrefix + "CertificateRequestHistories", AlumniConsts.DbSchema);
+           b.ConfigureByConvention();
+           b.HasIndex(x => x.CertificateRequestId);
+       });
 
 
         // Membership
@@ -312,8 +321,8 @@ public class AlumniDbContext :
             b.HasOne<Nationality>().WithMany().HasForeignKey(x => x.NationalityId).IsRequired(false);
 
             // Admin Lifecycle
-            b.Property(x => x.Status).HasConversion<string>().HasMaxLength(32).HasDefaultValue(Profiles.AlumniStatus.Pending);
-            b.Property(x => x.IdCardStatus).HasConversion<string>().HasMaxLength(32).HasDefaultValue(Profiles.IdCardStatus.None);
+            b.Property(x => x.Status).HasConversion<string>().HasMaxLength(32).HasDefaultValue(AlumniStatus.Pending);
+            b.Property(x => x.IdCardStatus).HasConversion<string>().HasMaxLength(32).HasDefaultValue(IdCardStatus.None);
             b.Property(x => x.IsNotable).HasDefaultValue(false);
             b.Property(x => x.RejectionReason).HasMaxLength(1024);
             b.HasIndex(x => x.Status);
@@ -321,6 +330,13 @@ public class AlumniDbContext :
             b.HasMany(x => x.Emails).WithOne().HasForeignKey(x => x.AlumniProfileId).IsRequired();
             b.HasMany(x => x.Mobiles).WithOne().HasForeignKey(x => x.AlumniProfileId).IsRequired();
             b.HasMany(x => x.Phones).WithOne().HasForeignKey(x => x.AlumniProfileId).IsRequired();
+            b.HasMany(x => x.AdvisoryExpertises).WithOne().HasForeignKey(x => x.AlumniProfileId).IsRequired();
+
+            // Advisory Workflow
+            b.Property(x => x.AdvisoryStatus).HasConversion<string>().HasMaxLength(32).HasDefaultValue(AdvisoryWorkflowStatus.None);
+            b.Property(x => x.AdvisoryBio).HasMaxLength(4000);
+            b.Property(x => x.AdvisoryExperienceYears).HasDefaultValue(0);
+            b.Property(x => x.AdvisoryRejectionReason).HasMaxLength(1024);
         });
 
         builder.Entity<ContactEmail>(b =>
@@ -345,6 +361,24 @@ public class AlumniDbContext :
             b.ConfigureByConvention();
             b.Property(x => x.PhoneNumber).IsRequired().HasMaxLength(32);
             b.HasIndex(x => x.AlumniProfileId);
+        });
+
+        builder.Entity<AlumniAdvisorExpertise>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "AlumniAdvisorExpertises", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.HasKey(x => new { x.AlumniProfileId, x.AdvisoryCategoryId });
+            b.HasOne<AdvisoryCategory>().WithMany().HasForeignKey(x => x.AdvisoryCategoryId).IsRequired();
+            b.HasIndex(x => x.AlumniProfileId);
+        });
+
+        builder.Entity<AdvisoryCategory>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "AdvisoryCategories", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.NameAr).IsRequired().HasMaxLength(128);
+            b.Property(x => x.NameEn).IsRequired().HasMaxLength(128);
+            b.HasIndex(x => x.NameEn).IsUnique();
         });
 
         builder.Entity<Experience>(b =>
@@ -388,7 +422,7 @@ public class AlumniDbContext :
         {
             b.ToTable(AlumniConsts.DbTablePrefix + "AlumniDirectoryCache", AlumniConsts.DbSchema);
             b.ConfigureByConvention();
-            b.HasIndex(x => x.UserId);
+            b.HasIndex(x => x.UserId).IsUnique();
             b.HasIndex(x => x.College);
             b.HasIndex(x => x.Major);
             b.HasIndex(x => x.GraduationYear);
@@ -421,6 +455,16 @@ public class AlumniDbContext :
             b.Property(x => x.Address).HasMaxLength(512);
             b.Property(x => x.ContactNumber).HasMaxLength(32);
             b.HasIndex(x => x.Type);
+            b.HasOne(x => x.MedicalCategory).WithMany().HasForeignKey(x => x.MedicalCategoryId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        builder.Entity<MedicalCategory>(b =>
+        {
+            b.ToTable(AlumniConsts.DbTablePrefix + "MedicalCategories", AlumniConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.NameAr).IsRequired().HasMaxLength(128);
+            b.Property(x => x.NameEn).IsRequired().HasMaxLength(128);
+            b.HasIndex(x => x.BaseType);
         });
 
         builder.Entity<MedicalOffer>(b =>
@@ -532,7 +576,11 @@ public class AlumniDbContext :
             b.Property(x => x.NameAr).IsRequired().HasMaxLength(EventConsts.MaxCompanyNameLength);
             b.Property(x => x.NameEn).IsRequired().HasMaxLength(EventConsts.MaxCompanyNameLength);
             b.Property(x => x.WebsiteUrl).HasMaxLength(EventConsts.MaxWebsiteLength);
-            
+            b.Property(x => x.Industry).HasMaxLength(128);
+            b.Property(x => x.Description).HasMaxLength(2000);
+            b.Property(x => x.Email).HasMaxLength(256);
+            b.Property(x => x.PhoneNumber).HasMaxLength(32);
+
             b.HasIndex(x => x.NameAr).IsUnique();
             b.HasIndex(x => x.NameEn).IsUnique();
         });
@@ -543,7 +591,7 @@ public class AlumniDbContext :
             b.ConfigureByConvention();
             b.Property(x => x.NameAr).IsRequired().HasMaxLength(EventConsts.MaxTitleLength);
             b.Property(x => x.NameEn).IsRequired().HasMaxLength(EventConsts.MaxTitleLength);
-            
+
             b.HasIndex(x => x.NameAr).IsUnique();
             b.HasIndex(x => x.NameEn).IsUnique();
         });
@@ -567,10 +615,10 @@ public class AlumniDbContext :
             b.Property(x => x.Code).IsRequired().HasMaxLength(32);
             b.Property(x => x.Location).HasMaxLength(EventConsts.MaxLocationLength);
             b.Property(x => x.FeeAmount).HasColumnType("decimal(18,2)");
-            
+
             b.HasMany(x => x.Timeslots).WithOne().HasForeignKey(x => x.EventId).IsRequired();
             b.HasMany(x => x.ParticipatingCompanies).WithOne().HasForeignKey(x => x.EventId).IsRequired();
-            
+
             b.HasOne(x => x.ActivityType).WithMany().HasForeignKey(x => x.ActivityTypeId).IsRequired(false);
         });
 
@@ -583,7 +631,7 @@ public class AlumniDbContext :
         builder.Entity<EventParticipatingCompany>(b =>
         {
             b.ToTable(AlumniConsts.DbTablePrefix + "EventParticipatingCompanies", AlumniConsts.DbSchema);
-            b.ConfigureByConvention();
+            b.ConfigureByConvention(); // Now handles Auditing/SoftDelete fields
             b.HasOne(x => x.ParticipationType).WithMany().HasForeignKey(x => x.ParticipationTypeId).IsRequired();
         });
 
@@ -602,7 +650,7 @@ public class AlumniDbContext :
             b.ToTable(AlumniConsts.DbTablePrefix + "CurriculumVitaes", AlumniConsts.DbSchema);
             b.ConfigureByConvention();
             b.HasIndex(x => x.AlumniId).IsUnique();
-            
+
             // 14 Cascade Deletes
             b.HasMany(x => x.Educations).WithOne().HasForeignKey(x => x.CurriculumVitaeId).OnDelete(DeleteBehavior.Cascade);
             b.HasMany(x => x.Experiences).WithOne().HasForeignKey(x => x.CurriculumVitaeId).OnDelete(DeleteBehavior.Cascade);

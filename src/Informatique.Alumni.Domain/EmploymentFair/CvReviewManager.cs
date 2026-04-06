@@ -78,8 +78,8 @@ public class CvReviewManager : DomainService
         {
             RequestId = review.Id,
             GraduateId = review.GraduateId,
-            ReviewedFileUrl = review.ReviewedFileUrl,
-            Notes = review.Notes
+            ReviewedFileUrl = review.ReviewedFileUrl ?? string.Empty,
+            Notes = review.Notes ?? string.Empty
         });
     }
 }

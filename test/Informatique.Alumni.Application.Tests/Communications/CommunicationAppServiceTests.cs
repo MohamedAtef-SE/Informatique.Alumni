@@ -1,33 +1,32 @@
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
-using Informatique.Alumni.Communication;
+using Informatique.Alumni.Communications;
 using Xunit;
 
 namespace Informatique.Alumni.Communication;
 
 public class CommunicationAppServiceTests : AlumniApplicationTestBase<AlumniApplicationTestModule>
 {
-    private readonly ICommunicationAppService _communicationAppService;
+    private readonly ICommunicationsAppService _communicationsAppService;
 
     public CommunicationAppServiceTests()
     {
-        _communicationAppService = GetRequiredService<ICommunicationAppService>();
+        _communicationsAppService = GetRequiredService<ICommunicationsAppService>();
     }
 
     [Fact]
-    public async Task QueueMassMessageAsync_Should_Process_Message()
+    public async Task SendMessageAsync_Should_Not_Throw()
     {
-        // Act
-        // Assuming SendMassMessageDto exists
-        await _communicationAppService.QueueMassMessageAsync(new SendMassMessageDto 
-        { 
-            Subject = "Test", 
-            Content = "Body",
-            SendAsEmail = true 
+        // Act & Assert — Background job manager is mocked, so no SMTP/SMS call occurs.
+        await Should.NotThrowAsync(async () =>
+        {
+            await _communicationsAppService.SendMessageAsync(new SendGeneralMessageInputDto
+            {
+                Subject = "Test Subject",
+                Body = "Test Body",
+                Channel = CommunicationChannel.Email,
+                Filter = new AlumniCommunicationFilterDto()
+            });
         });
-
-        // Assert
-        // If no exception, it passed.
     }
 }

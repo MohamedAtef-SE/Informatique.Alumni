@@ -48,7 +48,7 @@ public class AlumniProfileAppServiceTests : AlumniApplicationTestBase<AlumniAppl
         await _profileRepository.InsertAsync(profile);
 
         // Act
-        AlumniProfileDto result;
+        AlumniMyProfileDto result;
         using (var scope = GetRequiredService<Volo.Abp.Security.Claims.ICurrentPrincipalAccessor>().Change(
             new System.Security.Claims.ClaimsPrincipal(
                 new System.Security.Claims.ClaimsIdentity(
@@ -57,12 +57,12 @@ public class AlumniProfileAppServiceTests : AlumniApplicationTestBase<AlumniAppl
             )
         ))
         {
-            result = await _profileAppService.GetMineAsync();
+            result = await _profileAppService.GetMyProfileAsync();
         }
 
         // Assert
         result.ShouldNotBeNull();
         result.Id.ShouldBe(profileId);
-        result.MobileNumber.ShouldBe("+1234567890");
+        result.Mobiles.ShouldContain(x => x.MobileNumber == "+1234567890");
     }
 }

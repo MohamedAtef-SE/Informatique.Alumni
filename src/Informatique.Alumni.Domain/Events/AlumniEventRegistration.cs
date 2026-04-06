@@ -31,7 +31,7 @@ public class AlumniEventRegistration : FullAuditedAggregateRoot<Guid>
         AlumniId = Check.NotDefaultOrNull<Guid>(alumniId, nameof(alumniId));
         EventId = Check.NotDefaultOrNull<Guid>(eventId, nameof(eventId));
         TicketCode = Check.NotNullOrWhiteSpace(ticketCode, nameof(ticketCode));
-        Status = RegistrationStatus.Registered;
+        Status = RegistrationStatus.Pending;
         TimeslotId = timeslotId;
         PaymentMethod = paymentMethod;
         PaidAmount = paidAmount;
@@ -39,17 +39,25 @@ public class AlumniEventRegistration : FullAuditedAggregateRoot<Guid>
 
     public void MarkAsAttended()
     {
-        if (Status == RegistrationStatus.Cancelled)
+        if (Status != RegistrationStatus.Confirmed)
         {
-            throw new UserFriendlyException("Cannot mark a cancelled registration as attended.");
+            throw new UserFriendlyException("Only confirmed registrations can be marked as attended.");
         }
         
         if (Status == RegistrationStatus.Attended)
         {
             throw new UserFriendlyException("This ticket has already been used.");
         }
-
         Status = RegistrationStatus.Attended;
+    }
+
+    public void Confirm()
+    {
+        if (Status == RegistrationStatus.Cancelled)
+        {
+            throw new UserFriendlyException("Cannot confirm a cancelled registration.");
+        }
+        Status = RegistrationStatus.Confirmed;
     }
 
     public void Cancel()

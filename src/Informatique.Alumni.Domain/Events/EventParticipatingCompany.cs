@@ -1,9 +1,10 @@
 using System;
-using Volo.Abp.Domain.Entities;
+using Volo.Abp.Domain.Entities.Auditing;
+using Informatique.Alumni.Companies;
 
 namespace Informatique.Alumni.Events;
 
-public class EventParticipatingCompany : Entity<Guid>
+public class EventParticipatingCompany : FullAuditedEntity<Guid>
 {
     public Guid EventId { get; private set; }
     public Guid CompanyId { get; private set; }

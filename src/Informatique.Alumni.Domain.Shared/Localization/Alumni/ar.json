@@ -48,6 +48,22 @@
     "Alumni:Event:008": "يجب أن يكون وقت البدء قبل وقت الانتهاء.",
     "Alumni:Event:009": "يجب تحديد فترة زمنية واحدة على الأقل قبل النشر.",
     "Alumni:Event:010": "توجد فعالية مسجلة مسبقاً بنفس الكود.",
-    "Events:InvalidSubscriptionDate": "يجب أن يكون الموعد النهائي للاشتراك قبل أو يساوي وقت البدء لأقرب فترة زمنية."
+    "Events:InvalidSubscriptionDate": "يجب أن يكون الموعد النهائي للاشتراك قبل أو يساوي وقت البدء لأقرب فترة زمنية.",
+    "Permission:Companies": "الشركات",
+    "Permission:ManageCompanies": "إدارة الشركات",
+    "Menu:Companies": "الشركات",
+    "Companies": "الشركات الشريكة",
+    "ManageCompanies": "إدارة الشركاء",
+    "CreateCompany": "تسجيل شركة جديدة",
+    "EditCompany": "تعديل بيانات الشركة",
+    "CompanyNameAr": "الاسم (بالعربية)",
+    "CompanyNameEn": "الاسم (بالإنجليزية)",
+    "CompanyWebsite": "رابط الموقع الإلكتروني",
+    "CompanyIndustry": "الصناعة / المجال",
+    "CompanyLogo": "الشعار",
+    "CompanyDescription": "الوصف",
+    "CompanyEmail": "البريد الإلكتروني",
+    "CompanyPhone": "رقم الهاتف",
+    "CompanyIsActive": "نشط"
   }
 }

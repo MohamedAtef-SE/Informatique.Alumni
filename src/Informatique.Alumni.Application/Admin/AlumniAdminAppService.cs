@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Informatique.Alumni.Permissions;
@@ -7,8 +8,10 @@ using Microsoft.AspNetCore.Authorization;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Identity;
+using Informatique.Alumni.Guidance;
 using Informatique.Alumni.Events;
 using Informatique.Alumni.Career;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Informatique.Alumni.Admin;
 
@@ -26,6 +29,8 @@ public class AlumniAdminAppService : AlumniAppService, IAlumniAdminAppService
     private readonly IRepository<Informatique.Alumni.Events.AlumniEventRegistration, Guid> _eventRegistrationRepository;
     private readonly IRepository<Informatique.Alumni.Career.Job, Guid> _jobRepository;
     private readonly IRepository<Informatique.Alumni.Career.JobApplication, Guid> _jobApplicationRepository;
+    private readonly IRepository<AdvisoryCategory, Guid> _categoryRepository;
+    private readonly Volo.Abp.EventBus.Local.ILocalEventBus _localEventBus;
 
     public AlumniAdminAppService(
         IRepository<AlumniProfile, Guid> profileRepository,
@@ -38,7 +43,9 @@ public class AlumniAdminAppService : AlumniAppService, IAlumniAdminAppService
         IRepository<Informatique.Alumni.Events.AssociationEvent, Guid> eventRepository,
         IRepository<Informatique.Alumni.Events.AlumniEventRegistration, Guid> eventRegistrationRepository,
         IRepository<Informatique.Alumni.Career.Job, Guid> jobRepository,
-        IRepository<Informatique.Alumni.Career.JobApplication, Guid> jobApplicationRepository)
+        IRepository<Informatique.Alumni.Career.JobApplication, Guid> jobApplicationRepository,
+        IRepository<AdvisoryCategory, Guid> categoryRepository,
+        Volo.Abp.EventBus.Local.ILocalEventBus localEventBus)
     {
         _profileRepository = profileRepository;
         _userRepository = userRepository;
@@ -51,6 +58,8 @@ public class AlumniAdminAppService : AlumniAppService, IAlumniAdminAppService
         _eventRegistrationRepository = eventRegistrationRepository;
         _jobRepository = jobRepository;
         _jobApplicationRepository = jobApplicationRepository;
+        _categoryRepository = categoryRepository;
+        _localEventBus = localEventBus;
     }
 
     public async Task<PagedResultDto<AlumniAdminListDto>> GetListAsync(AlumniAdminGetListInput input)
@@ -93,6 +102,8 @@ public class AlumniAdminAppService : AlumniAppService, IAlumniAdminAppService
                 MobileNumber = p.MobileNumber,
                 Status = p.Status,
                 IsVip = p.IsVip,
+                IsAdvisor = p.IsAdvisor,
+                AdvisoryStatus = p.AdvisoryStatus,
                 IsNotable = p.IsNotable,
                 IdCardStatus = p.IdCardStatus,
                 CreationTime = p.CreationTime
@@ -105,9 +116,10 @@ public class AlumniAdminAppService : AlumniAppService, IAlumniAdminAppService
     public async Task<AlumniAdminDto> GetAsync(Guid id)
     {
         var profile = await _profileRepository.GetAsync(id);
+        
         var user = (await _userRepository.GetListByIdsAsync(new[] { profile.UserId })).FirstOrDefault();
 
-        return new AlumniAdminDto
+        var dto = new AlumniAdminDto
         {
             Id = profile.Id,
             UserId = profile.UserId,
@@ -127,6 +139,11 @@ public class AlumniAdminAppService : AlumniAppService, IAlumniAdminAppService
             LinkedinUrl = profile.LinkedinUrl,
             Status = profile.Status,
             IsVip = profile.IsVip,
+            IsAdvisor = profile.IsAdvisor,
+            AdvisoryStatus = profile.AdvisoryStatus,
+            AdvisoryBio = profile.AdvisoryBio,
+            AdvisoryExperienceYears = profile.AdvisoryExperienceYears,
+            AdvisoryRejectionReason = profile.AdvisoryRejectionReason,
             IsNotable = profile.IsNotable,
             IdCardStatus = profile.IdCardStatus,
             RejectionReason = profile.RejectionReason,
@@ -136,6 +153,20 @@ public class AlumniAdminAppService : AlumniAppService, IAlumniAdminAppService
             CreationTime = profile.CreationTime,
             LastModificationTime = profile.LastModificationTime
         };
+
+        // Load Expertises if they exist
+        if (profile.AdvisoryExpertises != null && profile.AdvisoryExpertises.Any())
+        {
+            var expertiseIds = profile.AdvisoryExpertises.Select(e => e.AdvisoryCategoryId).ToList();
+            var categories = await _categoryRepository.GetListAsync(x => expertiseIds.Contains(x.Id));
+            dto.ExpertiseNames = categories.Select(x => x.NameEn).ToList();
+        }
+        else
+        {
+            dto.ExpertiseNames = new List<string>();
+        }
+
+        return dto;
     }
 
     [Authorize(AlumniPermissions.Admin.AlumniApprove)]
@@ -251,6 +282,7 @@ public class AlumniAdminAppService : AlumniAppService, IAlumniAdminAppService
         await _profileRepository.UpdateAsync(profile);
     }
 
+    [Authorize(AlumniPermissions.Admin.AlumniManage)]
     public async Task MarkAsNotableAsync(Guid id)
     {
         var profile = await _profileRepository.GetAsync(id);
@@ -258,11 +290,95 @@ public class AlumniAdminAppService : AlumniAppService, IAlumniAdminAppService
         await _profileRepository.UpdateAsync(profile);
     }
 
+    [Authorize(AlumniPermissions.Admin.AlumniManage)]
     public async Task UpdateIdCardStatusAsync(Guid id, UpdateIdCardStatusInput input)
     {
         var profile = await _profileRepository.GetAsync(id);
         profile.UpdateIdCardStatus(input.Status);
         await _profileRepository.UpdateAsync(profile);
+    }
+
+    [Authorize(AlumniPermissions.Admin.GuidanceManage)]
+    public async Task ToggleAdvisorAsync(Guid id)
+    {
+        var profile = await _profileRepository.GetAsync(id);
+        profile.SetAdvisorStatus(!profile.IsAdvisor);
+        await _profileRepository.UpdateAsync(profile);
+    }
+
+    [Authorize(AlumniPermissions.Admin.GuidanceManage)]
+    public async Task ApproveAdvisorAsync(Guid id)
+    {
+        var profile = await _profileRepository.GetAsync(id);
+        profile.ApproveAdvisory();
+        await _profileRepository.UpdateAsync(profile);
+
+        await _localEventBus.PublishAsync(new AdvisoryApplicationStatusChangedEto 
+        { 
+            AlumniId = profile.Id, 
+            Status = profile.AdvisoryStatus 
+        });
+    }
+
+    [Authorize(AlumniPermissions.Admin.GuidanceManage)]
+    public async Task RejectAdvisorAsync(Guid id, RejectAlumniInput input)
+    {
+        var profile = await _profileRepository.GetAsync(id);
+        profile.RejectAdvisory(input.Reason);
+        await _profileRepository.UpdateAsync(profile);
+
+        await _localEventBus.PublishAsync(new AdvisoryApplicationStatusChangedEto 
+        { 
+            AlumniId = profile.Id, 
+            Status = profile.AdvisoryStatus,
+            RejectionReason = input.Reason
+        });
+    }
+
+    public async Task<PagedResultDto<AlumniAdminListDto>> GetProfilesAsync(AlumniAdminGetListInput input)
+    {
+        var queryable = await _profileRepository.GetQueryableAsync();
+        queryable = queryable.Where(x => x.Status == AlumniStatus.Active); // Only active alumni for profile list
+
+        if (!string.IsNullOrWhiteSpace(input.Filter))
+        {
+            queryable = queryable.Where(x =>
+                x.MobileNumber.Contains(input.Filter) ||
+                x.NationalId.Contains(input.Filter));
+        }
+
+        var totalCount = await AsyncExecuter.CountAsync(queryable);
+
+        queryable = queryable
+            .OrderByDescending(x => x.CreationTime)
+            .PageBy(input);
+
+        var profiles = await AsyncExecuter.ToListAsync(queryable);
+
+        var userIds = profiles.Select(p => p.UserId).ToList();
+        var users = await _userRepository.GetListByIdsAsync(userIds);
+
+        var items = profiles.Select(p =>
+        {
+            var user = users.FirstOrDefault(u => u.Id == p.UserId);
+            return new AlumniAdminListDto
+            {
+                Id = p.Id,
+                UserId = p.UserId,
+                FullName = user != null ? $"{user.Name} {user.Surname}" : "—",
+                Email = user?.Email ?? "—",
+                MobileNumber = p.MobileNumber,
+                Status = p.Status,
+                IsVip = p.IsVip,
+                IsAdvisor = p.IsAdvisor,
+                AdvisoryStatus = p.AdvisoryStatus,
+                IsNotable = p.IsNotable,
+                IdCardStatus = p.IdCardStatus,
+                CreationTime = p.CreationTime
+            };
+        }).ToList();
+
+        return new PagedResultDto<AlumniAdminListDto>(totalCount, items);
     }
 
     [Authorize(AlumniPermissions.Admin.AlumniManage)]

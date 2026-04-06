@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 using Informatique.Alumni.Certificates;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Volo.Abp;
 using Volo.Abp.BlobStoring;
+using Volo.Abp.Content;
 using Volo.Abp.Users;
 
 namespace Informatique.Alumni.Common;
@@ -50,13 +52,7 @@ public class FileAppService : AlumniAppService, IFileAppService
         using var stream = file.OpenReadStream();
         await _blobContainer.SaveAsync(blobName, stream, overrideExisting: true);
 
-        // Generate URL path
-        // IMPORTANT: The route for retrieving this file needs to be implemented or we depend on a publicly accessible blob provider URL if using S3/Azure.
-        // If using FileSystem, we need a controller to serve it.
-        // For now, let's assume we have a controller endpoint /api/app/file/download/{blobName}
-        // OR we can make a custom controller to serve these files.
-        // Given time constraints, I will assume we can reuse the pattern from Profile Pictures or create a FileController.
-        
-        return $"/api/app/file/download?name={blobName}";
+        return $"/api/app/file/download?name={Uri.EscapeDataString(blobName)}";
     }
 }
+

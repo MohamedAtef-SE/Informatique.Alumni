@@ -2,22 +2,39 @@ export interface MedicalPartnerDto {
     id: string;
     name: string;
     description?: string;
-    type: number; // Enum: 0=Other, 1=Pharmacy, 2=Hospital, 3=Lab, 4=Clinic
+    type: number; // Legacy
     address: string;
     contactNumber: string;
     website?: string;
-
-    // Premium Fields
     logoUrl?: string;
     city?: string;
     region?: string;
-    category?: string;
+    category?: string; // Legacy
     email?: string;
     hotlineNumber?: string;
+    medicalCategoryId?: string;
+    medicalCategoryName?: string;
+    medicalCategoryBaseType?: number;
+    isVerified: boolean;
 
     isActive: boolean;
     offers: MedicalOfferDto[];
-    discountRate?: number; // Calculated or from specific offer
+    discountRate?: number;
+}
+
+export interface MedicalCategoryDto {
+    id: string;
+    nameAr: string;
+    nameEn: string;
+    baseType: number;
+    isActive: boolean;
+}
+
+export interface CreateUpdateMedicalCategoryDto {
+    nameAr: string;
+    nameEn: string;
+    baseType: number;
+    isActive: boolean;
 }
 
 export interface MedicalOfferDto {
@@ -60,7 +77,7 @@ export interface HealthStatsDto {
 export interface CreateMedicalPartnerDto {
     name: string;
     description?: string;
-    type: number;
+    medicalCategoryId?: string;
     address: string;
     contactNumber: string;
     website?: string;
@@ -68,7 +85,8 @@ export interface CreateMedicalPartnerDto {
     region?: string;
     email?: string;
     hotlineNumber?: string;
-    category?: string;
+    category?: string; // Legacy
+    isVerified?: boolean;
 }
 
 export interface UpdateMedicalPartnerDto extends CreateMedicalPartnerDto { }

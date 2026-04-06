@@ -81,3 +81,17 @@ public class ArticleCategoryLookupDto : EntityDto<Guid>
     public string NameAr { get; set; } = string.Empty;
     public string NameEn { get; set; } = string.Empty;
 }
+
+public class ArticleCategoryDto : FullAuditedEntityDto<Guid>
+{
+    public string NameAr { get; set; } = string.Empty;
+    public string NameEn { get; set; } = string.Empty;
+    public bool IsActive { get; set; }
+}
+
+public class CreateUpdateArticleCategoryDto
+{
+    public string NameAr { get; set; } = string.Empty;
+    public string NameEn { get; set; } = string.Empty;
+    public bool IsActive { get; set; } = true;
+}

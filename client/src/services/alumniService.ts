@@ -1,6 +1,6 @@
 import { api } from './api';
 import type { PagedResultDto } from '../types/common';
-import type { AlumniListDto, AlumniSearchFilterDto, AlumniProfileDetailDto, AlumniMyProfileDto, UpdateMyProfileDto } from '../types/alumni';
+import type { AlumniListDto, AlumniSearchFilterDto, AlumniProfileDetailDto, AlumniMyProfileDto, UpdateMyProfileDto, WalletActivityDto } from '../types/alumni';
 import type { AlumniTripDto } from '../types/trips';
 import type { CurrencyDto } from '../types/lookups';
 
@@ -37,6 +37,20 @@ export const alumniService = {
         return response.data;
     },
 
+    applyAsAdvisor: async (input: { bio: string; experienceYears: number; expertiseIds: string[] }) => {
+        await api.post('/api/app/alumni-profile/apply-as-advisor', input);
+    },
+
+    topUpWallet: async (amount: number) => {
+        const response = await api.post<AlumniMyProfileDto>(`/api/app/alumni-profile/top-up-wallet?amount=${amount}`);
+        return response.data;
+    },
+
+    getWalletActivity: async () => {
+        const response = await api.get<WalletActivityDto[]>('/api/app/alumni-profile/wallet-activity');
+        return response.data;
+    },
+
     // ── Trips ─────────────────────────────────────────────────────────────────
 
     /** Returns active, upcoming trips available for booking */
@@ -62,7 +76,12 @@ export const alumniService = {
     getPhotoUrl: (path?: string) => {
         if (!path) return undefined;
         if (path.startsWith('http') || path.startsWith('https')) return path;
+        
+        // Ensure path starts with a slash if not already present
+        const resolvedPath = path.startsWith('/') ? path : `/${path}`;
         const baseUrl = import.meta.env.VITE_API_URL || 'https://localhost:44386';
-        return `${baseUrl}${path}`;
+        
+        // Serve through the secure controller
+        return `${baseUrl}/api/profile-photo${resolvedPath}`;
     }
 };

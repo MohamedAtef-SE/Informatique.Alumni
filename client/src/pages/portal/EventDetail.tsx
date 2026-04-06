@@ -3,12 +3,12 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { eventsService } from '../../services/eventsService';
-import { RegistrationStatus } from '../../types/events';
-import { Calendar, MapPin, Clock, FileText, CheckCircle } from 'lucide-react';
+import { Calendar, MapPin, Clock, FileText, CheckCircle, Ticket } from 'lucide-react';
 import clsx from 'clsx';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import ErrorModal from '../../components/common/ErrorModal';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 
 const EventDetail = () => {
     const { id } = useParams<{ id: string }>();
@@ -16,11 +16,12 @@ const EventDetail = () => {
     const queryClient = useQueryClient();
     const { t } = useTranslation();
 
-    // Error Modal State
-    const [errorState, setErrorState] = useState<{ isOpen: boolean; title: string; message: string }>({
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [errorState, setErrorState] = useState<{ isOpen: boolean; title: string; message: string; type?: 'error' | 'success' }>({
         isOpen: false,
         title: '',
-        message: ''
+        message: '',
+        type: 'error'
     });
 
     const { data: event } = useQuery({
@@ -33,15 +34,18 @@ const EventDetail = () => {
         mutationFn: () => eventsService.register(id!),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['event', id] });
+            setIsConfirmOpen(false);
             // Show success modal
             setErrorState({
                 isOpen: true,
+                type: 'success',
                 title: t('event_detail.register_success_title', 'Registration Successful!'),
                 message: t('event_detail.register_success_msg', 'You have been successfully registered for this event. Check your email for confirmation.')
             });
         },
         onError: (err: any) => {
             console.error(err);
+            setIsConfirmOpen(false);
             const errorBody = err.response?.data?.error;
             const errorMessage = errorBody?.message || err.message || t('event_detail.register_error');
 
@@ -75,11 +79,26 @@ const EventDetail = () => {
 
     return (
         <div className="max-w-5xl mx-auto space-y-8 animate-fade-in">
+            {/* Payment Confirmation Dialog */}
+            <ConfirmDialog
+                open={isConfirmOpen}
+                onOpenChange={setIsConfirmOpen}
+                title={t('event_detail.confirm_payment_title', 'Confirm Registration')}
+                description={t('event_detail.confirm_payment_msg', `This event has a fee of {{amount}} {{currency}}. This amount will be deducted from your wallet balance. Do you want to proceed?`, { 
+                    amount: event.feeAmount, 
+                    currency: t('common.currency') 
+                })}
+                confirmLabel={t('event_detail.confirm_pay_btn', 'Pay & Register')}
+                onConfirm={() => registerMutation.mutate()}
+                isLoading={registerMutation.isPending}
+            />
+
             {/* Error/Success Modal */}
             <ErrorModal
                 isOpen={errorState.isOpen}
                 title={errorState.title}
                 message={errorState.message}
+                type={errorState.type}
                 onClose={() => setErrorState(prev => ({ ...prev, isOpen: false }))}
             />
 
@@ -120,15 +139,35 @@ const EventDetail = () => {
 
                     <div className="w-full md:w-auto">
                         {isRegistered ? (
-                            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center min-w-[200px]">
-                                <CheckCircle className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
-                                <p className="text-emerald-700 font-bold">{t('event_detail.registered')}</p>
-                                <p className="text-xs text-emerald-600 mt-1">{t('event_detail.status_label')}: {Object.keys(RegistrationStatus).find(key => RegistrationStatus[key as keyof typeof RegistrationStatus] === event.myRegistration?.status)}</p>
+                            <div className="flex flex-col gap-3 min-w-[240px]">
+                                <div className="bg-emerald-50 border-2 border-emerald-100 rounded-2xl p-4 text-center animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                    <div className="flex items-center justify-center gap-2 text-emerald-700 font-bold text-lg mb-1">
+                                        <CheckCircle className="w-6 h-6 text-emerald-500" />
+                                        {t('event_detail.confirmed', 'Booking Confirmed')}
+                                    </div>
+                                    <p className="text-xs text-emerald-600/80 font-medium px-4">
+                                        {t('event_detail.confirmed_msg', 'Your seat is secured. We look forward to seeing you!')}
+                                    </p>
+                                </div>
+                                <Button 
+                                    variant="outline"
+                                    className="w-full py-6 border-2 hover:bg-slate-50 font-bold text-slate-700 gap-2 shadow-sm"
+                                    onClick={() => navigate('/portal/registrations')}
+                                >
+                                    <Ticket className="w-5 h-5" />
+                                    {t('event_detail.view_ticket_btn', 'View My Ticket')}
+                                </Button>
                             </div>
                         ) : (
                             <Button
                                 disabled={registerMutation.isPending}
-                                onClick={() => registerMutation.mutate()}
+                                onClick={() => {
+                                    if (event.hasFees) {
+                                        setIsConfirmOpen(true);
+                                    } else {
+                                        registerMutation.mutate();
+                                    }
+                                }}
                                 className="w-full md:w-auto px-8 py-6 text-lg shadow-lg shadow-blue-500/20"
                             >
                                 {registerMutation.isPending ? t('event_detail.register_processing') : t('event_detail.register_btn')}

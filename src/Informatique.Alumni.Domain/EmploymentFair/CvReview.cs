@@ -11,7 +11,10 @@ public class CvReview : FullAuditedAggregateRoot<Guid>
     public string? Notes { get; private set; }
     public CvReviewStatus Status { get; private set; }
 
-    protected CvReview() { }
+    protected CvReview() 
+    {
+        OriginalFileUrl = string.Empty;
+    }
 
     public CvReview(Guid id, Guid graduateId, string originalFileUrl)
         : base(id)

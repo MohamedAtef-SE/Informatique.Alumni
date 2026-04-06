@@ -24,6 +24,9 @@ public class CreateUpdateSyndicateDto
 public class SyndicateSubscriptionDto : FullAuditedEntityDto<Guid>
 {
     public Guid AlumniId { get; set; }
+    public string AlumniName { get; set; } = string.Empty;
+    public string AlumniNationalId { get; set; } = string.Empty;
+    public string AlumniMobileNumber { get; set; } = string.Empty;
     public Guid SyndicateId { get; set; }
     public string SyndicateName { get; set; } = string.Empty;
     public SyndicateStatus Status { get; set; }

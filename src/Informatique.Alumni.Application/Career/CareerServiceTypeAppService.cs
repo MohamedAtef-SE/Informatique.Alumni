@@ -11,7 +11,7 @@ using System.Linq.Dynamic.Core;
 
 namespace Informatique.Alumni.Career;
 
-[Authorize(AlumniPermissions.Career.Manage)]
+[Authorize]
 public class CareerServiceTypeAppService : ApplicationService, ICareerServiceTypeAppService
 {
     private readonly IRepository<CareerServiceType, Guid> _repository;
@@ -28,6 +28,7 @@ public class CareerServiceTypeAppService : ApplicationService, ICareerServiceTyp
         _mappers = mappers;
     }
 
+    [Authorize(AlumniPermissions.Career.Manage)]
     public async Task<CareerServiceTypeDto> CreateAsync(CreateUpdateCareerServiceTypeDto input)
     {
         var entity = await _manager.CreateAsync(input.NameAr, input.NameEn);
@@ -38,6 +39,7 @@ public class CareerServiceTypeAppService : ApplicationService, ICareerServiceTyp
         return _mappers.MapToDto(entity);
     }
 
+    [Authorize(AlumniPermissions.Career.Manage)]
     public async Task<CareerServiceTypeDto> UpdateAsync(Guid id, CreateUpdateCareerServiceTypeDto input)
     {
         var entity = await _repository.GetAsync(id);
@@ -46,6 +48,7 @@ public class CareerServiceTypeAppService : ApplicationService, ICareerServiceTyp
         return _mappers.MapToDto(entity);
     }
 
+    [Authorize(AlumniPermissions.Career.Manage)]
     public async Task DeleteAsync(Guid id)
     {
         await _manager.DeleteAsync(id);
@@ -77,5 +80,11 @@ public class CareerServiceTypeAppService : ApplicationService, ICareerServiceTyp
             totalCount,
             _mappers.MapToDtos(items)
         );
+    }
+
+    public async Task<List<CareerServiceTypeDto>> GetActiveListAsync()
+    {
+        var items = await _repository.GetListAsync(x => x.IsActive);
+        return _mappers.MapToDtos(items);
     }
 }

@@ -43,7 +43,7 @@ export interface SyndicateSubscriptionAdmin extends FullAuditedEntityDto<string>
     alumniId: string;
     alumniName: string;
     alumniNationalId: string;
-    alumniMobile: string;
+    alumniMobileNumber: string;
     syndicateId: string;
     syndicateName: string;
     status: SyndicateStatus;

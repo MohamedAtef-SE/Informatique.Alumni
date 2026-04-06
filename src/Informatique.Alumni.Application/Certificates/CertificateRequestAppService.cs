@@ -73,13 +73,19 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
             dto.TargetBranchName = branch.Name;
         }
         
-        var user = await _userRepository.FindAsync(entity.AlumniId);
-        if (user != null)
+        // Resolve Profile and underlying Identity User dynamically mapped by Profile.Id (AlumniId)
+        var profile = await _alumniProfileRepository.FirstOrDefaultAsync(p => p.Id == entity.AlumniId);
+        if (profile != null)
         {
-            dto.AlumniName = $"{user.Name} {user.Surname}".Trim();
-            if (string.IsNullOrWhiteSpace(dto.AlumniName)) dto.AlumniName = user.UserName;
-            dto.AlumniEmail = user.Email;
+            var user = await _userRepository.FindAsync(profile.UserId);
+            if (user != null)
+            {
+                dto.AlumniName = $"{user.Name} {user.Surname}".Trim();
+                if (string.IsNullOrWhiteSpace(dto.AlumniName)) dto.AlumniName = user.UserName;
+                dto.AlumniEmail = user.Email;
+            }
         }
+        
         dto.StudentId = entity.AlumniId.ToString();
         
         return dto;
@@ -210,14 +216,18 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
             qualDict = qualifications.ToDictionary(x => x.Id, x => $"{x.Degree} - {x.InstitutionName}");
         }
 
-        // Fetch User and Profile details
-        var uniqueUserIds = dtos.Select(x => x.AlumniId).Distinct().ToList();
-        var users = await _userRepository.GetListAsync(x => uniqueUserIds.Contains(x.Id));
-        var userDict = users.ToDictionary(x => x.Id, x => x);
+        // Step 1: Extract real Profile IDs from the requests
+        var uniqueProfileIds = dtos.Select(x => x.AlumniId).Distinct().ToList();
 
+        // Step 2: Dynamically query Profiles using exactly Profile.Id
         var profilesQuery = await _alumniProfileRepository.WithDetailsAsync(x => x.Educations, x => x.Mobiles, x => x.Emails);
-        var userProfiles = await AsyncExecuter.ToListAsync(profilesQuery.Where(x => uniqueUserIds.Contains(x.UserId)));
-        var profileDict = userProfiles.ToDictionary(x => x.UserId, x => x);
+        var userProfiles = await AsyncExecuter.ToListAsync(profilesQuery.Where(x => uniqueProfileIds.Contains(x.Id)));
+        var profileDict = userProfiles.ToDictionary(x => x.Id, x => x);
+
+        // Step 3: Backtrack to find the physical Identity User mapping
+        var realUserIds = userProfiles.Select(p => p.UserId).Distinct().ToList();
+        var users = await _userRepository.GetListAsync(x => realUserIds.Contains(x.Id));
+        var userDict = users.ToDictionary(x => x.Id, x => x);
 
         // Fetch Colleges for profiles
         var customCollegeIds = userProfiles.SelectMany(p => p.Educations)
@@ -240,15 +250,17 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
                 dto.TargetBranchName = branchName;
             }
             
-            if (userDict.TryGetValue(dto.AlumniId, out var user))
-            {
-                dto.AlumniName = $"{user.Name} {user.Surname}".Trim();
-                if (string.IsNullOrWhiteSpace(dto.AlumniName)) dto.AlumniName = user.UserName;
-                dto.AlumniEmail = user.Email;
-            }
-            
+            // Re-mapped DTO Hydration Logic
             if (profileDict.TryGetValue(dto.AlumniId, out var profile))
             {
+                // Safely fetch user metadata using validated profile.UserId
+                if (userDict.TryGetValue(profile.UserId, out var user))
+                {
+                    dto.AlumniName = $"{user.Name} {user.Surname}".Trim();
+                    if (string.IsNullOrWhiteSpace(dto.AlumniName)) dto.AlumniName = user.UserName;
+                    dto.AlumniEmail = user.Email;
+                }
+
                 var primaryMobile = profile.Mobiles.FirstOrDefault(m => m.IsPrimary);
                 dto.MobileNumber = primaryMobile != null ? primaryMobile.MobileNumber : profile.MobileNumber;
 
@@ -293,12 +305,21 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
     [Authorize]
     public async Task<PagedResultDto<CertificateRequestDto>> GetMyRequestsAsync(PagedAndSortedResultRequestDto input)
     {
+        // Resolve Profile.Id from the current authenticated User
+        var currentUserId = CurrentUser.GetId();
+        var profile = await _alumniProfileRepository.FirstOrDefaultAsync(p => p.UserId == currentUserId);
+        
+        if (profile == null)
+        {
+            return new PagedResultDto<CertificateRequestDto>(0, new List<CertificateRequestDto>());
+        }
+
         var filter = new CertificateRequestFilterDto
         {
             SkipCount = input.SkipCount,
             MaxResultCount = input.MaxResultCount,
             Sorting = input.Sorting,
-            AlumniId = CurrentUser.GetId()
+            AlumniId = profile.Id
         };
         return await GetListAsync(filter);
     }
@@ -340,13 +361,23 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
             {
                 CertificateDefinitionId = x.CertificateDefinitionId,
                 QualificationId = x.QualificationId,
-                Language = x.Language
+                Language = x.Language,
+                AttachmentUrl = x.AttachmentUrl
             }).ToList();
+
+            // Resolve Profile.Id from the current authenticated User
+            var currentUserId = CurrentUser.GetId();
+            var profile = await _alumniProfileRepository.FirstOrDefaultAsync(p => p.UserId == currentUserId);
+            
+            if (profile == null)
+            {
+                throw new UserFriendlyException("Alumni profile not found for the current user.");
+            }
 
             // Use domain service to create request with ALL business rules enforced
             var request = await _certificateManager.CreateRequestAsync(
                 GuidGenerator.Create(),
-                CurrentUser.GetId(),
+                profile.Id,
                 itemInputs,
                 input.DeliveryMethod,
                 input.TargetBranchId,
@@ -427,17 +458,22 @@ public class CertificateRequestAppService : AlumniAppService, ICertificateReques
         return await GetAsync(entity.Id);
     }
 
-    [Authorize(AlumniPermissions.Certificates.Request)]
+    [Authorize]
     public async Task<CertificateRequestDto> RecordGatewayPaymentAsync(Guid id, RecordPaymentDto input)
     {
         var entity = await _repository.GetAsync(id);
         
-        // Security: Ensure user owns this request
-        if (entity.AlumniId != CurrentUser.GetId())
+        // Security: Resolve the current user's Profile.Id (AlumniId space) before comparing.
+        // entity.AlumniId is AlumniProfile.Id, NOT the Identity UserId — different GUID spaces.
+        var currentUserId = CurrentUser.GetId();
+        var profileQuery = await _alumniProfileRepository.GetQueryableAsync();
+        var profile = await AsyncExecuter.FirstOrDefaultAsync(profileQuery, p => p.UserId == currentUserId);
+        
+        if (profile == null || entity.AlumniId != profile.Id)
         {
             throw new BusinessException(AlumniDomainErrorCodes.CertificateRequest.Unauthorized)
                 .WithData("RequestId", id)
-                .WithData("UserId", CurrentUser.GetId());
+                .WithData("UserId", currentUserId);
         }
 
         entity.RecordGatewayPayment(input.Amount);

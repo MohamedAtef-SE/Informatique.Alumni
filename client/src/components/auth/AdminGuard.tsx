@@ -1,12 +1,13 @@
 import { useAuth } from 'react-oidc-context';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import LoadingLayer from '../common/LoadingLayer';
 
 const AdminGuard = () => {
     const auth = useAuth();
     const location = useLocation();
 
     if (auth.isLoading) {
-        return <div className="h-screen flex items-center justify-center text-gray-500">Checking permissions...</div>;
+        return <LoadingLayer />;
     }
 
     if (!auth.isAuthenticated) {

@@ -1,6 +1,6 @@
 import type { AlumniListDto } from '../../types/alumni';
 import { Link } from 'react-router-dom';
-import { MapPin, Award } from 'lucide-react';
+import { Award, GraduationCap } from 'lucide-react';
 import { alumniService } from '../../services/alumniService';
 import { Card, CardContent } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -12,56 +12,64 @@ interface AlumniCardProps {
 
 const AlumniCard = ({ alumni }: AlumniCardProps) => {
     return (
-        <Card variant="default" className="group overflow-hidden hover:border-[var(--color-accent)]/30 hover:shadow-xl transition-all duration-500 h-full border-[var(--color-border)]">
-            <CardContent className="p-6 flex flex-col items-center text-center h-full">
-                {/* Photo with Glow Effect */}
-                <div className="relative mb-5 group-hover:scale-105 transition-transform duration-500">
-                    <div className={cn(
-                        "absolute -inset-2 bg-gradient-to-r rounded-full blur-md opacity-10 group-hover:opacity-30 transition-opacity duration-500",
-                        alumni.isVip ? "from-accent via-emerald-400 to-emerald-600" : "from-blue-500 via-indigo-500 to-purple-500"
-                    )}></div>
-                    <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white relative z-10 bg-slate-50 shadow-lg">
-                        <img
-                            src={alumniService.getPhotoUrl(alumni.photoUrl) || `https://ui-avatars.com/api/?name=${alumni.name}&background=f1f5f9&color=2D96D7`}
-                            alt={alumni.name}
-                            className="w-full h-full object-cover"
-                        />
-                    </div>
-                    {alumni.isVip && (
-                        <div className="absolute -bottom-1 left-1.2 -translate-x-1/2 bg-[var(--color-accent)] text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded-full shadow-lg z-20 border border-white whitespace-nowrap tracking-wider">
-                            VIP
+        <Card variant="glass" className="group overflow-hidden hover:border-accent/40 transition-all duration-500 h-full flex flex-col border-[var(--color-border)] shadow-xl hover:shadow-2xl bg-white">
+            <CardContent className="p-0 flex flex-col h-full">
+                {/* Visual Header / Avatar Area */}
+                <div className="relative pt-12 pb-8 flex flex-col items-center">
+                    {/* Background Decorative Element */}
+                    <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-accent/10 to-transparent group-hover:from-accent/20 transition-all duration-500" />
+                    
+                    {/* Photo with Glow Effect */}
+                    <div className="relative group-hover:scale-105 transition-transform duration-500 z-10">
+                        <div className={cn(
+                            "absolute -inset-3 bg-gradient-to-tr rounded-full blur-xl opacity-20 group-hover:opacity-40 transition-opacity duration-500",
+                            alumni.isVip ? "from-amber-400 via-orange-400 to-yellow-600" : "from-accent via-blue-500 to-indigo-600"
+                        )}></div>
+                        <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white dark:border-slate-900 relative shadow-2xl bg-slate-50">
+                            <img
+                                src={alumniService.getPhotoUrl(alumni.photoUrl) || `https://ui-avatars.com/api/?name=${alumni.name}&background=f1f5f9&color=2D96D7&size=128`}
+                                alt={alumni.name}
+                                className="w-full h-full object-cover"
+                            />
                         </div>
-                    )}
-                </div>
-
-                {/* Info */}
-                <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-1 group-hover:text-[var(--color-accent)] transition-colors font-heading">
-                    {alumni.name}
-                </h3>
-                <p className="text-sm text-[var(--color-text-secondary)] mb-4 line-clamp-1 h-5">
-                    {alumni.major}
-                </p>
-
-                {/* Divider */}
-                <div className="w-full h-px bg-[var(--color-border)] my-4" />
-
-                {/* Meta Details */}
-                <div className="w-full space-y-3 flex-1">
-                    <div className="flex items-center justify-between text-xs text-[var(--color-text-secondary)]">
-                        <span className="flex items-center gap-1.5 font-medium"><Award className="w-3.5 h-3.5 text-[var(--color-accent)]" /> Class</span>
-                        <span className="text-[var(--color-text-primary)] font-bold">{alumni.graduationYear}</span>
+                        {alumni.isVip && (
+                            <div className="absolute top-1 right-1 bg-amber-400 text-white rounded-full p-1 shadow-lg border border-white z-20">
+                                <Award className="w-4 h-4" />
+                            </div>
+                        )}
                     </div>
-                    <div className="flex items-center justify-between text-xs text-[var(--color-text-secondary)]">
-                        <span className="flex items-center gap-1.5 font-medium"><MapPin className="w-3.5 h-3.5 text-blue-500" /> College</span>
-                        <span className="text-[var(--color-text-primary)] font-bold truncate max-w-[120px]" title={alumni.college}>{alumni.college}</span>
+
+                    <div className="mt-4 text-center px-4">
+                        <h3 className="text-xl font-bold text-[var(--color-text-primary)] mb-1 group-hover:text-accent transition-colors font-heading tracking-tight">
+                            {alumni.name}
+                        </h3>
+                        <div className="flex items-center justify-center gap-2 text-accent/80 font-medium text-sm">
+                            <GraduationCap className="w-4 h-4" />
+                            <span className="truncate max-w-[200px]">{alumni.major || 'Graduate'}</span>
+                        </div>
                     </div>
                 </div>
 
-                <Link to={`/portal/directory/${alumni.id}`} className="w-full mt-6">
-                    <Button variant="outline" size="sm" className="w-full text-xs hover:bg-[var(--color-accent)] hover:text-white transition-all">
-                        View Profile
-                    </Button>
-                </Link>
+                {/* Info Grid */}
+                <div className="px-6 pb-6 flex-1 flex flex-col justify-between">
+                    <div className="grid grid-cols-2 gap-3 py-4 border-y border-[var(--color-border)] opacity-80">
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[10px] uppercase tracking-widest text-[var(--color-text-secondary)] font-bold">Class of</span>
+                            <span className="text-sm font-bold text-[var(--color-text-primary)]">{alumni.graduationYear || '—'}</span>
+                        </div>
+                        <div className="flex flex-col gap-1 border-l border-[var(--color-border)] pl-4">
+                            <span className="text-[10px] uppercase tracking-widest text-[var(--color-text-secondary)] font-bold">College</span>
+                            <span className="text-sm font-bold text-[var(--color-text-primary)] truncate" title={alumni.college}>{alumni.college || '—'}</span>
+                        </div>
+                    </div>
+
+                    <Link to={`/portal/directory/${alumni.userId}`} className="w-full mt-6">
+                        <Button variant="outline" className="w-full group/btn relative overflow-hidden h-11 bg-[var(--color-secondary)] hover:bg-accent text-[var(--color-accent)] group-hover:text-white border-[var(--color-border)] hover:border-accent transition-all duration-300">
+                            <span className="relative z-10 font-bold uppercase tracking-wider text-xs">View Profile</span>
+                            <div className="absolute inset-0 bg-gradient-to-r from-accent to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        </Button>
+                    </Link>
+                </div>
             </CardContent>
         </Card>
     );

@@ -36,12 +36,13 @@ public class MedicalPartnerAppService : AlumniAppService, IMedicalPartnerAppServ
     [Authorize(AlumniPermissions.Health.Manage)]
     public async Task<MedicalPartnerDto> CreateAsync(CreateUpdateMedicalPartnerDto input)
     {
-        var partner = new MedicalPartner(GuidGenerator.Create(), input.Name, input.Type, input.Address, input.ContactNumber)
+        var partner = new MedicalPartner(GuidGenerator.Create(), input.Name, MedicalPartnerType.Other, input.Address, input.ContactNumber)
         {
             Description = input.Description,
-            Website = input.Website
+            Website = input.Website,
+            MedicalCategoryId = input.MedicalCategoryId
         };
-        partner.SetPremiumDetails(input.LogoUrl, input.City, input.Region, input.Category, input.Email, input.HotlineNumber);
+        partner.SetPremiumDetails(input.LogoUrl, input.City, input.Region, input.Category, input.Email, input.HotlineNumber, input.IsVerified);
         
         await _partnerRepository.InsertAsync(partner);
         await InvalidateCacheAsync();
@@ -56,13 +57,13 @@ public class MedicalPartnerAppService : AlumniAppService, IMedicalPartnerAppServ
         // Map basic fields
         partner.Name = input.Name;
         partner.Description = input.Description;
-        partner.Type = input.Type;
+        partner.MedicalCategoryId = input.MedicalCategoryId;
         partner.Address = input.Address;
         partner.ContactNumber = input.ContactNumber;
         partner.Website = input.Website;
         
         // Map premium fields
-        partner.SetPremiumDetails(input.LogoUrl, input.City, input.Region, input.Category, input.Email, input.HotlineNumber);
+        partner.SetPremiumDetails(input.LogoUrl, input.City, input.Region, input.Category, input.Email, input.HotlineNumber, input.IsVerified);
 
         await _partnerRepository.UpdateAsync(partner);
         await InvalidateCacheAsync();
@@ -99,7 +100,7 @@ public class MedicalPartnerAppService : AlumniAppService, IMedicalPartnerAppServ
         
         var allDtos = await _cache.GetOrAddAsync(cacheKey, async () => 
         {
-            var query = await _partnerRepository.WithDetailsAsync(x => x.Offers);
+            var query = await _partnerRepository.WithDetailsAsync(x => x.Offers, x => x.MedicalCategory);
             var items = await AsyncExecuter.ToListAsync(query);
             return _alumniMappers.MapToDtos(items);
         });
@@ -109,7 +110,7 @@ public class MedicalPartnerAppService : AlumniAppService, IMedicalPartnerAppServ
 
         if (input.Type.HasValue)
         {
-            queryable = queryable.Where(x => x.Type == input.Type.Value);
+            queryable = queryable.Where(x => x.MedicalCategoryBaseType == input.Type.Value);
         }
 
         if (!string.IsNullOrEmpty(input.FilterText))
@@ -121,7 +122,7 @@ public class MedicalPartnerAppService : AlumniAppService, IMedicalPartnerAppServ
 
         if (!string.IsNullOrEmpty(input.Category))
         {
-             queryable = queryable.Where(x => x.Category != null && x.Category.Contains(input.Category, StringComparison.OrdinalIgnoreCase));
+             queryable = queryable.Where(x => x.MedicalCategoryName != null && x.MedicalCategoryName.Contains(input.Category, StringComparison.OrdinalIgnoreCase));
         }
 
         if (!string.IsNullOrEmpty(input.City))
@@ -153,7 +154,7 @@ public class MedicalPartnerAppService : AlumniAppService, IMedicalPartnerAppServ
         var partner = await _partnerRepository.WithDetailsAsync(x => x.Offers)
             .ContinueWith(t => t.Result.FirstOrDefault(x => x.Id == partnerId));
             
-        partner.AddOffer(GuidGenerator.Create(), input.Title, input.Description, input.DiscountCode);
+        partner.AddOffer(GuidGenerator.Create(), input.Title, input.Description, input.DiscountCode, input.DiscountPercentage);
         await _partnerRepository.UpdateAsync(partner);
         await InvalidateCacheAsync();
         return _alumniMappers.MapToDto(partner);
@@ -187,7 +188,13 @@ public class MedicalPartnerAppService : AlumniAppService, IMedicalPartnerAppServ
 
     private async Task GateDiscountCodesAsync(List<MedicalPartnerDto> partners)
     {
-        // Feature Gating logic: Only active members see codes
+        // 1. Administrators/Staff with Manage permission should see all codes directly
+        if (await AuthorizationService.IsGrantedAsync(AlumniPermissions.Health.Manage))
+        {
+            return;
+        }
+
+        // 2. Feature Gating logic: Only active members see codes
         var currentUserId = CurrentUser.Id;
         if (!currentUserId.HasValue) 
         {
@@ -195,9 +202,19 @@ public class MedicalPartnerAppService : AlumniAppService, IMedicalPartnerAppServ
              return;
         }
 
+        // 3. Resolve Profile ID without throwing exceptions if not found (e.g. for admin/staff)
+        var profile = await BaseAlumniProfileRepository.FirstOrDefaultAsync(p => p.UserId == currentUserId.Value);
+        if (profile == null)
+        {
+            HideCodes(partners);
+            return;
+        }
+
+        var alumniId = profile.Id;
+
         // Check Phase 3 Membership Status
         var hasActiveRecord = await _membershipRepository.AnyAsync(x => 
-            x.AlumniId == currentUserId.Value && 
+            x.AlumniId == alumniId && 
             x.Status == MembershipRequestStatus.Approved);
 
         if (!hasActiveRecord)
@@ -218,17 +235,39 @@ public class MedicalPartnerAppService : AlumniAppService, IMedicalPartnerAppServ
     }
     public async Task<HealthStatsDto> GetStatsAsync()
     {
-        var partnerCount = await _partnerRepository.CountAsync();
+        var query = await _partnerRepository.WithDetailsAsync(x => x.Offers);
+        var partners = await AsyncExecuter.ToListAsync(query);
+        
+        var totalPartners = partners.Count;
+        var verifiedPartners = partners.Count(x => x.IsVerified);
+        
+        var activeOffers = partners
+            .SelectMany(x => x.Offers)
+            .Where(x => x.IsActive)
+            .ToList();
+            
+        var offerCount = activeOffers.Count;
+        
+        // Calculate Average Savings
+        var offersWithDiscount = activeOffers
+            .Where(x => x.DiscountPercentage.HasValue)
+            .ToList();
+            
+        double avgSavings = offersWithDiscount.Any() 
+            ? offersWithDiscount.Average(x => x.DiscountPercentage.Value) 
+            : 0;
 
-        var query = await _partnerRepository.GetQueryableAsync();
-        var offerCount = query.SelectMany(x => x.Offers).Count(x => x.IsActive);
+        // Calculate Verified Quality
+        double verifiedPercentage = totalPartners > 0 
+            ? (double)verifiedPartners / totalPartners * 100 
+            : 0;
 
         return new HealthStatsDto
         {
-            MedicalPartnersCount = (int)partnerCount,
+            MedicalPartnersCount = totalPartners,
             ActiveOffersCount = offerCount,
-            AverageSavings = "20%", 
-            VerifiedQuality = "100%"
+            AverageSavings = $"{Math.Round(avgSavings)}%", 
+            VerifiedQuality = $"{Math.Round(verifiedPercentage)}%"
         };
     }
 }

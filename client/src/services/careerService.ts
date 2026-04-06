@@ -48,6 +48,10 @@ export const careerService = {
         const response = await api.get('/api/app/advising/my-requests', { params: { maxResultCount: 10 } }); // Call separate endpoint
         return response.data;
     },
+    getGuidanceRule: async (branchId: string) => {
+        const response = await api.get(`/api/app/advising/rule`, { params: { branchId } });
+        return response.data;
+    },
     bookSession: async (input: any) => {
         // ABP CreateRequestAsync -> POST /api/app/advising/request (drops "Create" prefix)
         const response = await api.post('/api/app/advising/request', input);
@@ -63,5 +67,10 @@ export const careerService = {
 
     cancelSubscription: async (serviceId: string) => {
         await api.delete(`/api/app/career/subscription/${serviceId}`);
+    },
+
+    getExpertiseTypes: async () => {
+        const response = await api.get<any[]>('/api/app/career-service-type/active-list');
+        return response.data;
     }
 };

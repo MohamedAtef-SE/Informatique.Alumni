@@ -25,6 +25,8 @@ public class CareerServiceDto : FullAuditedEntityDto<Guid>
     public CareerLookupItemDto? ServiceType { get; set; }
     public CareerLookupItemDto? Branch { get; set; }
     
+    public AlumniCareerSubscriptionDto? MySubscription { get; set; }
+    
     public List<CareerServiceTimeslotDto> Timeslots { get; set; } = new();
 }
 

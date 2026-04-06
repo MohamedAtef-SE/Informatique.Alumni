@@ -179,6 +179,15 @@
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background-color: var(--color-accent);
   }
+
+  /* Utility to hide scrollbar but maintain functionality */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
 }
 
 @layer components {

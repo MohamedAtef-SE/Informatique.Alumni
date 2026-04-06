@@ -14,6 +14,8 @@ using Volo.Abp.BlobStoring;
 using Volo.Abp.Authorization;
 using System.Linq.Dynamic.Core;
 using Informatique.Alumni.Profiles;
+using Microsoft.Extensions.Logging;
+using Volo.Abp.Users;
 
 namespace Informatique.Alumni.Career;
 using Informatique.Alumni.Admin;
@@ -151,6 +153,35 @@ public class CareerAppService : ApplicationService, ICareerAppService
             
         var dto = _alumniMappers.MapToDto(service);
         dto.SubscribedCount = await _subscriptionRepository.CountAsync(s => s.CareerServiceId == id);
+
+        // Check if current user is subscribed
+        if (CurrentUser.IsAuthenticated)
+        {
+            try 
+            {
+                var profileRepo = LazyServiceProvider.LazyGetRequiredService<IRepository<AlumniProfile, Guid>>();
+                var userId = CurrentUser.GetId();
+                var profile = await profileRepo.FirstOrDefaultAsync(p => p.UserId == userId);
+                
+                if (profile != null)
+                {
+                    var subscription = await _subscriptionRepository.FirstOrDefaultAsync(s => 
+                        s.CareerServiceId == id && 
+                        s.AlumniId == profile.Id && 
+                        s.PaymentStatus != CareerPaymentStatus.Cancelled);
+                        
+                    if (subscription != null)
+                    {
+                        dto.MySubscription = _alumniMappers.MapToDto(subscription);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning(ex, "Failed to fetch subscription status for career service detail view");
+            }
+        }
+
         return dto;
     }
 

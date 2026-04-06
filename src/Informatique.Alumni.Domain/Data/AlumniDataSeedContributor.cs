@@ -4,6 +4,7 @@ using Volo.Abp.DependencyInjection;
 using Volo.Abp.Identity;
 using Volo.Abp.Domain.Repositories;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace Informatique.Alumni.Data;
 
@@ -14,25 +15,36 @@ public class AlumniDataSeedContributor : IDataSeedContributor, ITransientDepende
     private readonly Volo.Abp.Guids.IGuidGenerator _guidGenerator;
     private readonly IRepository<Informatique.Alumni.Branches.Branch, System.Guid> _branchRepository;
     private readonly Volo.Abp.PermissionManagement.IPermissionManager _permissionManager;
+    private readonly IRepository<Informatique.Alumni.Health.MedicalCategory, System.Guid> _medicalCategoryRepository;
+    private readonly IRepository<Informatique.Alumni.Health.MedicalPartner, System.Guid> _medicalPartnerRepository;
+    private readonly IRepository<Informatique.Alumni.Syndicates.Syndicate, System.Guid> _syndicateRepository;
 
     public AlumniDataSeedContributor(
         IIdentityRoleRepository roleRepository,
         IdentityRoleManager roleManager,
         Volo.Abp.Guids.IGuidGenerator guidGenerator,
         IRepository<Informatique.Alumni.Branches.Branch, System.Guid> branchRepository,
-        Volo.Abp.PermissionManagement.IPermissionManager permissionManager)
+        Volo.Abp.PermissionManagement.IPermissionManager permissionManager,
+        IRepository<Informatique.Alumni.Health.MedicalCategory, System.Guid> medicalCategoryRepository,
+        IRepository<Informatique.Alumni.Health.MedicalPartner, System.Guid> medicalPartnerRepository,
+        IRepository<Informatique.Alumni.Syndicates.Syndicate, System.Guid> syndicateRepository)
     {
         _roleRepository = roleRepository;
         _roleManager = roleManager;
         _guidGenerator = guidGenerator;
         _branchRepository = branchRepository;
         _permissionManager = permissionManager;
+        _medicalCategoryRepository = medicalCategoryRepository;
+        _medicalPartnerRepository = medicalPartnerRepository;
+        _syndicateRepository = syndicateRepository;
     }
 
     public async Task SeedAsync(DataSeedContext context)
     {
         await SeedRolesAsync();
         await SeedBranchesAsync();
+        await SeedMedicalCategoriesAsync();
+        await SeedSyndicatesAsync();
     }
 
     private async Task SeedRolesAsync()
@@ -64,8 +76,13 @@ public class AlumniDataSeedContributor : IDataSeedContributor, ITransientDepende
         await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Certificates.Process, providerName, roleName, true);
         await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Membership.Process, providerName, roleName, true);
         await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Syndicates.Manage, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Health.Default, providerName, roleName, true);
         await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Health.Manage, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Health.ViewOffers, providerName, roleName, true);
         await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Benefits.Manage, providerName, roleName, true);
+        // Companies
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Companies.Default, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Companies.Manage, providerName, roleName, true);
 
         // Also grant to the default ABP "admin" role
         var adminRoleName = "admin";
@@ -80,8 +97,13 @@ public class AlumniDataSeedContributor : IDataSeedContributor, ITransientDepende
         await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Certificates.Process, providerName, adminRoleName, true);
         await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Membership.Process, providerName, adminRoleName, true);
         await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Syndicates.Manage, providerName, adminRoleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Health.Default, providerName, adminRoleName, true);
         await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Health.Manage, providerName, adminRoleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Health.ViewOffers, providerName, adminRoleName, true);
         await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Benefits.Manage, providerName, adminRoleName, true);
+        // Companies
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Companies.Default, providerName, adminRoleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Companies.Manage, providerName, adminRoleName, true);
     }
 
     private async Task GrantAlumniPermissionsAsync()
@@ -114,6 +136,11 @@ public class AlumniDataSeedContributor : IDataSeedContributor, ITransientDepende
         await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Certificates.Default, providerName, roleName, true);
         await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Certificates.Request, providerName, roleName, true);
 
+        // Health & Magazine
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Health.Default, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Health.ViewOffers, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Magazine.Default, providerName, roleName, true);
+
         // Trips
         await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Trips.Default, providerName, roleName, true);
         await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Trips.Request, providerName, roleName, true);
@@ -144,8 +171,13 @@ public class AlumniDataSeedContributor : IDataSeedContributor, ITransientDepende
         await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Certificates.Process, providerName, roleName, true);
         await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Membership.Process, providerName, roleName, true);
         await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Syndicates.Manage, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Health.Default, providerName, roleName, true);
         await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Health.Manage, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Health.ViewOffers, providerName, roleName, true);
         await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Benefits.Manage, providerName, roleName, true);
+        // Companies
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Companies.Default, providerName, roleName, true);
+        await _permissionManager.SetAsync(Informatique.Alumni.Permissions.AlumniPermissions.Companies.Manage, providerName, roleName, true);
     }
 
     private async Task CreateRoleAsync(string roleName)
@@ -216,5 +248,65 @@ public class AlumniDataSeedContributor : IDataSeedContributor, ITransientDepende
                 System.Console.WriteLine($"--- DELETED {toDelete.Count} DUPLICATES OF '{group.Key}' ---");
             }
         }
+    }
+    private async Task SeedMedicalCategoriesAsync()
+    {
+        if (await _medicalCategoryRepository.GetCountAsync() > 0)
+        {
+            return;
+        }
+
+        System.Console.WriteLine("--- SEEDING MEDICAL CATEGORIES ---");
+
+        var categories = new List<Informatique.Alumni.Health.MedicalCategory>
+        {
+            new (_guidGenerator.Create(), "General Hospital", "مستشفى عام", Informatique.Alumni.Health.MedicalPartnerType.Hospital),
+            new (_guidGenerator.Create(), "Pharmacy", "صيدلية", Informatique.Alumni.Health.MedicalPartnerType.Pharmacy),
+            new (_guidGenerator.Create(), "Radiology Lab", "مركز أشعة", Informatique.Alumni.Health.MedicalPartnerType.Lab),
+            new (_guidGenerator.Create(), "Medical Lab", "معمل تحاليل", Informatique.Alumni.Health.MedicalPartnerType.Lab),
+            new (_guidGenerator.Create(), "Dental Clinic", "عيادة أسنان", Informatique.Alumni.Health.MedicalPartnerType.Clinic),
+            new (_guidGenerator.Create(), "Optical Center", "مركز بصريات", Informatique.Alumni.Health.MedicalPartnerType.Clinic),
+        };
+
+        await _medicalCategoryRepository.InsertManyAsync(categories);
+
+        // DATA MIGRATION: Migrate existing partners to these categories
+        var allPartners = await _medicalPartnerRepository.GetListAsync();
+        foreach (var partner in allPartners.Where(p => p.MedicalCategoryId == null))
+        {
+            // Try to find a matching category by text match or legacy type
+            var category = categories.FirstOrDefault(c => 
+                (partner.Category != null && c.NameEn.Contains(partner.Category, System.StringComparison.OrdinalIgnoreCase)) ||
+                c.BaseType == partner.Type);
+
+            if (category != null)
+            {
+                partner.MedicalCategoryId = category.Id;
+                await _medicalPartnerRepository.UpdateAsync(partner);
+            }
+        }
+        
+        System.Console.WriteLine("--- MEDICAL CATEGORIES SEEDED & MIGRATED ---");
+    }
+    
+    private async Task SeedSyndicatesAsync()
+    {
+        if (await _syndicateRepository.GetCountAsync() > 0)
+        {
+            return;
+        }
+
+        System.Console.WriteLine("--- SEEDING DEFAULT SYNDICATES ---");
+
+        var syndicates = new List<Informatique.Alumni.Syndicates.Syndicate>
+        {
+            new (_guidGenerator.Create(), "Engineering Syndicate", "Providing professional support, insurance, and social benefits for engineers.", "ID,License,GraduationCertificate", 200),
+            new (_guidGenerator.Create(), "Medical Syndicate", "Focusing on health insurance and career development for medical practitioners.", "ID,MedicalLicense,GraduationCertificate", 300),
+            new (_guidGenerator.Create(), "Commerce Syndicate", "Syndicate for business and commerce professionals.", "ID,GraduationCertificate", 150),
+            new (_guidGenerator.Create(), "Teachers Syndicate", "Syndicate for educational professionals and teachers.", "ID,GraduationCertificate,TeachingLicense", 120),
+        };
+
+        await _syndicateRepository.InsertManyAsync(syndicates);
+        System.Console.WriteLine("--- DEFAULT SYNDICATES SEEDED ---");
     }
 }

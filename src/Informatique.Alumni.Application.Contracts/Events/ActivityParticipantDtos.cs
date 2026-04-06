@@ -22,6 +22,11 @@ public class ActivityParticipantDto
     public string CollegeName { get; set; } = string.Empty;
     public string MajorName { get; set; } = string.Empty;
     public int GraduationYear { get; set; }
+    public string? JobTitle { get; set; }
+    public string? Company { get; set; }
+    public string? NationalId { get; set; }
+    public string? Address { get; set; }
+    public DateTime CreationTime { get; set; }
     
     public string EventName { get; set; } = string.Empty;
     public string ActivityTypeName { get; set; } = string.Empty;

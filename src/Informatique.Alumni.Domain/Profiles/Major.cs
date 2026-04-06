@@ -17,4 +17,10 @@ public class Major : FullAuditedAggregateRoot<Guid>
         CollegeId = collegeId;
         Name = Check.NotNullOrWhiteSpace(name, nameof(name), 128);
     }
+
+    public void Update(string name, Guid collegeId)
+    {
+        CollegeId = collegeId;
+        Name = Check.NotNullOrWhiteSpace(name, nameof(name), 128);
+    }
 }

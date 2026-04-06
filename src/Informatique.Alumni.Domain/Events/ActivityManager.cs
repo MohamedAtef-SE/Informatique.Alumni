@@ -187,7 +187,7 @@ public class ActivityManager : DomainService
         if (!string.IsNullOrWhiteSpace(place))
         {
             // Get existing agenda items for this event in the same place
-            var existingItems = @event.AgendaItems
+            var existingItems = @event.Agenda
                 .Where(x => x.Date.Date == date.Date && 
                            !string.IsNullOrWhiteSpace(x.Place) && 
                            x.Place.Equals(place, StringComparison.OrdinalIgnoreCase))

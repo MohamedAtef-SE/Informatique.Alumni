@@ -5,7 +5,10 @@ using Volo.Abp.EventBus.Distributed;
 
 namespace Informatique.Alumni.Guidance;
 
-public class GuidanceEventHandler : IDistributedEventHandler<SessionRequestedEto>, ITransientDependency
+public class GuidanceEventHandler : 
+    IDistributedEventHandler<SessionRequestedEto>, 
+    IDistributedEventHandler<AdvisoryApplicationStatusChangedEto>,
+    ITransientDependency
 {
     private readonly ILogger<GuidanceEventHandler> _logger;
 
@@ -16,8 +19,20 @@ public class GuidanceEventHandler : IDistributedEventHandler<SessionRequestedEto
 
     public Task HandleEventAsync(SessionRequestedEto eventData)
     {
-        // In a real system, you would look up the Advisor's email and send it via IEmailSender
         _logger.LogInformation($"[NOTIFICATION] Advisor {eventData.AdvisorId}: New guidance session requested by Alumni {eventData.AlumniId} for {eventData.RequestedTime}");
+        return Task.CompletedTask;
+    }
+
+    public Task HandleEventAsync(AdvisoryApplicationStatusChangedEto eventData)
+    {
+        var message = eventData.Status == AdvisoryWorkflowStatus.Approved
+            ? "Congratulations! Your application to be an Advisor has been approved."
+            : $"Your Advisor application was rejected. Reason: {eventData.RejectionReason}";
+
+        _logger.LogInformation($"[NOTIFICATION] Alumni {eventData.AlumniId}: {message}");
+        
+        // In a real system:
+        // await _emailSender.SendAsync(alumniEmail, "Advisor Status Update", message);
         
         return Task.CompletedTask;
     }

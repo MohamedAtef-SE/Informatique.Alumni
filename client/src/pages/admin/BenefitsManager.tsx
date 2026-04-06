@@ -147,7 +147,14 @@ const BenefitsManager = () => {
                     <TableBody>
                         {isLoading ? (
                             <TableRow>
-                                <TableCell colSpan={activeTab === 'discounts' ? 4 : 3} className="h-32 text-center text-slate-400">Loading...</TableCell>
+                                <TableCell colSpan={activeTab === 'discounts' ? 4 : 3} className="h-48 text-center">
+                                    <div className="flex flex-col items-center justify-center gap-3">
+                                        <div className="relative flex h-10 w-10 items-center justify-center">
+                                            <div className="absolute h-full w-full rounded-full border-2 border-[var(--color-accent)] animate-ping opacity-20" />
+                                            <div className="h-5 w-5 rotate-45 rounded-sm bg-[var(--color-accent)] animate-pulse shadow-[0_0_15px_rgba(45,150,215,0.4)]" />
+                                        </div>
+                                    </div>
+                                </TableCell>
                             </TableRow>
                         ) : currentData?.items.length === 0 ? (
                             <TableRow>

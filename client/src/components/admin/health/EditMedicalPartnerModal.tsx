@@ -6,14 +6,14 @@ import { Button } from '../../ui/Button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../../ui/Dialog';
 import { Input } from '../../ui/Input';
 import { adminService } from '../../../services/adminService';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { type UpdateMedicalPartnerDto, MedicalPartnerType, type MedicalPartnerDto } from '../../../types/health';
+import { type UpdateMedicalPartnerDto, type MedicalPartnerDto, type MedicalCategoryDto } from '../../../types/health';
 
 const partnerSchema = z.object({
     name: z.string().min(2, "Name is required"),
     description: z.string().optional(),
-    type: z.coerce.number().min(0, "Type is required"),
+    medicalCategoryId: z.string().min(1, "Category is required"),
     address: z.string().min(5, "Address is required"),
     contactNumber: z.string().min(5, "Contact number is required"),
     website: z.string().url().optional().or(z.literal('')),
@@ -21,7 +21,7 @@ const partnerSchema = z.object({
     region: z.string().optional(),
     email: z.string().email().optional().or(z.literal('')),
     hotlineNumber: z.string().optional(),
-    category: z.string().optional()
+    isVerified: z.boolean().default(false)
 });
 
 type PartnerFormValues = z.infer<typeof partnerSchema>;
@@ -34,6 +34,12 @@ interface EditMedicalPartnerModalProps {
 
 export function EditMedicalPartnerModal({ open, onOpenChange, partner }: EditMedicalPartnerModalProps) {
     const queryClient = useQueryClient();
+    
+    const { data: categoriesData } = useQuery({
+        queryKey: ['admin-medical-categories-lookup'],
+        queryFn: () => adminService.getMedicalCategories({ maxResultCount: 100 })
+    });
+
     const { register, handleSubmit, formState: { errors }, reset } = useForm<PartnerFormValues>({
         // @ts-ignore
         resolver: zodResolver(partnerSchema),
@@ -44,7 +50,7 @@ export function EditMedicalPartnerModal({ open, onOpenChange, partner }: EditMed
             reset({
                 name: partner.name,
                 description: partner.description || '',
-                type: partner.type,
+                medicalCategoryId: partner.medicalCategoryId || '',
                 address: partner.address,
                 contactNumber: partner.contactNumber,
                 website: partner.website || '',
@@ -52,7 +58,7 @@ export function EditMedicalPartnerModal({ open, onOpenChange, partner }: EditMed
                 region: partner.region || '',
                 email: partner.email || '',
                 hotlineNumber: partner.hotlineNumber || '',
-                category: partner.category || ''
+                isVerified: partner.isVerified || false
             });
         }
     }, [partner, open, reset]);
@@ -92,65 +98,76 @@ export function EditMedicalPartnerModal({ open, onOpenChange, partner }: EditMed
                 <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-800 dark:text-slate-200">Name</label>
+                            <label className="text-sm font-medium text-slate-900 dark:text-slate-200">Name</label>
                             <Input {...register('name')} placeholder="e.g. Al-Salam Hospital" />
                             {errors.name && <p className="text-red-500 text-xs">{errors.name.message}</p>}
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-800 dark:text-slate-200">Type</label>
+                             <label className="text-sm font-medium text-slate-200">Category</label>
                             <select
-                                {...register('type')}
-                                className="flex h-10 w-full rounded-md border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-950 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+                                {...register('medicalCategoryId')}
+                                className="flex h-10 w-full rounded-md border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-950 px-3 py-2 text-sm text-slate-900 dark:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                             >
-                                <option value={MedicalPartnerType.Hospital}>Hospital</option>
-                                <option value={MedicalPartnerType.Clinic}>Clinic</option>
-                                <option value={MedicalPartnerType.Pharmacy}>Pharmacy</option>
-                                <option value={MedicalPartnerType.Lab}>Lab</option>
-                                <option value={MedicalPartnerType.Other}>Other</option>
+                                <option value="">Select Category...</option>
+                                {categoriesData?.items.map((cat: MedicalCategoryDto) => (
+                                    <option key={cat.id} value={cat.id}>{cat.nameEn} ({cat.nameAr})</option>
+                                ))}
                             </select>
+                            {errors.medicalCategoryId && <p className="text-red-500 text-xs">{errors.medicalCategoryId.message}</p>}
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-800 dark:text-slate-200">Description</label>
+                        <label className="text-sm font-medium text-slate-900 dark:text-slate-200">Description</label>
                         <Input {...register('description')} placeholder="Specialties, working hours..." />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-800 dark:text-slate-200">Address</label>
+                            <label className="text-sm font-medium text-slate-900 dark:text-slate-200">Address</label>
                             <Input {...register('address')} placeholder="123 Main St" />
                             {errors.address && <p className="text-red-500 text-xs">{errors.address.message}</p>}
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-800 dark:text-slate-200">City</label>
+                            <label className="text-sm font-medium text-slate-900 dark:text-slate-200">City</label>
                             <Input {...register('city')} placeholder="Cairo" />
                         </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-800 dark:text-slate-200">Contact Number</label>
+                            <label className="text-sm font-medium text-slate-900 dark:text-slate-200">Contact Number</label>
                             <Input {...register('contactNumber')} placeholder="+20..." />
                             {errors.contactNumber && <p className="text-red-500 text-xs">{errors.contactNumber.message}</p>}
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-800 dark:text-slate-200">Hotline</label>
+                            <label className="text-sm font-medium text-slate-900 dark:text-slate-200">Hotline</label>
                             <Input {...register('hotlineNumber')} placeholder="19xxx" />
                         </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-800 dark:text-slate-200">Email</label>
+                            <label className="text-sm font-medium text-slate-900 dark:text-slate-200">Email</label>
                             <Input {...register('email')} type="email" placeholder="contact@hospital.com" />
                             {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-800 dark:text-slate-200">Website</label>
-                            <Input {...register('website')} placeholder="https://..." />
-                            {errors.website && <p className="text-red-500 text-xs">{errors.website.message}</p>}
+                         <div className="space-y-4 pt-8">
+                             <div className="flex items-center space-x-2">
+                                <input 
+                                    type="checkbox" 
+                                    {...register('isVerified')} 
+                                    className="w-4 h-4 rounded border-white/10 bg-slate-950"
+                                />
+                                <label className="text-sm font-medium text-slate-900 dark:text-slate-200">Verified Partner</label>
+                             </div>
                         </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-900 dark:text-slate-200">Website</label>
+                        <Input {...register('website')} placeholder="https://..." />
+                        {errors.website && <p className="text-red-500 text-xs">{errors.website.message}</p>}
                     </div>
 
                     <DialogFooter>

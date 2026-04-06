@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
+using Informatique.Alumni.Guidance;
 
 namespace Informatique.Alumni.Admin;
 
@@ -35,13 +36,79 @@ public class JobAdminGetListInput : PagedAndSortedResultRequestDto
     public string? Filter { get; set; }
 }
 
-public interface IJobAdminAppService : IApplicationService
+public class AlumniCvDto
+{
+    public Guid AlumniId { get; set; }
+    public string FullName { get; set; } = string.Empty;
+    public string? Summary { get; set; }
+    public List<CvExperienceDto> Experiences { get; set; } = new();
+    public List<CvEducationDto> Educations { get; set; } = new();
+    public List<CvSkillDto> Skills { get; set; } = new();
+    public List<CvLanguageDto> Languages { get; set; } = new();
+    public List<CvCertificationDto> Certifications { get; set; } = new();
+    public List<CvProjectDto> Projects { get; set; } = new();
+    public List<CvSocialLinkDto> SocialLinks { get; set; } = new();
+}
+
+public class CvExperienceDto
+{
+    public string Company { get; set; } = string.Empty;
+    public string Position { get; set; } = string.Empty;
+    public DateTime StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
+    public string? Description { get; set; }
+}
+
+public class CvEducationDto
+{
+    public string Institution { get; set; } = string.Empty;
+    public string Degree { get; set; } = string.Empty;
+    public DateTime StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
+}
+
+public class CvSkillDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string? ProficiencyLevel { get; set; }
+}
+
+public class CvLanguageDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string? FluencyLevel { get; set; }
+}
+
+public class CvCertificationDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string Issuer { get; set; } = string.Empty;
+    public DateTime? Date { get; set; }
+}
+
+public class CvProjectDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string? Link { get; set; }
+}
+
+public class CvSocialLinkDto
+{
+    public string Platform { get; set; } = string.Empty;
+    public string Url { get; set; } = string.Empty;
+}
+
+
+ public interface IJobAdminAppService : IApplicationService
 {
     Task<PagedResultDto<JobAdminDto>> GetListAsync(JobAdminGetListInput input);
     Task<JobAdminDto> GetAsync(Guid id);
     Task ApproveJobAsync(Guid id);
     Task RejectJobAsync(Guid id);
     Task<PagedResultDto<JobApplicationAdminDto>> GetApplicationsAsync(Guid jobId, PagedAndSortedResultRequestDto input);
+    Task<AlumniCvDto> GetAlumniCvAsync(Guid alumniId);
+    Task<Volo.Abp.Content.IRemoteStreamContent> GetApplicationCvAsync(Guid id);
 }
 
 // ── Event Admin ──
@@ -138,8 +205,19 @@ public interface IAdminDashboardAppService : IApplicationService
 public interface IBlogAdminAppService : IApplicationService
 {
     Task<Volo.Abp.Application.Dtos.PagedResultDto<Informatique.Alumni.Magazine.BlogPostDto>> GetListAsync(Informatique.Alumni.Magazine.PostSearchInputDto input);
-    Task PublishPostAsync(Guid id);
-    Task UnpublishPostAsync(Guid id);
+
+    Task PublishAsync(Guid id);
+
+    Task UnpublishAsync(Guid id);
+    
+    // Category Management
+    Task<PagedResultDto<Informatique.Alumni.Magazine.ArticleCategoryDto>> GetCategoriesAsync(PagedAndSortedResultRequestDto input);
+    
+    Task<Informatique.Alumni.Magazine.ArticleCategoryDto> CreateCategoryAsync(Informatique.Alumni.Magazine.CreateUpdateArticleCategoryDto input);
+    
+    Task<Informatique.Alumni.Magazine.ArticleCategoryDto> UpdateCategoryAsync(Guid id, Informatique.Alumni.Magazine.CreateUpdateArticleCategoryDto input);
+    
+    Task DeleteCategoryAsync(Guid id);
 }
 
 // ── Guidance Admin ──
@@ -179,4 +257,8 @@ public interface IGuidanceAdminAppService : IApplicationService
     Task<PagedResultDto<GuidanceAdminDto>> GetListAsync(GuidanceAdminGetListInput input);
     Task ApproveRequestAsync(Guid id, ApproveGuidanceRequestDto input);
     Task RejectRequestAsync(Guid id);
+
+    // Rule Management
+    Task<GuidanceSessionRuleDto> GetRuleAsync(Guid branchId);
+    Task SaveRuleAsync(UpdateGuidanceSessionRuleDto input);
 }

@@ -6,12 +6,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { servicesAppService } from '../../services/servicesService';
 import { alumniService } from '../../services/alumniService';
 import { fileService } from '../../services/fileService';
-import { Newspaper, CreditCard, Award, Gift, QrCode, FileBadge, Building2, HeartPulse, Plus, Upload, Loader2, Info } from 'lucide-react';
+import { Newspaper, CreditCard, Award, Gift, QrCode, FileBadge, Building2, HeartPulse, Plus, Upload, Info } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuth } from 'react-oidc-context';
 import ErrorModal from '../../components/common/ErrorModal';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
+import { MembershipCheckoutModal } from '../../components/portal/MembershipCheckoutModal';
+import { CertificatePaymentModal } from '../../components/portal/certificates/CertificatePaymentModal';
 
 import FeaturedNews from '../../components/portal/news/FeaturedNews';
 import NewsCard from '../../components/portal/news/NewsCard';
@@ -166,12 +168,18 @@ const ServicesLayout = () => {
                                                             }
                                                         }}
                                                     >
-                                                        <span className="blur-[4px] group-hover/code:blur-0 transition-all duration-300 select-none">
+                                                        <span className={clsx(
+                                                            "transition-all duration-300 select-none",
+                                                            !cardQuery.data?.isActive ? "blur-[4px] group-hover/code:blur-0" : ""
+                                                        )}>
                                                             {discount.promoCode}
                                                         </span>
-                                                        <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-500 font-medium group-hover/code:hidden">
-                                                            Click to View
-                                                        </div>
+                                                        
+                                                        {!cardQuery.data?.isActive && (
+                                                            <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-500 font-medium group-hover/code:hidden bg-slate-100/90">
+                                                                Click to View
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </MembershipGuard>
                                             )}
@@ -204,44 +212,64 @@ const ServicesLayout = () => {
                                     <div className="w-20 h-20 bg-slate-200 rounded-lg overflow-hidden border-2 border-white/30 shadow-inner relative">
                                         {cardQuery.data?.alumniPhotoUrl ? (
                                             <img
-                                                src={alumniService.getPhotoUrl(cardQuery.data.alumniPhotoUrl)}
+                                                src={cardQuery.data.alumniPhotoUrl.startsWith('/') 
+                                                    ? cardQuery.data.alumniPhotoUrl 
+                                                    : alumniService.getPhotoUrl(cardQuery.data.alumniPhotoUrl)}
                                                 alt="Member"
                                                 className="w-full h-full object-cover"
                                                 onError={(e) => {
                                                     // Fallback if image fails to load
                                                     e.currentTarget.style.display = 'none';
-                                                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                                    const placeholder = e.currentTarget.nextElementSibling;
+                                                    if (placeholder) placeholder.classList.remove('hidden');
                                                 }}
                                             />
                                         ) : null}
                                         {/* Photo Placeholder / Fallback */}
                                         <div className={clsx(
-                                            "w-full h-full bg-slate-300 flex items-center justify-center text-xs text-slate-500 font-medium absolute inset-0",
+                                            "w-full h-full bg-slate-300 flex items-center justify-center text-[10px] text-slate-500 font-medium absolute inset-0 text-center p-1",
                                             cardQuery.data?.alumniPhotoUrl ? "hidden" : ""
                                         )}>
-                                            {t('services.membership.photo_placeholder')}
+                                            {t('services.membership.photo_placeholder', 'NO PHOTO')}
                                         </div>
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-xs text-blue-200 mb-0.5">{t('services.membership.name_label')}</p>
-                                        <h4 className="font-bold text-white text-lg uppercase truncate drop-shadow-sm">{cardQuery.data?.alumniName || auth.user?.profile.name || 'Member Name'}</h4>
-                                        <div className="flex justify-between mt-2">
-                                            <div>
-                                                <p className="text-[10px] text-blue-200">{t('services.membership.id_label')}</p>
-                                                <p className="text-sm text-white font-mono">{cardQuery.data?.alumniNationalId || 'PENDING'}</p>
+                                        <p className="text-[10px] text-blue-200 mb-0.5 uppercase tracking-tighter">{t('services.membership.name_label', 'Full Name')}</p>
+                                        <h4 className="font-bold text-white text-base uppercase truncate drop-shadow-sm leading-tight mb-1">{cardQuery.data?.alumniName || auth.user?.profile.name || 'Member Name'}</h4>
+                                        
+                                        <div className="space-y-1.5 mt-2 border-t border-white/10 pt-2">
+                                            <div className="flex justify-between items-start gap-2">
+                                                <div className="flex-1">
+                                                    <p className="text-[8px] text-blue-200 uppercase tracking-tighter mb-0.5">{t('services.membership.college_label', 'College')}</p>
+                                                    <p className="text-[11px] text-white font-medium leading-tight line-clamp-1" title={cardQuery.data?.collegeName}>{cardQuery.data?.collegeName || '—'}</p>
+                                                </div>
+                                                <div className="flex-1 text-right">
+                                                    <p className="text-[8px] text-blue-200 uppercase tracking-tighter mb-0.5">{t('services.membership.major_label', 'Major')}</p>
+                                                    <p className="text-[11px] text-white font-medium leading-tight line-clamp-1" title={cardQuery.data?.majorName}>{cardQuery.data?.majorName || '—'}</p>
+                                                </div>
                                             </div>
-                                            <div className="text-right flex flex-col items-end gap-1">
+
+                                            <div className="flex justify-between items-end pt-1">
                                                 <div>
-                                                    <p className="text-[10px] text-blue-200 uppercase tracking-wider">{t('services.membership.degree_label')}</p>
-                                                    <p className="text-sm text-white font-mono font-bold leading-tight">{cardQuery.data?.degree || 'N/A'}</p>
+                                                    <p className="text-[8px] text-blue-200 uppercase tracking-tighter mb-0.5">{t('services.membership.degree_label', 'Degree')}</p>
+                                                    <p className="text-[10px] text-white/90 font-medium">{cardQuery.data?.degree || '—'}</p>
                                                 </div>
-                                                <div className="mt-1">
-                                                    <p className="text-[9px] text-blue-200 uppercase tracking-wider">{t('services.membership.college_label', 'College')}</p>
-                                                    <p className="text-xs text-white/90 font-mono leading-tight truncate max-w-[140px]" title={cardQuery.data?.collegeName}>{cardQuery.data?.collegeName || 'N/A'}</p>
+                                                <div className="text-right">
+                                                    <p className="text-[8px] text-blue-200 uppercase tracking-tighter mb-0.5">{t('services.membership.year_label', 'Class Of')}</p>
+                                                    <p className="text-sm text-white font-bold leading-none">{cardQuery.data?.gradYear && cardQuery.data.gradYear > 0 ? cardQuery.data.gradYear : '—'}</p>
                                                 </div>
-                                                <div>
-                                                    <p className="text-[9px] text-blue-200 uppercase tracking-wider">{t('services.membership.year_label', 'Class Of')}</p>
-                                                    <p className="text-xs text-white/90 font-mono leading-tight">{cardQuery.data?.gradYear || 'N/A'}</p>
+                                            </div>
+
+                                            <div className="flex justify-between items-center bg-white/10 rounded px-2 py-1 mt-1">
+                                                <div className="flex items-center gap-1">
+                                                    <p className="text-[8px] text-blue-100 uppercase tracking-widest">{t('services.membership.id_label', 'ID')}:</p>
+                                                    <span className="text-[10px] text-white font-mono">{cardQuery.data?.alumniNationalId || '—'}</span>
+                                                </div>
+                                                <div className={clsx(
+                                                    "px-1.5 py-0.5 rounded-sm text-[8px] font-bold uppercase tracking-widest",
+                                                    cardQuery.data?.isActive ? "bg-emerald-500/40 text-white" : "bg-red-500/40 text-white/80"
+                                                )}>
+                                                    {cardQuery.data?.isActive ? 'VALID' : 'EXPIRED'}
                                                 </div>
                                             </div>
                                         </div>
@@ -251,29 +279,17 @@ const ServicesLayout = () => {
                         </div>
 
                         <div className="mt-8 text-center space-y-4">
-                            <Button onClick={() => setShowRenewModal(true)} className="w-full shadow-lg shadow-blue-500/20 py-6 text-lg">{t('services.membership.renew_btn')}</Button>
+                            {!cardQuery.data?.isActive && (
+                                <Button onClick={() => setShowRenewModal(true)} className="w-full shadow-lg shadow-blue-500/20 py-6 text-lg">{t('services.membership.renew_btn')}</Button>
+                            )}
                             <button onClick={() => setShowLostModal(true)} className="px-4 py-2 w-full rounded-lg hover:bg-slate-100 text-[var(--color-text-secondary)] text-sm transition-colors">{t('services.membership.lost_btn')}</button>
                         </div>
 
-                        {/* Renew Membership Modal */}
-                        {showRenewModal && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-                                <div className="bg-white border border-[var(--color-border)] rounded-xl p-6 w-full max-w-md space-y-4 shadow-2xl">
-                                    <h3 className="text-xl font-bold text-[var(--color-text-primary)]">{t('services.membership.renew_title', 'Renew Your Membership')}</h3>
-                                    <p className="text-[var(--color-text-secondary)]">
-                                        {t('services.membership.renew_desc', 'To renew your alumni membership, please visit your nearest branch office or contact us at support@alumni.edu to complete the renewal process and payment.')}
-                                    </p>
-                                    <div className="flex gap-3 pt-4">
-                                        <button
-                                            onClick={() => setShowRenewModal(false)}
-                                            className="flex-1 px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-[var(--color-text-secondary)] transition-colors font-medium"
-                                        >
-                                            {t('common.close', 'Close')}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                        {/* Renew Membership Checkout Modal */}
+                        <MembershipCheckoutModal 
+                            isOpen={showRenewModal} 
+                            onClose={() => setShowRenewModal(false)} 
+                        />
 
                         {/* Report Lost Card Modal */}
                         {showLostModal && (
@@ -337,11 +353,28 @@ function CertificatesSection() {
         message: ''
     });
 
+    const [paymentModalState, setPaymentModalState] = useState<{ isOpen: boolean, certId: string, certName: string, amount: number }>({
+        isOpen: false,
+        certId: '',
+        certName: '',
+        amount: 0
+    });
+
+    const resetForm = () => {
+        setSelectedDefId('');
+        setSelectedBranchId('');
+        setLanguage(2);
+        setDeliveryMethod(1);
+        setRequestAddress('');
+        setSelectedFile(null);
+    };
+
     const requestMutation = useMutation({
         mutationFn: servicesAppService.requestCertificate,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['my-certificates'] });
             setIsModalOpen(false);
+            resetForm();
             toast.success(t('services.certificates.success'));
         },
         onError: (err: any) => {
@@ -605,6 +638,28 @@ function CertificatesSection() {
                                     </div>
                                 </div>
 
+                                {/* Price Breakdown */}
+                                {selectedDefId && (
+                                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-2 mt-4">
+                                        <div className="flex justify-between text-xs text-slate-500">
+                                            <span>{t('services.certificates.fee_doc', 'Document Fee')}</span>
+                                            <span>{definitions?.items?.find((d: any) => d.id === selectedDefId)?.fee} {t('common.currency')}</span>
+                                        </div>
+                                        {deliveryMethod === 2 && (
+                                            <div className="flex justify-between text-xs text-slate-500">
+                                                <span>{t('services.certificates.fee_delivery', 'Delivery Fee')}</span>
+                                                <span>50 {t('common.currency')}</span>
+                                            </div>
+                                        )}
+                                        <div className="flex justify-between text-sm font-bold border-t border-slate-200 pt-2 text-[var(--color-text-primary)]">
+                                            <span>{t('common.total')}</span>
+                                            <span>
+                                                {(definitions?.items?.find((d: any) => d.id === selectedDefId)?.fee || 0) + (deliveryMethod === 2 ? 50 : 0)} {t('common.currency')}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className="flex gap-3 pt-4">
                                     <button
                                         onClick={() => setIsModalOpen(false)}
@@ -618,7 +673,10 @@ function CertificatesSection() {
                                         className="flex-1"
                                     >
                                         {isUploading ? (
-                                            <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> {t('common.uploading', 'Uploading...')}</span>
+                                            <div className="flex items-center gap-2">
+                                                <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                <span className="animate-pulse">...</span>
+                                            </div>
                                         ) : requestMutation.isPending ? (
                                             t('services.certificates.submitting')
                                         ) : (
@@ -655,16 +713,41 @@ function CertificatesSection() {
                                     <span>{cert.deliveryMethod === 1 ? t('services.certificates.pickup') : t('services.certificates.home_delivery')}</span>
                                 </div>
                             </div>
-                            <div className={clsx(
-                                "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border",
-                                statusInfo.className
-                            )}>
-                                {statusInfo.label}
+                            <div className="flex items-center gap-3">
+                                {cert.status === 2 && cert.remainingAmount > 0 && (
+                                    <Button 
+                                        size="sm" 
+                                        className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm h-8 px-3 text-xs"
+                                        onClick={() => setPaymentModalState({
+                                            isOpen: true,
+                                            certId: cert.id,
+                                            certName: certName,
+                                            amount: cert.remainingAmount
+                                        })}
+                                    >
+                                        <CreditCard className="w-3.5 h-3.5 mr-1" /> Pay Now
+                                    </Button>
+                                )}
+                                <div className={clsx(
+                                    "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border",
+                                    statusInfo.className
+                                )}>
+                                    {statusInfo.label}
+                                </div>
                             </div>
                         </div>
                     );
                 })}
             </div>
+
+            {/* Certificate Payment Integration Overlay */}
+            <CertificatePaymentModal 
+                isOpen={paymentModalState.isOpen}
+                onClose={() => setPaymentModalState({ ...paymentModalState, isOpen: false })}
+                certificateId={paymentModalState.certId}
+                certificateName={paymentModalState.certName}
+                amount={paymentModalState.amount}
+            />
         </div>
     );
 };
@@ -677,6 +760,7 @@ function SyndicatesSection() {
     // Returns array of subscriptions
     const { data: applications } = useQuery({ queryKey: ['syndicate-status'], queryFn: servicesAppService.getSyndicateStatus });
     const [isWizardOpen, setIsWizardOpen] = useState(false);
+    const [wizardSub, setWizardSub] = useState<any>(null);
 
     const activeApplication = applications && applications.length > 0 ? applications[0] : null;
 
@@ -718,10 +802,37 @@ function SyndicatesSection() {
                                 {t('services.syndicates.status_label')}: {getStatusLabel(activeApplication.status)}
                             </div>
 
+                            {activeApplication.status === 4 && (
+                                <div className="bg-red-50 border border-red-100 rounded-lg p-4 text-left space-y-2">
+                                    <div className="flex items-center gap-2 text-red-800 font-bold text-sm">
+                                        <Info className="w-4 h-4" />
+                                        {t('services.syndicates.rejection_reason', 'Rejection Reason')}
+                                    </div>
+                                    <p className="text-red-700 text-sm italic">
+                                        "{activeApplication.adminNotes || t('services.syndicates.no_reason_provided', 'No specific reason provided.')}"
+                                    </p>
+                                </div>
+                            )}
+
+                            {activeApplication.status === 4 && (
+                                <div className="bg-red-50 border border-red-100 rounded-lg p-4 text-left space-y-2 mb-4 animate-fade-in">
+                                    <div className="flex items-center gap-2 text-red-800 font-bold text-sm">
+                                        <Info className="w-4 h-4" />
+                                        {t('services.syndicates.rejection_reason', 'Rejection Reason')}
+                                    </div>
+                                    <p className="text-red-700 text-sm italic">
+                                        "{activeApplication.adminNotes || t('services.syndicates.no_reason_provided', 'No specific reason provided.')}"
+                                    </p>
+                                </div>
+                            )}
+
                             {/* Resume Draft */}
                             {activeApplication.status === -1 && (
                                 <Button
-                                    onClick={() => setIsWizardOpen(true)}
+                                    onClick={() => {
+                                        setWizardSub(activeApplication);
+                                        setIsWizardOpen(true);
+                                    }}
                                     className="w-full"
                                     variant="outline"
                                 >
@@ -729,10 +840,26 @@ function SyndicatesSection() {
                                 </Button>
                             )}
 
+                            {/* Allow Re-application if Rejected */}
+                            {activeApplication.status === 4 && (
+                                <Button
+                                    onClick={() => {
+                                        setWizardSub(null); // Force new application
+                                        setIsWizardOpen(true);
+                                    }}
+                                    className="w-full shadow-lg shadow-blue-500/10"
+                                >
+                                    {t('services.syndicates.reapply_btn', 'Start New Application')}
+                                </Button>
+                            )}
+
                             {/* Upload Documents for Pending/Reviewing */}
                             {(activeApplication.status === 0 || activeApplication.status === 1) && (
                                 <Button
-                                    onClick={() => setIsWizardOpen(true)}
+                                    onClick={() => {
+                                        setWizardSub(activeApplication);
+                                        setIsWizardOpen(true);
+                                    }}
                                     className="w-full"
                                     variant="outline"
                                 >
@@ -744,7 +871,10 @@ function SyndicatesSection() {
                     ) : (
                         <MembershipGuard>
                             <Button
-                                onClick={() => setIsWizardOpen(true)}
+                                onClick={() => {
+                                    setWizardSub(null);
+                                    setIsWizardOpen(true);
+                                }}
                                 className="w-full shadow-md shadow-blue-500/10"
                             >
                                 {t('services.syndicates.apply_btn')}
@@ -756,7 +886,7 @@ function SyndicatesSection() {
 
             {isWizardOpen && (
                 <SyndicateApplicationWizard
-                    existingSubscription={activeApplication}
+                    existingSubscription={wizardSub}
                     onClose={() => setIsWizardOpen(false)}
                     onSuccess={() => {
                         setIsWizardOpen(false);
@@ -784,10 +914,23 @@ function HealthSection() {
         maxResultCount: 50
     };
 
+    const { data: categoriesData } = useQuery({
+        queryKey: ['medical-categories'],
+        queryFn: () => servicesAppService.getMedicalCategories()
+    });
+
     const { data, isLoading } = useQuery({
         queryKey: ['medical-partners', queryInput],
         queryFn: () => servicesAppService.getMedicalPartners(queryInput)
     });
+
+    // Extract unique cities from partners for the filter
+    const { data: allPartnersData } = useQuery({
+        queryKey: ['medical-partners-all'],
+        queryFn: () => servicesAppService.getMedicalPartners({})
+    });
+
+    const uniqueCities = Array.from(new Set((allPartnersData || []).map((p: any) => p.city).filter(Boolean))).sort();
 
     const handleClearFilters = () => {
         setFilterText('');
@@ -803,7 +946,7 @@ function HealthSection() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <h2 className="text-xl font-bold text-[var(--color-text-primary)] flex items-center gap-2">
                         <HeartPulse className="w-5 h-5 text-[var(--color-accent)]" />
-                        {t('services.health.title')}
+                        {t('services.health.title', 'Medical Network')}
                     </h2>
                 </div>
 
@@ -814,6 +957,8 @@ function HealthSection() {
                     setCategory={setCategory}
                     city={city}
                     setCity={setCity}
+                    categories={categoriesData?.items || []}
+                    cities={uniqueCities as string[]}
                     onClear={handleClearFilters}
                 />
 

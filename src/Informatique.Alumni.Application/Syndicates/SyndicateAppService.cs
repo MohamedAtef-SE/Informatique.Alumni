@@ -27,6 +27,7 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
     private readonly IBlobContainer<SyndicateBlobContainer> _blobContainer;
     private readonly AlumniApplicationMappers _alumniMappers;
     private readonly IRepository<AlumniProfile, Guid> _alumniProfileRepository;
+    private readonly IRepository<Volo.Abp.Identity.IdentityUser, Guid> _userRepository;
     private readonly Informatique.Alumni.Payment.IPaymentAppService _paymentAppService;
 
     public SyndicateAppService(
@@ -36,6 +37,7 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
         IBlobContainer<SyndicateBlobContainer> blobContainer,
         AlumniApplicationMappers alumniMappers,
         IRepository<AlumniProfile, Guid> alumniProfileRepository,
+        IRepository<Volo.Abp.Identity.IdentityUser, Guid> userRepository,
         Informatique.Alumni.Payment.IPaymentAppService paymentAppService)
     {
         _syndicateRepository = syndicateRepository;
@@ -44,6 +46,7 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
         _blobContainer = blobContainer;
         _alumniMappers = alumniMappers;
         _alumniProfileRepository = alumniProfileRepository;
+        _userRepository = userRepository;
         _paymentAppService = paymentAppService;
     }
 
@@ -64,18 +67,20 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
     [Authorize]
     public async Task<SyndicateSubscriptionDto> ApplyAsync(ApplySyndicateDto input)
     {
-        var alumniId = CurrentUser.GetId();
-        var existingSubscription = await _subscriptionRepository.FirstOrDefaultAsync(x => x.AlumniId == alumniId && x.SyndicateId == input.SyndicateId);
+        var alumniId = await GetCurrentAlumniProfileIdAsync();
+        var existingSubscriptions = await _subscriptionRepository.GetListAsync(x => x.AlumniId == alumniId && x.SyndicateId == input.SyndicateId);
         
-        if (existingSubscription != null)
+        var activeSub = existingSubscriptions.FirstOrDefault(x => x.Status != SyndicateStatus.Rejected);
+        
+        if (activeSub != null)
         {
             // Resume if Draft
-            if (existingSubscription.Status == SyndicateStatus.Draft)
+            if (activeSub.Status == SyndicateStatus.Draft)
             {
-                return _alumniMappers.MapToDto(existingSubscription);
+                return _alumniMappers.MapToDto(activeSub);
             }
-            // Block if already submitted
-            throw new UserFriendlyException("You have already applied for this syndicate.");
+            // Block if already submitted and not rejected
+            throw new UserFriendlyException("You have an active or pending application for this syndicate.");
         }
 
         var syndicate = await _syndicateRepository.GetAsync(input.SyndicateId);
@@ -88,7 +93,7 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
     [Authorize]
     public async Task<SyndicateSubscriptionDto> GetMySubscriptionAsync(Guid syndicateId)
     {
-        var alumniId = CurrentUser.GetId();
+        var alumniId = await GetCurrentAlumniProfileIdAsync();
         var subscription = await _subscriptionRepository.FirstOrDefaultAsync(x => x.AlumniId == alumniId && x.SyndicateId == syndicateId);
         if (subscription == null) throw new EntityNotFoundException();
         
@@ -104,9 +109,9 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
     [Authorize]
     public async Task<List<SyndicateSubscriptionDto>> GetMyApplicationsAsync()
     {
-        var alumniId = CurrentUser.GetId();
+        var alumniId = await GetCurrentAlumniProfileIdAsync();
         var query = await _subscriptionRepository.WithDetailsAsync(x => x.Documents);
-        var subList = await AsyncExecuter.ToListAsync(query.Where(x => x.AlumniId == alumniId));
+        var subList = await AsyncExecuter.ToListAsync(query.Where(x => x.AlumniId == alumniId).OrderByDescending(x => x.CreationTime));
         var dtos = _alumniMappers.MapToDtos(subList);
 
         if (dtos.Any())
@@ -132,7 +137,7 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
     public async Task<SyndicateSubscriptionDto> PayAsync(Guid subscriptionId)
     {
         var subscription = await _subscriptionRepository.GetAsync(subscriptionId);
-        if (subscription.AlumniId != CurrentUser.GetId()) throw new UnauthorizedAccessException();
+        if (subscription.AlumniId != await GetCurrentAlumniProfileIdAsync()) throw new UnauthorizedAccessException();
 
         if (subscription.PaymentStatus == Informatique.Alumni.Syndicates.PaymentStatus.Paid) 
         {
@@ -168,9 +173,19 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
     public async Task<SyndicateSubscriptionDto> GetApplicationDetailsAsync(Guid subscriptionId)
     {
         var subscription = await _subscriptionRepository.GetAsync(subscriptionId);
-        if (subscription.AlumniId != CurrentUser.GetId()) throw new UnauthorizedAccessException();
+        if (subscription.AlumniId != await GetCurrentAlumniProfileIdAsync() && !await AuthorizationService.IsGrantedAsync(AlumniPermissions.Syndicates.Manage))
+        {
+            throw new UnauthorizedAccessException();
+        }
+
+        var alumni = await _alumniProfileRepository.GetAsync(subscription.AlumniId);
+        var user = await _userRepository.GetAsync(alumni.UserId);
 
         var dto = _alumniMappers.MapToDto(subscription);
+        dto.AlumniName = $"{user.Name} {user.Surname}";
+        dto.AlumniNationalId = alumni.NationalId;
+        dto.AlumniMobileNumber = alumni.MobileNumber;
+
         var syndicate = await _syndicateRepository.GetAsync(subscription.SyndicateId);
         dto.SyndicateName = syndicate.Name;
 
@@ -182,7 +197,7 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
     public async Task UploadDocumentAsync(Guid subscriptionId, [FromBody] UploadSyndicateDocDto input)
     {
         var subscription = await _subscriptionRepository.GetAsync(subscriptionId);
-        if (subscription.AlumniId != CurrentUser.GetId()) throw new UserFriendlyException("You do not have access to this subscription.");
+        if (subscription.AlumniId != await GetCurrentAlumniProfileIdAsync()) throw new UserFriendlyException("You do not have access to this subscription.");
         
         if (subscription.Status != SyndicateStatus.Draft && 
             subscription.Status != SyndicateStatus.Pending && 
@@ -204,7 +219,7 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
     public async Task<IRemoteStreamContent> GetDocumentAsync(Guid subscriptionId, Guid documentId)
     {
         var subscription = await _subscriptionRepository.GetAsync(subscriptionId);
-        if (subscription.AlumniId != CurrentUser.GetId()) throw new UnauthorizedAccessException();
+        if (subscription.AlumniId != await GetCurrentAlumniProfileIdAsync()) throw new UnauthorizedAccessException();
 
         await _subscriptionRepository.EnsureCollectionLoadedAsync(subscription, x => x.Documents);
         var document = subscription.Documents.FirstOrDefault(x => x.Id == documentId);
@@ -321,14 +336,16 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
         // Force Filter
         input.BranchId = currentBranchId;
 
-        // Query with Join to filter by Alumni.BranchId
+        // Query with Join to filter by Alumni.BranchId and get IdentityUser info
         var query = await _subscriptionRepository.GetQueryableAsync();
         var alumniQuery = await _alumniProfileRepository.GetQueryableAsync();
+        var userQuery = await _userRepository.GetQueryableAsync();
 
         var combinedQuery = from sub in query
                             join al in alumniQuery on sub.AlumniId equals al.Id
+                            join u in userQuery on al.UserId equals u.Id
                             where al.BranchId == currentBranchId
-                            select new { Sub = sub, Al = al };
+                            select new { Sub = sub, Al = al, User = u };
 
         // Date Range
         combinedQuery = combinedQuery.Where(x => x.Sub.CreationTime >= input.FromDate && x.Sub.CreationTime <= input.ToDate);
@@ -344,10 +361,11 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
         }
         if (!string.IsNullOrWhiteSpace(input.Filter))
         {
-            // Filter by Alumni Name/NationalId/etc?
-            // Assuming AlumniProfile has Name/NationalId, but Name is on IdentityUser.
-            // AlumniProfile has NationalId, MobileNumber.
-            combinedQuery = combinedQuery.Where(x => x.Al.NationalId.Contains(input.Filter) || x.Al.MobileNumber.Contains(input.Filter));
+            combinedQuery = combinedQuery.Where(x => 
+                x.Al.NationalId.Contains(input.Filter) || 
+                x.Al.MobileNumber.Contains(input.Filter) ||
+                x.User.Name.Contains(input.Filter) ||
+                x.User.Surname.Contains(input.Filter));
         }
 
         var totalCount = await AsyncExecuter.CountAsync(combinedQuery);
@@ -359,7 +377,29 @@ public class SyndicateAppService : AlumniAppService, ISyndicateAppService
                 .Take(input.MaxResultCount)
         );
 
-        var dtos = _alumniMappers.MapToDtos(results.Select(x => x.Sub).ToList());
+        var dtos = results.Select(x => {
+            var dto = _alumniMappers.MapToDto(x.Sub);
+            dto.AlumniName = $"{x.User.Name} {x.User.Surname}";
+            dto.AlumniNationalId = x.Al.NationalId;
+            dto.AlumniMobileNumber = x.Al.MobileNumber;
+            return dto;
+        }).ToList();
+
+        if (dtos.Any())
+        {
+            var syndicateIds = dtos.Select(x => x.SyndicateId).Distinct().ToArray();
+            var syndicates = await _syndicateRepository.GetListAsync(x => syndicateIds.Contains(x.Id));
+            var syndicateDict = syndicates.ToDictionary(x => x.Id, x => x.Name);
+
+            foreach (var dto in dtos)
+            {
+                if (syndicateDict.TryGetValue(dto.SyndicateId, out var name))
+                {
+                    dto.SyndicateName = name;
+                }
+            }
+        }
+
         return new PagedResultDto<SyndicateSubscriptionDto>(totalCount, dtos);
     }
 

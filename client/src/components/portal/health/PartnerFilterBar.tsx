@@ -2,6 +2,7 @@ import { Search, MapPin, Stethoscope } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Input } from "../../ui/Input";
 import { Button } from "../../ui/Button";
+import type { MedicalCategoryDto } from '../../../types/health';
 
 interface PartnerFilterBarProps {
     filterText: string;
@@ -10,6 +11,8 @@ interface PartnerFilterBarProps {
     setCategory: (cat: string) => void;
     city: string;
     setCity: (city: string) => void;
+    categories?: MedicalCategoryDto[];
+    cities?: string[];
     onClear: () => void;
 }
 
@@ -17,6 +20,8 @@ export const PartnerFilterBar = ({
     filterText, setFilterText,
     category, setCategory,
     city, setCity,
+    categories = [],
+    cities = [],
     onClear
 }: PartnerFilterBarProps) => {
     const { t } = useTranslation();
@@ -45,11 +50,9 @@ export const PartnerFilterBar = ({
                     onChange={(e) => setCategory(e.target.value)}
                 >
                     <option value="">{t('services.health.filterCategory', 'All Categories')}</option>
-                    <option value="Pharmacy">Pharmacy</option>
-                    <option value="Hospital">Hospital</option>
-                    <option value="Lab">Lab</option>
-                    <option value="Dental">Dental</option>
-                    <option value="Optical">Optical</option>
+                    {categories.map(cat => (
+                        <option key={cat.id} value={cat.nameEn}>{cat.nameEn}</option>
+                    ))}
                 </select>
             </div>
 
@@ -64,9 +67,9 @@ export const PartnerFilterBar = ({
                     onChange={(e) => setCity(e.target.value)}
                 >
                     <option value="">{t('services.health.filterCity', 'All Cities')}</option>
-                    <option value="Cairo">Cairo</option>
-                    <option value="Giza">Giza</option>
-                    <option value="Alexandria">Alexandria</option>
+                    {cities.map(cityName => (
+                        <option key={cityName} value={cityName}>{cityName}</option>
+                    ))}
                 </select>
             </div>
 

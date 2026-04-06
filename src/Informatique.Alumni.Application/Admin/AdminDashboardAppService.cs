@@ -102,11 +102,16 @@ public class AdminDashboardAppService : ApplicationService, IAdminDashboardAppSe
         dto.MonthlyRegistrations = trends.OrderByDescending(t => DateTime.ParseExact(t.Month, "MMM", null).Month).Reverse().ToList();
 
         // 3. College Distribution
-        // Fix: Count unique alumni per college (taking primary/latest college if multiple) to ensure Sum <= Total
+        // Only count Active alumni
         var eduQuery = await _educationRepository.GetQueryableAsync();
+        var profileQueryForCollege = await _profileRepository.GetQueryableAsync();
         
+        var activeAlumniIds = profileQueryForCollege
+            .Where(p => p.Status == AlumniStatus.Active)
+            .Select(p => p.Id);
+
         var alumniColleges = eduQuery
-            .Where(e => e.CollegeId.HasValue)
+            .Where(e => e.CollegeId.HasValue && activeAlumniIds.Contains(e.AlumniProfileId))
             .Select(e => new { e.AlumniProfileId, e.CollegeId })
             .Distinct()
             .ToList();
@@ -144,7 +149,7 @@ public class AdminDashboardAppService : ApplicationService, IAdminDashboardAppSe
         // Event Revenue
         var regQuery = await _eventRegistrationRepository.GetQueryableAsync();
         var eventRevenue = regQuery
-            .Where(r => (r.Status == RegistrationStatus.Registered || r.Status == RegistrationStatus.Attended) && r.PaidAmount > 0)
+            .Where(r => (r.Status == RegistrationStatus.Pending || r.Status == RegistrationStatus.Confirmed || r.Status == RegistrationStatus.Attended) && r.PaidAmount > 0)
             .Sum(r => r.PaidAmount) ?? 0;
 
         // Membership Revenue
@@ -171,8 +176,9 @@ public class AdminDashboardAppService : ApplicationService, IAdminDashboardAppSe
         // Optimize: Group in DB
         // Note: EF Core GroupBy translation support depends on provider. SQL Server supports it.
         var profilesQuery = await _profileRepository.GetQueryableAsync();
+        var activeProfilesQuery = profilesQuery.Where(p => p.Status == AlumniStatus.Active);
         
-        var topEmployers = profilesQuery
+        var topEmployers = activeProfilesQuery
             .Where(p => p.Company != null && p.Company != "")
             .GroupBy(p => p.Company)
             .Select(g => new { Company = g.Key, Count = g.Count() })
@@ -188,7 +194,7 @@ public class AdminDashboardAppService : ApplicationService, IAdminDashboardAppSe
         // Optimize: Group in DB. 
         // Grouping by concatenated string $"City, Country" might not translate well to SQL in all versions.
         // Safer: Group by City AND Country.
-        var topLocations = profilesQuery
+        var topLocations = activeProfilesQuery
             .Where(p => p.City != null && p.City != "" && p.Country != null && p.Country != "")
             .GroupBy(p => new { p.City, p.Country })
             .Select(g => new { g.Key.City, g.Key.Country, Count = g.Count() })

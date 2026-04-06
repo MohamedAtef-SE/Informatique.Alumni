@@ -3,16 +3,17 @@ import type { PagedResultDto, PagedAndSortedResultRequestDto } from '../types/co
 import type { AssociationRequestDto, MembershipRequestFilterDto, UpdateStatusDto } from '../types/membership';
 import type { EventListDto, CreateEventDto, UpdateEventDto } from '../types/events';
 import type { BlogPostDto, CreateBlogPostDto, UpdateBlogPostDto } from '../types/news';
-import type { CareerServiceDto, CreateCareerServiceDto } from '../types/career';
+import type { CareerServiceDto, CreateCareerServiceDto, CareerServiceTypeDto, CreateUpdateCareerServiceTypeDto, CareerServiceTypeFilterDto, JobDto, JobAdminDto, JobApplicationAdminDto, JobAdminGetListInput } from '../types/career';
 import type { AcademicGrantDto, CommercialDiscountDto, CreateAcademicGrantDto, CreateCommercialDiscountDto } from '../types/benefits';
-import type { GalleryAlbumDto, CreateGalleryAlbumDto } from '../types/gallery';
-import type { UpdateCertificateStatusDto } from '../types/certificates';
+import type { GalleryAlbumDto } from '../types/gallery';
+import type { UpdateCertificateStatusDto, CertificateDefinitionDto, CreateCertificateDefinitionDto, UpdateCertificateDefinitionDto } from '../types/certificates';
 import type { SyndicateStatus } from '../types/syndicates';
-import type { MedicalPartnerDto, CreateMedicalPartnerDto, UpdateMedicalPartnerDto } from '../types/health';
-import type { BranchDto, CreateUpdateBranchDto } from '../types/organization';
+import type { MedicalPartnerDto, CreateMedicalPartnerDto, UpdateMedicalPartnerDto, MedicalCategoryDto, CreateUpdateMedicalCategoryDto } from '../types/health';
+import type { BranchDto, CreateUpdateBranchDto, CollegeDto, CreateUpdateCollegeDto, MajorDto, CreateUpdateMajorDto } from '../types/organization';
 import type { TripAdminDto, TripRequestAdminDto, CreateTripInput } from '../types/trips';
-import type { DashboardStatsDto } from '../types/admin';
+import type { DashboardStatsDto, AlumniAdminListDto, AlumniAdminDto, AlumniAdminGetListInput, AlumniCvDto } from '../types/admin';
 import type { CurrencyDto, LookupItemDto } from '../types/lookups';
+import type { CompanyDto, CreateUpdateCompanyDto, CompanyFilterDto } from '../types/company';
 
 export const adminService = {
     // Membership Management
@@ -32,6 +33,34 @@ export const adminService = {
         await api.post(`/api/app/membership/${id}/reject`, null, {
             params: { reason }
         });
+    },
+
+    getAlumniProfiles: async (input: AlumniAdminGetListInput) => {
+        const response = await api.get<PagedResultDto<AlumniAdminListDto>>('/api/app/alumni-admin/profiles', {
+            params: input
+        });
+        return response.data;
+    },
+
+    toggleAlumniVip: async (id: string) => {
+        await api.post(`/api/app/alumni-admin/${id}/mark-as-notable`);
+    },
+
+    getAlumniProfile: async (id: string) => {
+        const response = await api.get<AlumniAdminDto>(`/api/app/alumni-admin/${id}`);
+        return response.data;
+    },
+
+    toggleAlumniAdvisor: async (id: string) => {
+        await api.post(`/api/app/alumni-admin/${id}/toggle-advisor`);
+    },
+
+    approveAlumniAdvisor: async (id: string) => {
+        await api.post(`/api/app/alumni-admin/${id}/approve-advisor`);
+    },
+
+    rejectAlumniAdvisor: async (id: string, reason: string) => {
+        await api.post(`/api/app/alumni-admin/${id}/reject-advisor`, { reason });
     },
 
     updateStatus: async (id: string, input: UpdateStatusDto) => {
@@ -66,6 +95,68 @@ export const adminService = {
     publishEvent: async (id: string) => {
         await api.post(`/api/app/event-admin/${id}/publish-event`);
     },
+    getEventParticipants: async (input: import('../types/events').ActivityParticipantFilterDto) => {
+        const response = await api.get<PagedResultDto<import('../types/events').ActivityParticipantDto>>('/api/app/events/participants', { params: input });
+        return response.data;
+    },
+    approveEventRegistration: async (id: string) => {
+        await api.post(`/api/app/events/${id}/approve-registration`);
+    },
+    rejectEventRegistration: async (id: string, reason: string) => {
+        await api.post(`/api/app/events/${id}/reject-registration`, null, { params: { reason } });
+    },
+    getCompanies: async (input: CompanyFilterDto) => {
+        const response = await api.get<PagedResultDto<CompanyDto>>('/api/app/company', { params: input });
+        return response.data;
+    },
+
+    getCompany: async (id: string) => {
+        const response = await api.get<CompanyDto>(`/api/app/company/${id}`);
+        return response.data;
+    },
+
+    createCompany: async (input: CreateUpdateCompanyDto) => {
+        const formData = new FormData();
+        formData.append('nameAr', input.nameAr);
+        formData.append('nameEn', input.nameEn);
+        if (input.websiteUrl) formData.append('websiteUrl', input.websiteUrl);
+        if (input.industry) formData.append('industry', input.industry);
+        if (input.description) formData.append('description', input.description);
+        if (input.email) formData.append('email', input.email);
+        if (input.phoneNumber) formData.append('phoneNumber', input.phoneNumber);
+        if (input.logo) formData.append('logo', input.logo);
+
+        const response = await api.post<string>('/api/app/company', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
+    },
+
+    updateCompany: async (id: string, input: CreateUpdateCompanyDto) => {
+        const formData = new FormData();
+        formData.append('nameAr', input.nameAr);
+        formData.append('nameEn', input.nameEn);
+        if (input.websiteUrl) formData.append('websiteUrl', input.websiteUrl);
+        if (input.industry) formData.append('industry', input.industry);
+        if (input.description) formData.append('description', input.description);
+        if (input.email) formData.append('email', input.email);
+        if (input.phoneNumber) formData.append('phoneNumber', input.phoneNumber);
+        formData.append('isActive', String(input.isActive ?? true));
+        if (input.logo) formData.append('logo', input.logo);
+
+        await api.put(`/api/app/company/${id}`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+    },
+
+    deleteCompany: async (id: string) => {
+        await api.delete(`/api/app/company/${id}`);
+    },
+
+    getCompanyLookup: async () => {
+        const response = await api.get<CompanyDto[]>('/api/app/events/companies');
+        return response.data;
+    },
 
     // Content (CMS) & News
     getPosts: async (input: PagedAndSortedResultRequestDto & { filter?: string }) => {
@@ -92,10 +183,27 @@ export const adminService = {
         return response.data;
     },
     publishPost: async (id: string) => {
-        await api.post(`/api/app/blog-admin/${id}/publish-post`);
+        await api.post(`/api/app/blog-admin/${id}/publish`);
     },
     unpublishPost: async (id: string) => {
-        await api.post(`/api/app/blog-admin/${id}/unpublish-post`);
+        await api.post(`/api/app/blog-admin/${id}/unpublish`);
+    },
+
+    // CMS Categories
+    getContentCategories: async (input: PagedAndSortedResultRequestDto) => {
+        const response = await api.get<PagedResultDto<import('../types/news').ArticleCategoryDto>>('/api/app/blog-admin/categories', { params: input });
+        return response.data;
+    },
+    createContentCategory: async (input: import('../types/news').CreateUpdateArticleCategoryDto) => {
+        const response = await api.post<import('../types/news').ArticleCategoryDto>('/api/app/blog-admin/category', input);
+        return response.data;
+    },
+    updateContentCategory: async (id: string, input: import('../types/news').CreateUpdateArticleCategoryDto) => {
+        const response = await api.put<import('../types/news').ArticleCategoryDto>(`/api/app/blog-admin/${id}/category`, input);
+        return response.data;
+    },
+    deleteContentCategory: async (id: string) => {
+        await api.delete(`/api/app/blog-admin/${id}/category`);
     },
 
     // Career
@@ -116,6 +224,63 @@ export const adminService = {
     },
     getCareerLookups: async () => {
         const response = await api.get<import('../types/career').CareerLookupsDto>('/api/app/career/lookups');
+        return response.data;
+    },
+
+    // Career Service Types
+    getCareerServiceTypes: async (input: CareerServiceTypeFilterDto) => {
+        const response = await api.get<PagedResultDto<CareerServiceTypeDto>>('/api/app/career-service-type', {
+            params: input
+        });
+        return response.data;
+    },
+    getCareerServiceType: async (id: string) => {
+        const response = await api.get<CareerServiceTypeDto>(`/api/app/career-service-type/${id}`);
+        return response.data;
+    },
+    createCareerServiceType: async (input: CreateUpdateCareerServiceTypeDto) => {
+        const response = await api.post<CareerServiceTypeDto>('/api/app/career-service-type', input);
+        return response.data;
+    },
+    updateCareerServiceType: async (id: string, input: CreateUpdateCareerServiceTypeDto) => {
+        const response = await api.put<CareerServiceTypeDto>(`/api/app/career-service-type/${id}`, input);
+        return response.data;
+    },
+    deleteCareerServiceType: async (id: string) => {
+        await api.delete(`/api/app/career-service-type/${id}`);
+    },
+
+    // Job Management
+    getAdminJobs: async (input: JobAdminGetListInput) => {
+        const response = await api.get<PagedResultDto<JobAdminDto>>('/api/app/job-admin', { params: input });
+        return response.data;
+    },
+    getAdminJob: async (id: string) => {
+        const response = await api.get<JobAdminDto>(`/api/app/job-admin/${id}`);
+        return response.data;
+    },
+    createJob: async (input: Partial<JobDto>) => {
+        const response = await api.post<JobDto>('/api/app/job/job', input);
+        return response.data;
+    },
+    approveJob: async (id: string) => {
+        await api.post(`/api/app/job-admin/${id}/approve-job`);
+    },
+    rejectJob: async (id: string) => {
+        await api.post(`/api/app/job-admin/${id}/reject-job`);
+    },
+    getJobApplications: async (jobId: string, input: PagedAndSortedResultRequestDto) => {
+        const response = await api.get<PagedResultDto<JobApplicationAdminDto>>(`/api/app/job-admin/applications/${jobId}`, { params: input });
+        return response.data;
+    },
+    getApplicationCv: async (id: string) => {
+        const response = await api.get(`/api/app/job-admin/${id}/application-cv`, {
+            responseType: 'blob'
+        });
+        return response.data;
+    },
+    getAlumniCv: async (alumniId: string) => {
+        const response = await api.get<AlumniCvDto>(`/api/app/job-admin/alumni-cv/${alumniId}`);
         return response.data;
     },
 
@@ -156,9 +321,9 @@ export const adminService = {
         const response = await api.get<PagedResultDto<GalleryAlbumDto>>('/api/app/gallery/albums', { params: input });
         return response.data;
     },
-    createAlbum: async (input: CreateGalleryAlbumDto) => {
+    createAlbum: async (input: { name: string, description?: string }) => {
         const response = await api.post<GalleryAlbumDto>('/api/app/gallery/album', {
-            name: input.title,
+            name: input.name,
             description: input.description
         });
         return response.data;
@@ -239,6 +404,21 @@ export const adminService = {
     deleteMedicalPartner: async (id: string) => {
         await api.delete(`/api/app/medical-partner/${id}`);
     },
+    getMedicalCategories: async (input: PagedAndSortedResultRequestDto & { filterText?: string, isActive?: boolean }) => {
+        const response = await api.get<PagedResultDto<MedicalCategoryDto>>('/api/app/medical-category', { params: input });
+        return response.data;
+    },
+    createMedicalCategory: async (input: CreateUpdateMedicalCategoryDto) => {
+        const response = await api.post<MedicalCategoryDto>('/api/app/medical-category', input);
+        return response.data;
+    },
+    updateMedicalCategory: async (id: string, input: CreateUpdateMedicalCategoryDto) => {
+        const response = await api.put<MedicalCategoryDto>(`/api/app/medical-category/${id}`, input);
+        return response.data;
+    },
+    deleteMedicalCategory: async (id: string) => {
+        await api.delete(`/api/app/medical-category/${id}`);
+    },
     getHealthcareOffers: async (input: any) => {
         const response = await api.get('/api/app/healthcare-offer-management', { params: input });
         return response.data;
@@ -252,6 +432,25 @@ export const adminService = {
     updateCertificateStatus: async (id: string, input: UpdateCertificateStatusDto) => {
         const response = await api.put(`/api/app/certificate-request/${id}/status`, input);
         return response.data;
+    },
+    getCertificateDefinitions: async (input: PagedAndSortedResultRequestDto) => {
+        const response = await api.get<PagedResultDto<CertificateDefinitionDto>>('/api/app/certificate-definition', { params: input });
+        return response.data;
+    },
+    getCertificateDefinition: async (id: string) => {
+        const response = await api.get<CertificateDefinitionDto>(`/api/app/certificate-definition/${id}`);
+        return response.data;
+    },
+    createCertificateDefinition: async (input: CreateCertificateDefinitionDto) => {
+        const response = await api.post<CertificateDefinitionDto>('/api/app/certificate-definition', input);
+        return response.data;
+    },
+    updateCertificateDefinition: async (id: string, input: UpdateCertificateDefinitionDto) => {
+        const response = await api.put<CertificateDefinitionDto>(`/api/app/certificate-definition/${id}`, input);
+        return response.data;
+    },
+    deleteCertificateDefinition: async (id: string) => {
+        await api.delete(`/api/app/certificate-definition/${id}`);
     },
 
     // Organization (Branches)
@@ -269,6 +468,40 @@ export const adminService = {
     },
     deleteBranch: async (id: string) => {
         await api.delete(`/api/app/branch/${id}`);
+    },
+
+    // Organization (Colleges)
+    getColleges: async (input: PagedAndSortedResultRequestDto & { filter?: string }) => {
+        const response = await api.get<PagedResultDto<CollegeDto>>('/api/app/college', { params: input });
+        return response.data;
+    },
+    createCollege: async (input: CreateUpdateCollegeDto) => {
+        const response = await api.post<CollegeDto>('/api/app/college', input);
+        return response.data;
+    },
+    updateCollege: async (id: string, input: CreateUpdateCollegeDto) => {
+        const response = await api.put<CollegeDto>(`/api/app/college/${id}`, input);
+        return response.data;
+    },
+    deleteCollege: async (id: string) => {
+        await api.delete(`/api/app/college/${id}`);
+    },
+
+    // Organization (Majors)
+    getMajors: async (input: PagedAndSortedResultRequestDto & { filter?: string }) => {
+        const response = await api.get<PagedResultDto<MajorDto>>('/api/app/major', { params: input });
+        return response.data;
+    },
+    createMajor: async (input: CreateUpdateMajorDto) => {
+        const response = await api.post<MajorDto>('/api/app/major', input);
+        return response.data;
+    },
+    updateMajor: async (id: string, input: CreateUpdateMajorDto) => {
+        const response = await api.put<MajorDto>(`/api/app/major/${id}`, input);
+        return response.data;
+    },
+    deleteMajor: async (id: string) => {
+        await api.delete(`/api/app/major/${id}`);
     },
 
     // Trips — Admin (uses TripAdminAppService → /api/app/trip-admin/*)
@@ -324,6 +557,13 @@ export const adminService = {
         const response = await api.post(`/api/app/guidance-admin/${id}/reject-request`);
         return response.data;
     },
+    getGuidanceRule: async (branchId: string) => {
+        const response = await api.get(`/api/app/guidance-admin/rule`, { params: { branchId } });
+        return response.data;
+    },
+    updateGuidanceRule: async (input: any) => {
+        await api.post(`/api/app/guidance-admin/rule`, input);
+    },
 
     // Communication
     sendMessage: async (input: any) => {
@@ -350,9 +590,58 @@ export const adminService = {
         return response.data;
     },
 
+    // Magazine Management
+    getMagazines: async (input: PagedAndSortedResultRequestDto & { filter?: string }) => {
+        const response = await api.get<PagedResultDto<import('../types/news').MagazineIssueDto>>('/api/app/magazine/issues', { params: input });
+        return response.data;
+    },
+
+    createMagazine: async (input: { title: string; description?: string; publishDate: string; file: File }) => {
+        const buffer = await input.file.arrayBuffer();
+        const uint8Array = new Uint8Array(buffer);
+        let binary = '';
+        const len = uint8Array.byteLength;
+        for (let i = 0; i < len; i++) {
+            binary += String.fromCharCode(uint8Array[i]);
+        }
+        const base64 = window.btoa(binary);
+        
+        const response = await api.post<import('../types/news').MagazineIssueDto>('/api/app/magazine/issue', {
+            title: input.title,
+            description: input.description,
+            publishDate: input.publishDate,
+            pdfBytes: base64,
+            pdfFileName: input.file.name
+        });
+        return response.data;
+    },
+
+    deleteMagazine: async (id: string) => {
+        await api.delete(`/api/app/magazine/${id}/issue`);
+    },
+
     // Dashboard
     getDashboardStats: async () => {
         const response = await api.get<DashboardStatsDto>('/api/app/admin-dashboard/overview');
+        return response.data;
+    },
+
+    // Alumni Import
+    importAlumniExcel: async (file: File) => {
+        const formData = new FormData();
+        // ABP binds IRemoteStreamContent by the C# parameter name ('stream'), not 'file'
+        formData.append('stream', file);
+        const response = await api.post('/api/app/alumni-import/import-excel', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return response.data;
+    },
+    downloadImportTemplate: async (): Promise<Blob> => {
+        const response = await api.get('/api/app/alumni-import/import-template', {
+            responseType: 'blob'
+        });
         return response.data;
     }
 };

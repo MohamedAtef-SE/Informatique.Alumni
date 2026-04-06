@@ -6,18 +6,20 @@ namespace Informatique.Alumni.Guidance;
 
 public class GuidanceSessionRuleDto : FullAuditedEntityDto<Guid>
 {
-    public Guid AdvisorId { get; set; }
-    public DayOfWeek DayOfWeek { get; set; }
+    public Guid BranchId { get; set; }
     public TimeSpan StartTime { get; set; }
     public TimeSpan EndTime { get; set; }
-    public bool IsActive { get; set; }
+    public int SessionDurationMinutes { get; set; }
+    public List<DayOfWeek> WeekDays { get; set; } = new();
 }
 
-public class CreateUpdateGuidanceSessionRuleDto
+public class UpdateGuidanceSessionRuleDto
 {
-    public DayOfWeek DayOfWeek { get; set; }
+    public Guid BranchId { get; set; }
     public TimeSpan StartTime { get; set; }
     public TimeSpan EndTime { get; set; }
+    public int SessionDurationMinutes { get; set; }
+    public List<DayOfWeek> WeekDays { get; set; } = new();
 }
 
 public class AdvisingRequestDto : FullAuditedEntityDto<Guid>
@@ -72,4 +74,13 @@ public class UpdateAdvisingStatusDto
 {
     public AdvisingRequestStatus Status { get; set; }
     public string? Notes { get; set; }
+}
+
+public class AdvisorDto
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? JobTitle { get; set; }
+    public string? PhotoUrl { get; set; }
+    public Guid BranchId { get; set; }
 }

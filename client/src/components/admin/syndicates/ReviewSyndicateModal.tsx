@@ -93,7 +93,7 @@ export function ReviewSyndicateModal({
                                 </div>
                                 <div>
                                     <span className="text-xs text-slate-500 block mb-1">Mobile</span>
-                                    <span className="font-medium text-slate-900 dark:text-white">{subscription.alumniMobile}</span>
+                                    <span className="font-medium text-slate-900 dark:text-white">{subscription.alumniMobileNumber}</span>
                                 </div>
                                 <div>
                                     <span className="text-xs text-slate-500 block mb-1">Syndicate</span>
@@ -133,7 +133,7 @@ export function ReviewSyndicateModal({
                                 </h3>
                                 <div className="flex items-center gap-2">
                                     <span className="font-medium text-slate-900 dark:text-white">
-                                        {subscription.deliveryMethod === 0 ? 'Office Pickup' : 'Courier Delivery'}
+                                        {subscription.deliveryMethod === 1 ? 'Office Pickup' : 'Courier Delivery'}
                                     </span>
                                 </div>
                             </div>
